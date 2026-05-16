@@ -1,4 +1,4 @@
-package com.github.marcel615.askteacher.global;
+package com.github.marcel615.askteacher.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

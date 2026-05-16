@@ -4,6 +4,8 @@ import com.github.marcel615.askteacher.domain.auth.dto.SignupRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.SignupResponse;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
+import com.github.marcel615.askteacher.global.exception.CustomException;
+import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,13 +39,13 @@ public class AuthService {
 
     private void validateDuplicateEmail(String email) {
         if(userRepository.existsByEmail(email)){
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
     }
 
     private void validateDuplicateNickname(String nickname) {
         if(userRepository.existsByNickname(nickname)){
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
     }
 
