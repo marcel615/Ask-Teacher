@@ -2,16 +2,18 @@ package com.github.marcel615.askteacher.domain.user.entity;
 
 import com.github.marcel615.askteacher.domain.user.type.UserRole;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
 public class User {
 
-    //필드
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,9 +37,6 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    //ctor
-    protected User() {
-    }
     public static User createUser(String email, String encodedPassword, String nickname) {
         User user = new User();
 
