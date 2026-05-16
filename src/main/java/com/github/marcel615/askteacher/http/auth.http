@@ -1,0 +1,29 @@
+### 회원가입 성공
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password1234",
+  "nickname": "springUser"
+}
+
+### 회원가입 실패 - 이메일 형식 오류
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "wrong-email",
+  "password": "password1234",
+  "nickname": "springUser2"
+}
+
+### 회원가입 실패 - 비밀번호 8자 미만
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "user2@example.com",
+  "password": "1234",
+  "nickname": "springUser2"
+}
