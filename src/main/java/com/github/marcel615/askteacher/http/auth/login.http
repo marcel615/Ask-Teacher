@@ -1,0 +1,69 @@
+### 회원가입
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password1234",
+  "nickname": "springUser"
+}
+
+
+### 로그인 성공
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password1234"
+}
+
+
+### 로그인 실패 - 존재하지 않는 이메일
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "wrong@test.com",
+  "password": "password1234"
+}
+
+
+### 로그인 실패 - 비밀번호 불일치
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "wrong-password"
+}
+
+
+### 로그인 실패 - 이메일 공백
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": "password1234"
+}
+
+
+### 로그인 실패 - 이메일 형식 오류
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test",
+  "password": "password1234"
+}
+
+
+### 로그인 실패 - 비밀번호 공백
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": ""
+}
