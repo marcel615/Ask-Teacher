@@ -1,5 +1,7 @@
 package com.github.marcel615.askteacher.domain.auth.service;
 
+import com.github.marcel615.askteacher.domain.auth.dto.LoginRequest;
+import com.github.marcel615.askteacher.domain.auth.dto.LoginResponse;
 import com.github.marcel615.askteacher.domain.auth.dto.SignupRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.SignupResponse;
 import com.github.marcel615.askteacher.domain.user.entity.User;
@@ -36,6 +38,16 @@ public class AuthService {
         return SignupResponse.from(savedUser);
     }
 
+    @Transactional(readOnly = true)
+    public LoginResponse login(LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_LOGIN_INFO));
+
+        validatePassword(loginRequest.getPassword(), user.getPassword());
+
+        return LoginResponse.from(user);
+    }
+
 
     private void validateDuplicateEmail(String email) {
         if(userRepository.existsByEmail(email)){
@@ -46,6 +58,12 @@ public class AuthService {
     private void validateDuplicateNickname(String nickname) {
         if(userRepository.existsByNickname(nickname)){
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+    }
+
+    private void validatePassword(String requestedPassword, String encodedPassword) {
+        if (!passwordEncoder.matches(requestedPassword, encodedPassword)) {
+            throw new CustomException(ErrorCode.INVALID_LOGIN_INFO);
         }
     }
 
