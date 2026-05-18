@@ -1,0 +1,37 @@
+package com.github.marcel615.askteacher.domain.post.service;
+
+import com.github.marcel615.askteacher.domain.category.entity.Category;
+import com.github.marcel615.askteacher.domain.category.repository.CategoryRepository;
+import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
+import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
+import com.github.marcel615.askteacher.domain.post.entity.Post;
+import com.github.marcel615.askteacher.domain.post.repository.PostRepository;
+import com.github.marcel615.askteacher.domain.user.entity.User;
+import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
+import com.github.marcel615.askteacher.global.exception.CustomException;
+import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class PostService {
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+
+    @Transactional
+    public PostCreateResponse postCreate(PostCreateRequest postCreateRequest) {
+        User user = userRepository.findById(postCreateRequest.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Category category = categoryRepository.findByName(postCreateRequest.getCategoryName())
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+        Post post = Post.createPost(user, category, postCreateRequest.getTitle(), postCreateRequest.getContent());
+
+        Post savedPost = postRepository.save(post);
+
+        return PostCreateResponse.from(savedPost);
+    }
+
+}
