@@ -22,11 +22,13 @@ public class PostService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public PostCreateResponse postCreate(PostCreateRequest postCreateRequest) {
+    public PostCreateResponse createPost(PostCreateRequest postCreateRequest) {
         User user = userRepository.findById(postCreateRequest.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Category category = categoryRepository.findByName(postCreateRequest.getCategoryName())
+
+        Category category = categoryRepository.findById(postCreateRequest.getCategoryId())
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+
         Post post = Post.createPost(user, category, postCreateRequest.getTitle(), postCreateRequest.getContent());
 
         Post savedPost = postRepository.save(post);

@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping()
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<PostCreateResponse> createPost(@Valid @RequestBody PostCreateRequest postCreateRequest){
-        PostCreateResponse postCreateResponse = postService.postCreate(postCreateRequest);
+        PostCreateResponse postCreateResponse = postService.createPost(postCreateRequest);
         return ApiResponse.success(201, "게시글이 작성되었습니다.", postCreateResponse);
     }
 

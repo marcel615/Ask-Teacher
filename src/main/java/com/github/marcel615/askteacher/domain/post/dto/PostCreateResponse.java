@@ -12,13 +12,13 @@ public class PostCreateResponse {
 
     private Long postId;
     private String title;
-    private boolean isNew;
+    private boolean newPost;
     private LocalDateTime createdAt;
 
-    private PostCreateResponse(Long postId, String title, boolean isNew, LocalDateTime createdAt) {
+    private PostCreateResponse(Long postId, String title, boolean newPost, LocalDateTime createdAt) {
         this.postId = postId;
         this.title = title;
-        this.isNew = isNew;
+        this.newPost = newPost;
         this.createdAt = createdAt;
     }
 
@@ -26,7 +26,7 @@ public class PostCreateResponse {
         return new PostCreateResponse(
                 post.getId(),
                 post.getTitle(),
-                post.isNew(),
+                post.isNewPost(),
                 post.getCreatedAt()
         );
     }
