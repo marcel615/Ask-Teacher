@@ -1,0 +1,91 @@
+### 회원가입 성공
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password1234",
+  "nickname": "springUser"
+}
+
+
+### 게시글 생성 성공
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "Spring 질문입니다",
+  "content": "게시글 작성 기능 테스트입니다."
+}
+
+
+### 게시글 생성 실패 - 존재하지 않는 유저
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 999,
+  "categoryId": 1,
+  "title": "Spring 질문입니다",
+  "content": "존재하지 않는 유저 테스트입니다."
+}
+
+
+### 게시글 생성 실패 - 존재하지 않는 카테고리
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 999,
+  "title": "Spring 질문입니다",
+  "content": "존재하지 않는 카테고리 테스트입니다."
+}
+
+
+### 게시글 생성 실패 - 제목 누락
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "",
+  "content": "제목 누락 테스트입니다."
+}
+
+
+### 게시글 생성 실패 - 내용 누락
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "내용 누락 테스트",
+  "content": ""
+}
+
+
+### 게시글 생성 실패 - userId 누락
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "categoryId": 1,
+  "title": "작성자 누락 테스트",
+  "content": "userId 누락 테스트입니다."
+}
+
+
+### 게시글 생성 실패 - categoryId 누락
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "title": "카테고리 누락 테스트",
+  "content": "categoryId 누락 테스트입니다."
+}
