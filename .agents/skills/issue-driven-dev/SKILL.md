@@ -7,9 +7,9 @@ description: GitHub Issue 기반 개발 워크플로우가 필요할 때 사용�
 
 ## 역할
 
-- Architect: Issue 분석, current-task.md 초안, PR 리뷰
+- Architect: Issue 분석, current-task.md 초안, PR 리뷰, devlog
 - Builder: 승인된 구현, 테스트, PR 준비
-- Reporter: devlog / README / 포트폴리오 기록 초안
+- Reporter: README / 포트폴리오 기록 초안
 
 ## 핵심 원칙
 
@@ -63,7 +63,7 @@ git checkout -b feature/issue-번호-작업명
 10. 변경 파일, 테스트 결과, git diff, PR 초안을 요약한다.
 11. 사용자 승인 후 `feature/*` → `develop` PR을 만든다.
 12. Architect가 `docs/review-checklist.md` 기준으로 리뷰한다.
-13. Reporter가 `docs/devlog.md` 초안을 작성한다.
+13. Architect가 `docs/devlog.md` 초안을 작성한다.
 
 ## 중단 조건
 
