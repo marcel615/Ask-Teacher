@@ -217,14 +217,14 @@
       "postId": 1,
       "title": "Spring Bean이 뭔가요?",
       "writerNickname": "springUser",
-      "isNew": true,
+      "newPost": true,
       "createdAt": "2026-05-12T19:30:00"
     },
     {
       "postId": 2,
       "title": "DTO와 Entity 차이가 뭔가요?",
       "writerNickname": "backendUser",
-      "isNew": false,
+      "newPost": false,
       "createdAt": "2026-05-11T14:20:00"
     }
   ]

@@ -46,7 +46,7 @@ API / ERD / 요구사항 전체는 복사하지 않는다. 이번 Issue와 직�
 - [ ] `GET /api/posts` API 추가
 - [ ] 게시글 목록 응답 DTO 추가
 - [ ] 삭제되지 않은 게시글만 조회
-- [ ] 응답에 `postId`, `title`, `writerNickname`, `isNew`, `createdAt` 포함
+- [ ] 응답에 `postId`, `title`, `writerNickname`, `newPost`, `createdAt` 포함
 - [ ] 게시글 목록 조회 테스트 추가 또는 기존 테스트 보강
 - [ ] `./gradlew test` 통과 확인
 
