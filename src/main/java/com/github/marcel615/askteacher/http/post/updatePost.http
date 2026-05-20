@@ -1,0 +1,57 @@
+### Prepare update post - signup author
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "post-update-author@example.com",
+  "password": "password1234",
+  "nickname": "postUpdateAuthor"
+}
+
+
+### Prepare update post - create post
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "Spring update target",
+  "content": "Post content before update."
+}
+
+
+### Update post - success
+PATCH http://localhost:8080/api/posts/1
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "Updated Spring question",
+  "content": "Updated post content."
+}
+
+
+### Update post - author mismatch
+PATCH http://localhost:8080/api/posts/1
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "categoryId": 1,
+  "title": "Updated Spring question",
+  "content": "Updated post content."
+}
+
+
+### Update post - missing title
+PATCH http://localhost:8080/api/posts/1
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "",
+  "content": "Updated post content."
+}
