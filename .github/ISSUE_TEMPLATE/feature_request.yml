@@ -1,0 +1,27 @@
+name: Feature Request
+description: 기능 추가 / 수정 / 개선 요청
+title: "[Feature] "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: 배경
+      description: 왜 필요한가?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 원하는 동작
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 완료 조건
+      placeholder: |
+        - [ ] 구현
+        - [ ] 테스트 통과
+    validations:
+      required: true
