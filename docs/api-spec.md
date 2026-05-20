@@ -27,7 +27,7 @@
 | 로그인 | POST | `/api/auth/login` | 구현됨 |
 | 카테고리 목록 조회 | GET | `/api/categories` | 구현됨 |
 | 게시글 작성 | POST | `/api/posts` | 구현됨 |
-| 게시글 목록 조회 | GET | `/api/posts` | TODO |
+| 게시글 목록 조회 | GET | `/api/posts` | 구현됨 |
 
 ---
 
