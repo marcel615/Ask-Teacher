@@ -28,6 +28,7 @@
 | 카테고리 목록 조회 | GET | `/api/categories` | 구현됨 |
 | 게시글 작성 | POST | `/api/posts` | 구현됨 |
 | 게시글 목록 조회 | GET | `/api/posts` | 구현됨 |
+| 게시글 수정 | PATCH | `/api/posts/{postId}` | 구현 예정 |
 
 ---
 
@@ -241,3 +242,63 @@
 
 - 삭제된 게시글은 목록에서 제외한다.
 - Issue #5 범위에는 검색, 페이징, 정렬 조건을 포함하지 않는다.
+
+---
+
+## 게시글 수정
+
+### Request
+
+`PATCH /api/posts/{postId}`
+
+```json
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "수정 게시글 제목",
+  "content": "수정 게시글 내용"
+}
+```
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| postId | 필수, 존재하는 게시글 ID |
+| userId | 필수, 존재하는 사용자 ID, 게시글 작성자 ID와 일치 |
+| categoryId | 필수, 존재하는 카테고리 ID |
+| title | 필수, 100자 이하 |
+| content | 필수, 5000자 이하 |
+
+### Response
+
+```json
+{
+  "status": 200,
+  "message": "게시글 수정에 성공했습니다.",
+  "data": {
+    "postId": 1,
+    "categoryId": 1,
+    "title": "수정 게시글 제목",
+    "content": "수정 게시글 내용",
+    "updatedAt": "2026-05-12T19:30:00"
+  }
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 수정 성공 | 200 OK |
+| Validation 실패 | 400 Bad Request |
+| 작성자 불일치 | 403 Forbidden |
+| 게시글 없음 | 404 Not Found |
+| 사용자 없음 | 404 Not Found |
+| 카테고리 없음 | 404 Not Found |
+
+### 비고
+
+- 이번 Issue 범위에는 로그인/토큰 기반 인증/인가 구조 변경을 포함하지 않는다.
+- 작성자 검증은 request body의 `userId`와 게시글 작성자 ID를 비교하는 방식으로 처리한다.
+- 게시글 수정 시 `newPost`, `deleted`, `createdAt`, `user`는 변경하지 않는다.

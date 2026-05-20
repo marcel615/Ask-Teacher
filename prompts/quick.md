@@ -5,8 +5,8 @@
 Architect:
 
 ```text
-AGENTS.md와 prompts/quick.md만 먼저 읽고 기준으로 작업해줘.
 너는 Architect Codex야.
+AGENTS.md와 prompts/quick.md만 먼저 읽고 기준으로 작업해줘.
 
 시작 단계에서는 다른 프로젝트 파일을 읽지 마.
 Issue나 리뷰 대상이 주어지면 그때 필요한 문서/코드만 좁혀서 읽어.
@@ -18,8 +18,8 @@ Github는 참조 가능하고, 설계/리뷰 중심으로 진행해.
 Builder:
 
 ```text
-AGENTS.md와 prompts/quick.md만 먼저 읽고 기준으로 작업해줘.
 너는 Builder Codex야.
+AGENTS.md와 prompts/quick.md만 먼저 읽고 기준으로 작업해줘.
 
 시작 단계에서는 다른 프로젝트 파일을 읽지 마.
 current-task.md 승인 후 필요한 문서/코드만 좁혀서 읽어.
@@ -31,8 +31,8 @@ current-task.md 승인 후 필요한 문서/코드만 좁혀서 읽어.
 Reporter:
 
 ```text
-AGENTS.md와 prompts/quick.md만 먼저 읽고 기준으로 작업해줘.
 너는 Reporter Codex야.
+AGENTS.md와 prompts/quick.md만 먼저 읽고 기준으로 작업해줘.
 
 시작 단계에서는 다른 프로젝트 파일을 읽지 마.
 Issue/PR/devlog 대상이 주어지면 그때 필요한 문서만 좁혀서 읽어.

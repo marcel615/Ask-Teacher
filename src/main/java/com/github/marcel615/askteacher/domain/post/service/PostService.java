@@ -5,6 +5,8 @@ import com.github.marcel615.askteacher.domain.category.repository.CategoryReposi
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
+import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
+import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.post.repository.PostRepository;
 import com.github.marcel615.askteacher.domain.user.entity.User;
@@ -46,4 +48,23 @@ public class PostService {
                 .toList();
     }
 
+    @Transactional
+    public PostUpdateResponse updatePost(Long postId, PostUpdateRequest postUpdateRequest) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        User user = userRepository.findById(postUpdateRequest.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Category category = categoryRepository.findById(postUpdateRequest.getCategoryId())
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new CustomException(ErrorCode.POST_AUTHOR_MISMATCH);
+        }
+
+        post.update(category, postUpdateRequest.getTitle(), postUpdateRequest.getContent());
+
+        return PostUpdateResponse.from(post);
+    }
 }

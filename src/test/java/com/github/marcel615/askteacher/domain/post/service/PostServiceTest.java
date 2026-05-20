@@ -3,10 +3,14 @@ package com.github.marcel615.askteacher.domain.post.service;
 import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.category.repository.CategoryRepository;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
+import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
+import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.post.repository.PostRepository;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
+import com.github.marcel615.askteacher.global.exception.CustomException;
+import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -58,5 +63,114 @@ class PostServiceTest {
         assertThat(response.getTitle()).isEqualTo("visible title");
         assertThat(response.getWriterNickname()).isEqualTo("postListUser");
         assertThat(response.isNewPost()).isTrue();
+    }
+
+    @Test
+    void updatePostUpdatesCategoryTitleAndContent() {
+        User user = userRepository.save(User.createUser("post-update@example.com", "password", "postUpdateUser"));
+        Category originalCategory = categoryRepository.save(Category.createCategory("original-category"));
+        Category newCategory = categoryRepository.save(Category.createCategory("new-category"));
+        Post post = postRepository.save(Post.createPost(user, originalCategory, "original title", "original content"));
+
+        PostUpdateRequest request = createUpdateRequest(
+                user.getId(),
+                newCategory.getId(),
+                "updated title",
+                "updated content"
+        );
+
+        PostUpdateResponse response = postService.updatePost(post.getId(), request);
+
+        assertThat(response.getPostId()).isEqualTo(post.getId());
+        assertThat(response.getCategoryId()).isEqualTo(newCategory.getId());
+        assertThat(response.getTitle()).isEqualTo("updated title");
+        assertThat(response.getContent()).isEqualTo("updated content");
+        assertThat(response.getUpdatedAt()).isNotNull();
+
+        Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
+        assertThat(updatedPost.getCategory().getId()).isEqualTo(newCategory.getId());
+        assertThat(updatedPost.getTitle()).isEqualTo("updated title");
+        assertThat(updatedPost.getContent()).isEqualTo("updated content");
+    }
+
+    @Test
+    void updatePostThrowsForbiddenWhenUserIsNotAuthor() {
+        User author = userRepository.save(User.createUser("post-author@example.com", "password", "postAuthor"));
+        User anotherUser = userRepository.save(User.createUser("post-another@example.com", "password", "postAnother"));
+        Category category = categoryRepository.save(Category.createCategory("author-check-category"));
+        Post post = postRepository.save(Post.createPost(author, category, "title", "content"));
+        PostUpdateRequest request = createUpdateRequest(
+                anotherUser.getId(),
+                category.getId(),
+                "updated title",
+                "updated content"
+        );
+
+        assertThatThrownBy(() -> postService.updatePost(post.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
+    }
+
+    @Test
+    void updatePostThrowsWhenPostDoesNotExist() {
+        User user = userRepository.save(User.createUser("post-missing@example.com", "password", "postMissingUser"));
+        Category category = categoryRepository.save(Category.createCategory("post-missing-category"));
+        PostUpdateRequest request = createUpdateRequest(
+                user.getId(),
+                category.getId(),
+                "updated title",
+                "updated content"
+        );
+
+        assertThatThrownBy(() -> postService.updatePost(999999L, request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.POST_NOT_FOUND);
+    }
+
+    @Test
+    void updatePostThrowsWhenUserDoesNotExist() {
+        User author = userRepository.save(User.createUser("post-user-missing@example.com", "password", "postUserMissing"));
+        Category category = categoryRepository.save(Category.createCategory("user-missing-category"));
+        Post post = postRepository.save(Post.createPost(author, category, "title", "content"));
+        PostUpdateRequest request = createUpdateRequest(
+                999999L,
+                category.getId(),
+                "updated title",
+                "updated content"
+        );
+
+        assertThatThrownBy(() -> postService.updatePost(post.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    void updatePostThrowsWhenCategoryDoesNotExist() {
+        User user = userRepository.save(User.createUser("post-category-missing@example.com", "password", "postCategoryMissing"));
+        Category category = categoryRepository.save(Category.createCategory("category-missing-original"));
+        Post post = postRepository.save(Post.createPost(user, category, "title", "content"));
+        PostUpdateRequest request = createUpdateRequest(
+                user.getId(),
+                999999L,
+                "updated title",
+                "updated content"
+        );
+
+        assertThatThrownBy(() -> postService.updatePost(post.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
+    }
+
+    private PostUpdateRequest createUpdateRequest(Long userId, Long categoryId, String title, String content) {
+        PostUpdateRequest request = new PostUpdateRequest();
+        ReflectionTestUtils.setField(request, "userId", userId);
+        ReflectionTestUtils.setField(request, "categoryId", categoryId);
+        ReflectionTestUtils.setField(request, "title", title);
+        ReflectionTestUtils.setField(request, "content", content);
+        return request;
     }
 }
