@@ -57,6 +57,6 @@ class PostServiceTest {
 
         assertThat(response.getTitle()).isEqualTo("visible title");
         assertThat(response.getWriterNickname()).isEqualTo("postListUser");
-        assertThat(response.isNew()).isTrue();
+        assertThat(response.isNewPost()).isTrue();
     }
 }

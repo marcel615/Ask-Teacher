@@ -1,6 +1,5 @@
 package com.github.marcel615.askteacher.domain.post.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,17 +13,14 @@ public class PostListResponse {
     private Long postId;
     private String title;
     private String writerNickname;
-
-    @JsonProperty("isNew")
-    private boolean isNew;
-
+    private boolean newPost;
     private LocalDateTime createdAt;
 
-    private PostListResponse(Long postId, String title, String writerNickname, boolean isNew, LocalDateTime createdAt) {
+    private PostListResponse(Long postId, String title, String writerNickname, boolean newPost, LocalDateTime createdAt) {
         this.postId = postId;
         this.title = title;
         this.writerNickname = writerNickname;
-        this.isNew = isNew;
+        this.newPost = newPost;
         this.createdAt = createdAt;
     }
 
