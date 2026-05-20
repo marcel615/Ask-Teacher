@@ -30,6 +30,14 @@
 ./gradlew test
 ```
 
+## 수동 API 확인
+
+- 프론트엔드가 없는 동안 `.http` 파일을 수동 API 확인용으로 사용한다.
+- `.http` 파일은 자동 테스트를 대체하지 않으며, 기본 검증은 `./gradlew test`다.
+- 새 API 또는 변경된 API가 있으면 관련 `.http` 파일을 추가/수정하고 가능한 범위에서 실행 확인한다.
+- `.http` 파일 위치는 기존 구조를 유지한다: `src/main/java/com/github/marcel615/askteacher/http`
+- 수동 API 확인 결과는 PR 요약 또는 devlog에 기록한다.
+
 ## Global Codex Guidelines
 
 These guidelines reduce common LLM coding mistakes. Prefer caution over speed.

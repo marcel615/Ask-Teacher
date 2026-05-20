@@ -79,7 +79,8 @@ develop 최신화와 feature 브랜치 생성 계획을 제안해줘.
 브랜치 생성과 구현 계획 승인.
 develop을 최신화하고 제안한 feature 브랜치에서 구현해줘.
 구현 후 ./gradlew test 실행,
-변경 파일, 테스트 결과, git diff 요약, PR 초안을 보여줘.
+새 API 또는 변경된 API가 있다면 .http 파일 추가/수정 및 가능한 범위에서 수동 확인,
+변경 파일, 테스트 결과, 수동 API 확인 결과, git diff 요약, PR 초안을 보여줘.
 아직 git add, commit, push, PR 생성은 하지 마.
 ```
 

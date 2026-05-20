@@ -48,6 +48,7 @@ API / ERD / 요구사항 전체는 복사하지 않는다. 이번 Issue와 직�
 - [ ] 삭제되지 않은 게시글만 조회
 - [ ] 응답에 `postId`, `title`, `writerNickname`, `newPost`, `createdAt` 포함
 - [ ] 게시글 목록 조회 테스트 추가 또는 기존 테스트 보강
+- [ ] 새 API 또는 변경된 API가 있다면 `.http` 파일 추가/수정 및 수동 확인
 - [ ] `./gradlew test` 통과 확인
 
 ## 이번 PR에서 하지 않을 일
@@ -65,6 +66,7 @@ API / ERD / 요구사항 전체는 복사하지 않는다. 이번 Issue와 직�
 - [ ] 기능 구현 완료
 - [ ] Validation / 예외 처리 확인
 - [ ] 테스트 통과
+- [ ] 수동 API 확인 완료 또는 생략 사유 기록
 - [ ] git diff 검토
 - [ ] PR 본문 작성
 
