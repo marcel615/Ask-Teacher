@@ -53,6 +53,14 @@ gh issue view 번호 --json title,body,labels,state,url 로 조회하고,
 2. 변경이 필요하다면 각 문서별 수정안 초안 작성
 3. docs/current-task.md 초안 작성
 
+current-task.md 초안에는 다음도 포함해줘.
+
+- Architect가 승인받아 수정한 문서를 `예상 변경 파일 > Architect 사전 반영 문서`에 기록
+- `docs/current-task.md`는 current-task 확정 시 항상 포함
+- `docs/requirements.md`, `docs/api-spec.md`, `docs/erd.md`는 실제 변경이 필요한 경우에만 포함
+- ERD 변경이 필요하지 않다면 `ERD 변경 없음`과 사유를 기록
+- Builder가 구현 중 생성/수정할 수 있는 파일은 `예상 변경 파일 > Builder 구현 변경 예상 파일`에 따로 기록
+
 아직 파일은 수정하지 마.
 내가 승인하면 필요한 문서와 current-task.md에 반영해.
 ```
@@ -70,6 +78,8 @@ docs/current-task.md에 반영해줘.
 docs/current-task.md 기준으로 구현 계획 세우자.
 먼저 git status, git branch --show-current, git remote -v만 확인해.
 develop 최신화와 feature 브랜치 생성 계획을 제안해줘.
+git status에서 변경된 문서가 보이면 docs/current-task.md의 `예상 변경 파일 > Architect 사전 반영 문서`에 포함된 파일인지 확인하고,
+포함되어 있다면 이번 Issue의 승인된 사전 문서 변경으로 간주해 feature 브랜치에 함께 가져갈 계획을 세워줘.
 아직 파일 수정, 브랜치 이동, 브랜치 생성은 하지 마.
 ```
 
@@ -78,6 +88,7 @@ develop 최신화와 feature 브랜치 생성 계획을 제안해줘.
 ```text
 브랜치 생성과 구현 계획 승인.
 develop을 최신화하고 제안한 feature 브랜치에서 구현해줘.
+승인된 Architect 사전 반영 문서 변경은 되돌리지 말고, 생성한 feature 브랜치에서 그대로 유지한 상태로 구현을 진행해줘.
 구현 후 ./gradlew test 실행,
 새 API 또는 변경된 API가 있다면 .http 파일 추가/수정 및 가능한 범위에서 수동 확인,
 변경 파일, 테스트 결과, 수동 API 확인 결과, git diff 요약, PR 초안을 보여줘.

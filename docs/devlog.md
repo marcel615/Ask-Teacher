@@ -91,3 +91,110 @@
 - Controller/WebMvc 테스트를 추가해 실제 JSON 응답 필드명 검증
 - PR 범위가 큰 문서/템플릿 추가 작업을 별도 PR로 분리할지 결정
 - Issue #5 병합 후 다음 게시글 기능 Issue 선정
+
+## 2026-05-20
+
+### Issue / PR
+
+- Issue: #8 feat(post): 게시글 수정
+- Branch: `feature/issue-8-post-update`
+- PR: #9 feat(post): 게시글 수정 API 추가
+- PR URL: https://github.com/marcel615/Ask-Teacher/pull/9
+
+### 오늘의 작업
+
+- Issue #8 내용을 기준으로 게시글 수정 요구사항을 정리했다.
+- `docs/requirements.md`, `docs/api-spec.md`, `docs/current-task.md`에 게시글 수정 범위를 반영했다.
+- 로그인/토큰 기반 인증 구조가 아직 정식 범위가 아니므로, request body의 `userId`로 작성자 여부를 검증하는 방식으로 설계했다.
+- `PATCH /api/posts/{postId}` 게시글 수정 API 구현 PR을 리뷰했다.
+- Architect 리뷰 결과를 PR #9에 코멘트로 남겼다.
+
+### 변경 내용
+
+- 게시글 수정 API 명세 추가
+  - `PATCH /api/posts/{postId}`
+  - 요청 필드: `userId`, `categoryId`, `title`, `content`
+  - 응답 필드: `postId`, `categoryId`, `title`, `content`, `updatedAt`
+- 게시글 수정 구현 범위 문서화
+  - 게시글 ID로 수정 대상 조회
+  - 사용자 ID 존재 여부 확인
+  - 카테고리 ID 존재 여부 확인
+  - 요청 사용자 ID와 게시글 작성자 ID 일치 여부 확인
+  - 작성자 불일치 시 `403 Forbidden` 처리
+- `PostService.updatePost`에서 게시글 수정 로직 추가
+  - 수정 대상 `Post` 엔티티를 조회한 뒤 엔티티의 수정 메서드를 호출
+  - 별도 update query 없이 JPA 영속성 컨텍스트의 Dirty checking으로 변경 사항을 반영
+- 게시글 수정 요청/응답 DTO 추가
+  - `PostUpdateRequest`
+  - `PostUpdateResponse`
+- 게시글 수정 수동 확인용 `.http` 파일 추가
+  - `src/main/java/com/github/marcel615/askteacher/http/post/updatePost.http`
+
+### 테스트 결과
+
+```bash
+./gradlew test
+```
+
+- 결과: 통과
+- 확인 내용:
+  - PR 본문 기준 `./gradlew test` 통과
+  - 게시글 수정 성공 케이스 테스트
+  - 작성자 불일치 예외 테스트
+  - 게시글 없음 예외 테스트
+  - 사용자 없음 예외 테스트
+  - 카테고리 없음 예외 테스트
+
+### 수동 API 확인
+
+- `src/main/java/com/github/marcel615/askteacher/http/post/updatePost.http`로 수동 확인을 진행했다.
+- 수정 대상 게시글 생성 후 `PATCH /api/posts/{postId}` 성공 요청을 확인했다.
+- 작성자 불일치와 validation 실패 요청도 수동 확인 케이스로 포함했다.
+
+### 문제 / 해결
+
+- 문제:
+  - Issue 원문에는 request body에 `userId`가 없었지만, 작성자 본인만 수정할 수 있어야 한다는 요구가 추가되었다.
+- 해결:
+  - 로그인/토큰 기반 인증 구조를 도입하지 않고, 이번 Issue 범위에서는 request body의 `userId`와 게시글 작성자 ID를 비교하는 방식으로 제한했다.
+
+- 문제:
+  - Issue 원문의 `categoryId` 예시는 문자열처럼 표현되어 있었다.
+- 해결:
+  - 기존 ERD/API 흐름에 맞춰 `categoryId`를 존재하는 카테고리 ID 값으로 정리했다.
+
+- 문제:
+  - 게시글 수정은 DB 구조 변경이 필요한지 검토가 필요했다.
+- 해결:
+  - 기존 `Post` 엔티티의 `category`, `title`, `content`, `updatedAt` 필드로 처리 가능하므로 ERD 변경 없이 진행했다.
+
+- 문제:
+  - PR 리뷰 중 응답 메시지 문구가 API 명세와 약간 달랐고, `.http` 작성자 불일치 케이스는 환경에 따라 보강 여지가 있었다.
+- 해결:
+  - 기능 동작과 핵심 설계에는 영향이 작다고 판단해 PR 차단 사유로 보지 않고 통과 코멘트를 남겼다.
+
+### AI 활용 기록
+
+- Architect:
+  - Issue #8 분석
+  - 요구사항/API/current-task 문서 초안 작성
+  - `userId` 기반 작성자 검증 요구 반영
+  - PR #9 리뷰
+  - PR 코멘트 작성
+  - 이번 Issue/PR devlog 초안 작성
+- Builder:
+  - `PATCH /api/posts/{postId}` 구현
+  - `PostUpdateRequest`, `PostUpdateResponse` 추가
+  - `PostService.updatePost` 구현
+  - Dirty checking 기반 게시글 수정 처리
+  - 게시글 수정 테스트 추가
+  - 수동 확인용 `.http` 파일 추가
+- ChatGPT:
+  - 문서 구조화, 리뷰 항목 분류, devlog 정리 보조
+
+### 다음 작업 후보
+
+- 게시글 수정 응답 메시지를 `docs/api-spec.md`와 완전히 일치시킬지 결정
+- `.http` 작성자 불일치 케이스에서 두 번째 사용자를 명시적으로 생성하도록 보강할지 결정
+- 게시글 상세 조회 또는 게시글 삭제 Issue 선정
+- 향후 로그인/토큰 기반 인증 도입 시 request body의 `userId` 작성자 검증 방식을 인증 사용자 기준 검증으로 전환
