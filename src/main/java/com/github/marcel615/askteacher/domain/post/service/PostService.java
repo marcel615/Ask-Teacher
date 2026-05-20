@@ -4,6 +4,7 @@ import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.category.repository.CategoryRepository;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
+import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.post.repository.PostRepository;
 import com.github.marcel615.askteacher.domain.user.entity.User;
@@ -13,6 +14,8 @@ import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,13 @@ public class PostService {
         Post savedPost = postRepository.save(post);
 
         return PostCreateResponse.from(savedPost);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostListResponse> getPosts() {
+        return postRepository.findByDeletedFalse().stream()
+                .map(PostListResponse::from)
+                .toList();
     }
 
 }
