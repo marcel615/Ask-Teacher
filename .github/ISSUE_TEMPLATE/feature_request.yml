@@ -1,27 +1,175 @@
-name: Feature Request
-description: 기능 추가 / 수정 / 개선 요청
+name: Backend Feature Request
+description: 백엔드 기능 추가 / 수정 / 개선 요청
 title: "[Feature] "
-labels: ["feature"]
+labels: ["feature", "backend"]
 body:
   - type: textarea
     id: background
     attributes:
       label: 배경
-      description: 왜 필요한가?
+      description: 왜 필요한 기능인가?
+      placeholder: |
+        예)
+        사용자가 기존 게시글의 카테고리, 제목, 내용을 수정할 수 있어야 한다.
+        작성자 본인만 게시글을 수정할 수 있어야 한다.
     validations:
       required: true
+
+  - type: textarea
+    id: target
+    attributes:
+      label: 대상 도메인 / 기능
+      description: 어떤 도메인 또는 기능을 구현하는가?
+      placeholder: |
+        예)
+        - Domain: Post
+        - 기능: 게시글 수정
+        - API: PATCH /api/posts/{postId}
+    validations:
+      required: true
+
   - type: textarea
     id: expected
     attributes:
       label: 원하는 동작
+      description: 사용자가 어떤 요청을 보내면 서버가 어떻게 처리해야 하는가?
+      placeholder: |
+        예)
+        - 사용자는 게시글 ID로 기존 게시글을 조회한다.
+        - 요청 사용자 ID와 게시글 작성자 ID가 일치하는지 확인한다.
+        - 카테고리, 제목, 내용을 수정한다.
+        - 수정 성공 시 수정된 게시글 정보를 반환한다.
     validations:
       required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: API 요구사항
+      description: 필요한 API Method, URL, Request, Response를 작성한다.
+      placeholder: |
+        예)
+        Method: PATCH
+        URL: /api/posts/{postId}
+
+        Request:
+        {
+          "userId": 1,
+          "categoryId": 1,
+          "title": "수정 제목",
+          "content": "수정 내용"
+        }
+
+        Response:
+        {
+          "postId": 1,
+          "categoryId": 1,
+          "title": "수정 제목",
+          "content": "수정 내용",
+          "updatedAt": "2026-05-30T12:00:00"
+        }
+    validations:
+      required: true
+
+  - type: textarea
+    id: entity
+    attributes:
+      label: Entity / DB 변경 필요 여부
+      description: Entity나 DB 구조 변경이 필요한 경우 필드와 제약조건을 작성한다. 필요 없으면 "변경 없음"이라고 작성한다.
+      placeholder: |
+        예)
+        변경 없음
+
+        또는
+
+        Entity: Comment
+
+        필드:
+        - id: Long, PK, AUTO_INCREMENT
+        - post: Post, ManyToOne, NOT NULL
+        - user: User, ManyToOne, NOT NULL
+        - content: String, NOT NULL, 1000자 이하
+        - deleted: boolean, 기본값 false
+        - createdAt: LocalDateTime
+        - updatedAt: LocalDateTime
+
+        제약조건:
+        - 존재하는 게시글에만 댓글 작성 가능
+        - 존재하는 사용자만 댓글 작성 가능
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation 규칙
+      description: Request DTO에서 검증해야 할 규칙을 작성한다.
+      placeholder: |
+        예)
+        - userId: 필수, 존재하는 사용자 ID
+        - categoryId: 필수, 존재하는 카테고리 ID
+        - title: 필수, 100자 이하
+        - content: 필수, 5000자 이하
+    validations:
+      required: true
+
+  - type: textarea
+    id: exception
+    attributes:
+      label: 예외 / 에러 처리
+      description: 실패 케이스와 HTTP Status를 작성한다.
+      placeholder: |
+        예)
+        - 게시글 없음: 404 Not Found
+        - 사용자 없음: 404 Not Found
+        - 카테고리 없음: 404 Not Found
+        - 작성자 불일치: 403 Forbidden
+        - Validation 실패: 400 Bad Request
+    validations:
+      required: true
+
+  - type: textarea
+    id: test
+    attributes:
+      label: 테스트 조건
+      description: 성공/실패 테스트 케이스를 작성한다.
+      placeholder: |
+        예)
+        - [ ] 게시글 수정 성공
+        - [ ] 게시글 없음 실패
+        - [ ] 사용자 없음 실패
+        - [ ] 카테고리 없음 실패
+        - [ ] 작성자 불일치 실패
+        - [ ] Validation 실패
+    validations:
+      required: true
+
   - type: textarea
     id: done
     attributes:
       label: 완료 조건
+      description: 이 Issue가 완료되었다고 판단할 기준을 작성한다.
       placeholder: |
-        - [ ] 구현
+        - [ ] API 구현
+        - [ ] Request / Response DTO 구현
+        - [ ] Validation 적용
+        - [ ] 예외 처리 적용
         - [ ] 테스트 통과
+        - [ ] 수동 API 확인
+        - [ ] API 문서 반영
     validations:
       required: true
+
+  - type: textarea
+    id: excluded
+    attributes:
+      label: 제외 범위
+      description: 이번 Issue에서 하지 않을 일을 작성한다.
+      placeholder: |
+        예)
+        - 로그인/토큰 인증 처리 제외
+        - 검색/페이징 제외
+        - 댓글 기능 제외
+        - DB 구조 변경 제외
+    validations:
+      required: false
