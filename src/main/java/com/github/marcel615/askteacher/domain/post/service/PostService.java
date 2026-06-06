@@ -44,7 +44,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostListResponse> getPosts() {
-        return postRepository.findByDeletedFalse().stream()
+        return postRepository.findByDeletedFalseOrderByCreatedAtDesc().stream()
                 .map(PostListResponse::from)
                 .toList();
     }
