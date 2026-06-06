@@ -30,6 +30,7 @@
 | 게시글 목록 조회 | GET | `/api/posts` | 구현됨 |
 | 게시글 상세 조회 | GET | `/api/posts/{postId}` | 구현됨 |
 | 게시글 수정 | PATCH | `/api/posts/{postId}` | 구현 예정 |
+| 게시글 삭제 | DELETE | `/api/posts/{postId}` | 구현됨 |
 
 ---
 
@@ -340,3 +341,40 @@
 |---|---|
 | 조회 성공 | 200 OK |
 | 게시글 없음 | 404 Not Found |
+
+---
+
+## 게시글 삭제
+
+### Request
+
+`DELETE /api/posts/{postId}`
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| postId | 필수, 존재하는 게시글 ID, 삭제되지 않은 게시글 |
+
+### Response
+
+```json
+{
+  "status": 200,
+  "message": "게시글 삭제에 성공했습니다."
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 삭제 성공 | 200 OK |
+| 게시글 없음 | 404 Not Found |
+
+### 비고
+
+- 이번 Issue 범위에서는 DB row를 물리 삭제하지 않고 `Post.deleted = true`로 변경한다.
+- 이미 삭제된 게시글은 조회되지 않는 게시글로 보고 404 Not Found로 처리한다.
+- 삭제 시 `updatedAt`을 갱신한다.
+- 로그인 토큰 기반 인증/인가 구조 변경과 작성자 검증은 이번 Issue 범위에 포함하지 않는다.
