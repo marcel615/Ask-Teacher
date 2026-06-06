@@ -21,6 +21,18 @@ Content-Type: application/json
 }
 
 
+### Create recent post for list sort check
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "Recent Spring Bean question",
+  "content": "Manual API check recent post content."
+}
+
+
 ### 게시글 목록 조회 성공
 GET http://localhost:8080/api/posts
 
@@ -32,11 +44,18 @@ GET http://localhost:8080/api/posts
 #   "message": "post list success message",
 #   "data": [
 #     {
+#       "postId": 2,
+#       "title": "Recent Spring Bean question",
+#       "writerNickname": "postListUser",
+#       "newPost": true,
+#       "createdAt": "2026-05-12T19:30:00"
+#     },
+#     {
 #       "postId": 1,
 #       "title": "Spring Bean question",
 #       "writerNickname": "postListUser",
 #       "newPost": true,
-#       "createdAt": "2026-05-12T19:30:00"
+#       "createdAt": "2026-05-11T19:30:00"
 #     }
 #   ]
 # }

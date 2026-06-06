@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     @EntityGraph(attributePaths = "user")
-    List<Post> findByDeletedFalse();
+    List<Post> findByDeletedFalseOrderByCreatedAtDesc();
 
     @EntityGraph(attributePaths = {"user", "category"})
     Optional<Post> findWithUserAndCategoryById(Long id);
