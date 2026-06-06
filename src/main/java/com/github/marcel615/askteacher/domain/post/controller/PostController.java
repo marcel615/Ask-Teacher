@@ -64,6 +64,6 @@ public class PostController {
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
-        return ApiResponse.success(200, "게시글이 삭제되었습니다.");
+        return ApiResponse.success(200, "게시글 삭제에 성공했습니다.");
     }
 }
