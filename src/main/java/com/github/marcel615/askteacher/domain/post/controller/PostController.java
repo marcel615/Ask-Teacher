@@ -2,6 +2,7 @@ package com.github.marcel615.askteacher.domain.post.controller;
 
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
+import com.github.marcel615.askteacher.domain.post.dto.PostDetailResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
@@ -39,6 +40,13 @@ public class PostController {
     public ApiResponse<List<PostListResponse>> getPosts() {
         List<PostListResponse> postListResponses = postService.getPosts();
         return ApiResponse.success(200, "게시글 목록 조회에 성공했습니다.", postListResponses);
+    }
+
+    @GetMapping("/{postId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<PostDetailResponse> getPost(@PathVariable Long postId) {
+        PostDetailResponse postDetailResponse = postService.getPost(postId);
+        return ApiResponse.success(200, "게시글 상세 조회에 성공했습니다.", postDetailResponse);
     }
 
     @PatchMapping("/{postId}")

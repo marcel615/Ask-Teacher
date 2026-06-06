@@ -1,0 +1,29 @@
+### Prepare detail post - signup author
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "post-detail-author@example.com",
+  "password": "password1234",
+  "nickname": "postDetailAuthor"
+}
+
+
+### Prepare detail post - create post
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "Spring detail question",
+  "content": "Post content for detail lookup."
+}
+
+
+### Detail post - success
+GET http://localhost:8080/api/posts/1
+
+
+### Detail post - not found
+GET http://localhost:8080/api/posts/999999
