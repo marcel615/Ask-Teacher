@@ -28,7 +28,7 @@
 | 카테고리 목록 조회 | GET | `/api/categories` | 구현됨 |
 | 게시글 작성 | POST | `/api/posts` | 구현됨 |
 | 게시글 목록 조회 | GET | `/api/posts` | 구현됨 |
-| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 구현 예정 |
+| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 구현됨 |
 | 게시글 수정 | PATCH | `/api/posts/{postId}` | 구현 예정 |
 
 ---
