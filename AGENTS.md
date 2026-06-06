@@ -23,6 +23,8 @@
 - API 명세: `docs/api-spec.md`
 - ERD: `docs/erd.md`
 - 리뷰 기준: `docs/review-checklist.md`
+- 작업 기록: `docs/devlog/YYYY-MM.md`
+- PR 템플릿: `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
 
 ## 테스트
 

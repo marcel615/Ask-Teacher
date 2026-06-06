@@ -99,7 +99,11 @@ develop을 최신화하고 제안한 feature 브랜치에서 구현해줘.
 
 ```text
 PR 준비하자.
+
 feature/* → develop 방향으로 PR 본문과 커밋 메시지를 제안해줘.
+PR 본문은 `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` 템플릿 형식을 기준으로 작성해줘.
+테스트 결과와 체크리스트는 실제로 확인한 항목만 체크해줘.
+커밋 메시지는 Conventional Commit 형식으로 제안해줘.
 아직 git add, commit, push, gh pr create는 하지 마.
 ```
 
@@ -121,7 +125,7 @@ docs/review-checklist.md 기준으로 현재 PR을 리뷰해줘.
 ## 8. 리뷰 반영 판단
 
 ```text
-Architect 리뷰를 검토해줘.
+PR에 올라온 Architect 리뷰를 검토해줘.
 각 항목을 필수 수정 / 선택 개선 / 보류 가능으로 분류하고,
 아직 파일은 수정하지 마.
 ```
@@ -129,6 +133,42 @@ Architect 리뷰를 검토해줘.
 ## 9. devlog
 
 ```text
-이번 Issue와 PR 기준으로 docs/devlog.md에 추가할 기록 초안을 작성해줘.
+이번 Issue와 PR 기준으로 docs/devlog/YYYY-MM.md에 추가할 기록 초안을 작성해줘.
+
+규칙:
+- 기존 devlog 전체를 재작성하지 마.
+- 기존 기록은 수정하지 마.
+- 현재 Issue/PR에 대한 기록만 새 항목으로 추가해.
+- 형식이 필요하면 가장 최근 항목 하나만 참고해.
+- 파일 맨 아래에 append-only로 추가하는 기준으로 작성해.
+
+devlog에는 아래 항목을 포함해줘.
+
+- Issue / PR
+- 오늘의 작업
+- 변경 내용
+- 테스트 결과 / 수동 확인 결과
+- 문제 / 해결
+- AI 활용 기록
+- 다음 작업 후보
+
 아직 파일은 수정하지 마.
+```
+
+## 10. 작업 중단 / 확인 요청
+
+```text
+현재 작업을 잠시 멈추고 상태를 정리해줘.
+
+아래 항목을 기준으로 보고해줘.
+
+- 현재 브랜치
+- git status
+- 지금까지 변경한 파일
+- 완료한 작업
+- 남은 작업
+- 확인이 필요한 문제
+- 다음에 실행할 명령 또는 작업 제안
+
+파일 수정이나 git 명령은 추가로 실행하지 마.
 ```
