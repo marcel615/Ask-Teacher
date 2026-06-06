@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -187,6 +188,44 @@ class PostServiceTest {
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
+    }
+
+    @Test
+    void deletePostSoftDeletesPostAndUpdatesUpdatedAt() {
+        User user = userRepository.save(User.createUser("post-delete@example.com", "password", "postDeleteUser"));
+        Category category = categoryRepository.save(Category.createCategory("post-delete-category"));
+        Post post = Post.createPost(user, category, "delete title", "delete content");
+        LocalDateTime oldUpdatedAt = LocalDateTime.now().minusDays(1);
+        ReflectionTestUtils.setField(post, "updatedAt", oldUpdatedAt);
+        postRepository.save(post);
+
+        postService.deletePost(post.getId());
+
+        Post deletedPost = postRepository.findById(post.getId()).orElseThrow();
+        assertThat(deletedPost.isDeleted()).isTrue();
+        assertThat(deletedPost.getUpdatedAt()).isAfter(oldUpdatedAt);
+    }
+
+    @Test
+    void deletePostThrowsWhenPostDoesNotExist() {
+        assertThatThrownBy(() -> postService.deletePost(999999L))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.POST_NOT_FOUND);
+    }
+
+    @Test
+    void deletePostThrowsWhenPostAlreadyDeleted() {
+        User user = userRepository.save(User.createUser("post-already-deleted@example.com", "password", "postAlreadyDeletedUser"));
+        Category category = categoryRepository.save(Category.createCategory("post-already-deleted-category"));
+        Post post = Post.createPost(user, category, "already deleted title", "already deleted content");
+        ReflectionTestUtils.setField(post, "deleted", true);
+        postRepository.save(post);
+
+        assertThatThrownBy(() -> postService.deletePost(post.getId()))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.POST_NOT_FOUND);
     }
 
     private PostUpdateRequest createUpdateRequest(Long userId, Long categoryId, String title, String content) {

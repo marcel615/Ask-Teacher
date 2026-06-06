@@ -11,6 +11,7 @@ import com.github.marcel615.askteacher.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,5 +58,12 @@ public class PostController {
     ) {
         PostUpdateResponse postUpdateResponse = postService.updatePost(postId, postUpdateRequest);
         return ApiResponse.success(200, "게시글이 수정되었습니다.", postUpdateResponse);
+    }
+
+    @DeleteMapping("/{postId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId);
+        return ApiResponse.success(200, "게시글이 삭제되었습니다.");
     }
 }
