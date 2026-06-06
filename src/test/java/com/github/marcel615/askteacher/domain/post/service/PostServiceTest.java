@@ -2,6 +2,7 @@ package com.github.marcel615.askteacher.domain.post.service;
 
 import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.category.repository.CategoryRepository;
+import com.github.marcel615.askteacher.domain.post.dto.PostDetailResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
@@ -37,6 +38,29 @@ class PostServiceTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Test
+    void getPostReturnsPostDetail() {
+        User user = userRepository.save(User.createUser("post-detail@example.com", "password", "postDetailUser"));
+        Category category = categoryRepository.save(Category.createCategory("post-detail-category"));
+        Post post = postRepository.save(Post.createPost(user, category, "detail title", "detail content"));
+
+        PostDetailResponse response = postService.getPost(post.getId());
+
+        assertThat(response.getUserName()).isEqualTo("postDetailUser");
+        assertThat(response.getCategoryName()).isEqualTo("post-detail-category");
+        assertThat(response.getTitle()).isEqualTo("detail title");
+        assertThat(response.getContent()).isEqualTo("detail content");
+        assertThat(response.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void getPostThrowsWhenPostDoesNotExist() {
+        assertThatThrownBy(() -> postService.getPost(999999L))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.POST_NOT_FOUND);
+    }
 
     @Test
     void getPostsReturnsOnlyNotDeletedPosts() {

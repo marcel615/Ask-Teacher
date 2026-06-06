@@ -4,6 +4,7 @@ import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.category.repository.CategoryRepository;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
+import com.github.marcel615.askteacher.domain.post.dto.PostDetailResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
@@ -46,6 +47,14 @@ public class PostService {
         return postRepository.findByDeletedFalse().stream()
                 .map(PostListResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PostDetailResponse getPost(Long postId) {
+        Post post = postRepository.findWithUserAndCategoryById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        return PostDetailResponse.from(post);
     }
 
     @Transactional
