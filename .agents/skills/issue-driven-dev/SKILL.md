@@ -20,6 +20,8 @@ description: GitHub Issue 기반 개발 워크플로우가 필요할 때 사용�
 - `current-task.md`에는 이번 Issue 관련 API/ERD 요약과 참조만 둔다.
 - 구현은 `develop`에서 생성한 `feature/*` 브랜치에서 진행한다.
 - PR 방향은 `feature/*` → `develop`이다.
+- 리뷰 기준은 `docs/review-checklist.md`에 둔다.
+- devlog는 `docs/devlog/YYYY-MM.md`에 월별로 누적한다.
 - 승인 전 파일 수정, 브랜치 변경, git add/commit/push, PR 생성을 하지 않는다.
 
 ## 흐름
@@ -64,6 +66,7 @@ git checkout -b feature/issue-번호-작업명
 11. 사용자 승인 후 `feature/*` → `develop` PR을 만든다.
 12. Architect가 `docs/review-checklist.md` 기준으로 리뷰한다.
 13. Architect가 `docs/devlog.md` 초안을 작성한다.
+12. Reporter 또는 Architect가 `docs/devlog/YYYY-MM.md`에 추가할 기록 초안을 작성한다.
 
 ## 중단 조건
 
