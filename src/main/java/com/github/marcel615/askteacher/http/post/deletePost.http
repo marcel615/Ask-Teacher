@@ -1,0 +1,33 @@
+### Prepare delete post - signup author
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "post-delete-author@example.com",
+  "password": "password1234",
+  "nickname": "postDeleteAuthor"
+}
+
+
+### Prepare delete post - create post
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "categoryId": 1,
+  "title": "Spring delete target",
+  "content": "Post content before delete."
+}
+
+
+### Delete post - success
+DELETE http://localhost:8080/api/posts/1
+
+
+### Delete post - already deleted
+DELETE http://localhost:8080/api/posts/1
+
+
+### Delete post - not found
+DELETE http://localhost:8080/api/posts/999999
