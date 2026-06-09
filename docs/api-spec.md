@@ -27,20 +27,20 @@
 Authorization: Bearer {accessToken}
 ```
 
-이번 JWT 인증 개선 범위에서는 Refresh Token, 로그아웃, 토큰 재발급을 다루지 않는다.
+Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 사용자 ID를 기준으로 게시글 작성자 검증을 수행한다. Refresh Token, 로그아웃, 토큰 재발급은 현재 범위에서 다루지 않는다.
 
 ## API 목록
 
-| 기능 | Method | URL | 상태 |
-|---|---|---|---|
-| 회원가입 | POST | `/api/auth/signup` | 구현됨 |
-| 로그인 | POST | `/api/auth/login` | 구현됨 |
-| 카테고리 목록 조회 | GET | `/api/categories` | 구현됨 |
-| 게시글 작성 | POST | `/api/posts` | 구현됨 |
-| 게시글 목록 조회 | GET | `/api/posts` | 구현됨 |
-| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 구현됨 |
-| 게시글 수정 | PATCH | `/api/posts/{postId}` | 구현 예정 |
-| 게시글 삭제 | DELETE | `/api/posts/{postId}` | 구현됨 |
+| 기능 | Method | URL | 인증 | 상태 |
+|---|---|---|---|---|
+| 회원가입 | POST | `/api/auth/signup` | 불필요 | 구현됨 |
+| 로그인 | POST | `/api/auth/login` | 불필요 | 구현됨 |
+| 카테고리 목록 조회 | GET | `/api/categories` | 불필요 | 구현됨 |
+| 게시글 작성 | POST | `/api/posts` | 필요 | 구현됨 |
+| 게시글 목록 조회 | GET | `/api/posts` | 불필요 | 구현됨 |
+| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨 |
+| 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨 |
+| 게시글 삭제 | DELETE | `/api/posts/{postId}` | 필요 | 구현됨 |
 
 ---
 
@@ -144,10 +144,10 @@ Authorization: Bearer {accessToken}
 ```json
 {
   "status": 200,
-  "message": "카테고리 목록이 반환에 성공하였습니다.",
+  "message": "카테고리 목록 조회에 성공했습니다.",
   "data": [
     {
-      "categoryId": 1,
+      "id": 1,
       "name": "Spring"
     }
   ]
@@ -168,9 +168,12 @@ Authorization: Bearer {accessToken}
 
 `POST /api/posts`
 
+```http
+Authorization: Bearer {accessToken}
+```
+
 ```json
 {
-  "userId": 1,
   "categoryId": 1,
   "title": "Spring Bean이 뭔가요?",
   "content": "Spring Bean의 개념이 궁금합니다."
@@ -181,7 +184,6 @@ Authorization: Bearer {accessToken}
 
 | 필드 | 규칙 |
 |---|---|
-| userId | 필수, 존재하는 사용자 ID |
 | categoryId | 필수, 존재하는 카테고리 ID |
 | title | 필수, 100자 이하 |
 | content | 필수, 5000자 이하 |
@@ -206,6 +208,7 @@ Authorization: Bearer {accessToken}
 | 상황 | Status |
 |---|---|
 | 생성 성공 | 201 Created |
+| 인증 실패 | 401 Unauthorized |
 | Validation 실패 | 400 Bad Request |
 | 사용자 없음 | 404 Not Found |
 | 카테고리 없음 | 404 Not Found |
@@ -229,15 +232,9 @@ Authorization: Bearer {accessToken}
       "postId": 1,
       "title": "Spring Bean이 뭔가요?",
       "writerNickname": "springUser",
+      "categoryName": "Spring",
       "newPost": true,
       "createdAt": "2026-05-12T19:30:00"
-    },
-    {
-      "postId": 2,
-      "title": "DTO와 Entity 차이가 뭔가요?",
-      "writerNickname": "backendUser",
-      "newPost": false,
-      "createdAt": "2026-05-11T14:20:00"
     }
   ]
 }
@@ -253,68 +250,6 @@ Authorization: Bearer {accessToken}
 
 - 삭제된 게시글은 목록에서 제외한다.
 - 게시글 목록은 `createdAt` 기준 내림차순으로 정렬해 최근에 생성된 게시글부터 반환한다.
-- Issue #5 범위에는 검색, 페이징, 정렬 조건을 포함하지 않는다.
-- Issue #17 범위에는 생성일 내림차순 정렬만 포함하며, 검색과 페이징 조건은 포함하지 않는다.
-
----
-
-## 게시글 수정
-
-### Request
-
-`PATCH /api/posts/{postId}`
-
-```json
-{
-  "userId": 1,
-  "categoryId": 1,
-  "title": "수정 게시글 제목",
-  "content": "수정 게시글 내용"
-}
-```
-
-### Validation
-
-| 필드 | 규칙 |
-|---|---|
-| postId | 필수, 존재하는 게시글 ID |
-| userId | 필수, 존재하는 사용자 ID, 게시글 작성자 ID와 일치 |
-| categoryId | 필수, 존재하는 카테고리 ID |
-| title | 필수, 100자 이하 |
-| content | 필수, 5000자 이하 |
-
-### Response
-
-```json
-{
-  "status": 200,
-  "message": "게시글 수정에 성공했습니다.",
-  "data": {
-    "postId": 1,
-    "categoryId": 1,
-    "title": "수정 게시글 제목",
-    "content": "수정 게시글 내용",
-    "updatedAt": "2026-05-12T19:30:00"
-  }
-}
-```
-
-### Status Code
-
-| 상황 | Status |
-|---|---|
-| 수정 성공 | 200 OK |
-| Validation 실패 | 400 Bad Request |
-| 작성자 불일치 | 403 Forbidden |
-| 게시글 없음 | 404 Not Found |
-| 사용자 없음 | 404 Not Found |
-| 카테고리 없음 | 404 Not Found |
-
-### 비고
-
-- 이번 Issue 범위에는 로그인/토큰 기반 인증/인가 구조 변경을 포함하지 않는다.
-- 작성자 검증은 request body의 `userId`와 게시글 작성자 ID를 비교하는 방식으로 처리한다.
-- 게시글 수정 시 `newPost`, `deleted`, `createdAt`, `user`는 변경하지 않는다.
 
 ---
 
@@ -337,6 +272,7 @@ Authorization: Bearer {accessToken}
   "status": 200,
   "message": "게시글 상세 조회에 성공했습니다.",
   "data": {
+    "postId": 1,
     "userName": "springUser",
     "categoryName": "Spring",
     "title": "Spring Bean은 무엇인가요?",
@@ -355,11 +291,76 @@ Authorization: Bearer {accessToken}
 
 ---
 
+## 게시글 수정
+
+### Request
+
+`PATCH /api/posts/{postId}`
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+```json
+{
+  "categoryId": 1,
+  "title": "수정 게시글 제목",
+  "content": "수정 게시글 내용"
+}
+```
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| postId | 필수, 존재하는 게시글 ID |
+| categoryId | 필수, 존재하는 카테고리 ID |
+| title | 필수, 100자 이하 |
+| content | 필수, 5000자 이하 |
+
+### Response
+
+```json
+{
+  "status": 200,
+  "message": "게시글이 수정되었습니다.",
+  "data": {
+    "postId": 1,
+    "categoryId": 1,
+    "title": "수정 게시글 제목",
+    "content": "수정 게시글 내용",
+    "updatedAt": "2026-05-12T19:30:00"
+  }
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 수정 성공 | 200 OK |
+| 인증 실패 | 401 Unauthorized |
+| Validation 실패 | 400 Bad Request |
+| 작성자 불일치 | 403 Forbidden |
+| 게시글 없음 | 404 Not Found |
+| 카테고리 없음 | 404 Not Found |
+
+### 비고
+
+- 작성자 검증은 Authorization 헤더의 Access Token 사용자 ID와 게시글 작성자 ID를 비교한다.
+- 게시글 수정 시 `newPost`, `deleted`, `createdAt`, `user`는 변경하지 않는다.
+
+---
+
 ## 게시글 삭제
 
 ### Request
 
 `DELETE /api/posts/{postId}`
+
+```http
+Authorization: Bearer {accessToken}
+```
 
 ### Validation
 
@@ -372,7 +373,7 @@ Authorization: Bearer {accessToken}
 ```json
 {
   "status": 200,
-  "message": "게시글 삭제에 성공했습니다."
+  "message": "게시글이 삭제되었습니다."
 }
 ```
 
@@ -381,11 +382,13 @@ Authorization: Bearer {accessToken}
 | 상황 | Status |
 |---|---|
 | 삭제 성공 | 200 OK |
+| 인증 실패 | 401 Unauthorized |
+| 작성자 불일치 | 403 Forbidden |
 | 게시글 없음 | 404 Not Found |
 
 ### 비고
 
-- 이번 Issue 범위에서는 DB row를 물리 삭제하지 않고 `Post.deleted = true`로 변경한다.
+- DB row를 물리 삭제하지 않고 `Post.deleted = true`로 변경한다.
 - 이미 삭제된 게시글은 조회되지 않는 게시글로 보고 404 Not Found로 처리한다.
 - 삭제 시 `updatedAt`을 갱신한다.
-- 로그인 토큰 기반 인증/인가 구조 변경과 작성자 검증은 이번 Issue 범위에 포함하지 않는다.
+- 작성자 검증은 Authorization 헤더의 Access Token 사용자 ID와 게시글 작성자 ID를 비교한다.

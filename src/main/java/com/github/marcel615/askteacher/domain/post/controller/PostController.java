@@ -11,6 +11,7 @@ import com.github.marcel615.askteacher.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,8 +32,11 @@ public class PostController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<PostCreateResponse> createPost(@Valid @RequestBody PostCreateRequest postCreateRequest) {
-        PostCreateResponse postCreateResponse = postService.createPost(postCreateRequest);
+    public ApiResponse<PostCreateResponse> createPost(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody PostCreateRequest postCreateRequest
+    ) {
+        PostCreateResponse postCreateResponse = postService.createPost(userId, postCreateRequest);
         return ApiResponse.success(201, "게시글이 작성되었습니다.", postCreateResponse);
     }
 
@@ -53,17 +57,21 @@ public class PostController {
     @PatchMapping("/{postId}")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<PostUpdateResponse> updatePost(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest postUpdateRequest
     ) {
-        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, postUpdateRequest);
+        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userId, postUpdateRequest);
         return ApiResponse.success(200, "게시글이 수정되었습니다.", postUpdateResponse);
     }
 
     @DeleteMapping("/{postId}")
     @ResponseStatus(HttpStatus.OK)
-    public ApiResponse<Void> deletePost(@PathVariable Long postId) {
-        postService.deletePost(postId);
-        return ApiResponse.success(200, "게시글 삭제에 성공했습니다.");
+    public ApiResponse<Void> deletePost(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long postId
+    ) {
+        postService.deletePost(postId, userId);
+        return ApiResponse.success(200, "게시글이 삭제되었습니다.");
     }
 }

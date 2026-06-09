@@ -28,14 +28,14 @@ public class PostService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public PostCreateResponse createPost(PostCreateRequest postCreateRequest) {
-        User user = userRepository.findById(postCreateRequest.getUserId())
+    public PostCreateResponse createPost(Long userId, PostCreateRequest postCreateRequest) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Category category = categoryRepository.findById(postCreateRequest.getCategoryId())
+        Category category = categoryRepository.findById(postCreateRequest.categoryId())
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        Post post = Post.createPost(user, category, postCreateRequest.getTitle(), postCreateRequest.getContent());
+        Post post = Post.createPost(user, category, postCreateRequest.title(), postCreateRequest.content());
 
         Post savedPost = postRepository.save(post);
 
@@ -58,30 +58,33 @@ public class PostService {
     }
 
     @Transactional
-    public PostUpdateResponse updatePost(Long postId, PostUpdateRequest postUpdateRequest) {
+    public PostUpdateResponse updatePost(Long postId, Long userId, PostUpdateRequest postUpdateRequest) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        User user = userRepository.findById(postUpdateRequest.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        validateAuthor(post, userId);
 
-        Category category = categoryRepository.findById(postUpdateRequest.getCategoryId())
+        Category category = categoryRepository.findById(postUpdateRequest.categoryId())
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        if (!post.getUser().getId().equals(user.getId())) {
-            throw new CustomException(ErrorCode.POST_AUTHOR_MISMATCH);
-        }
-
-        post.update(category, postUpdateRequest.getTitle(), postUpdateRequest.getContent());
+        post.update(category, postUpdateRequest.title(), postUpdateRequest.content());
 
         return PostUpdateResponse.from(post);
     }
 
     @Transactional
-    public void deletePost(Long postId) {
+    public void deletePost(Long postId, Long userId) {
         Post post = postRepository.findByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
+        validateAuthor(post, userId);
+
         post.delete();
+    }
+
+    private void validateAuthor(Post post, Long userId) {
+        if (!post.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.POST_AUTHOR_MISMATCH);
+        }
     }
 }
