@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.domain.post.service;
 
 import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.category.repository.CategoryRepository;
+import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
+import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostDetailResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
@@ -41,6 +43,21 @@ class PostServiceTest {
     private CategoryRepository categoryRepository;
 
     @Test
+    void createPostUsesAuthenticatedUser() {
+        User user = userRepository.save(User.createUser("post-create@example.com", "password", "postCreateUser"));
+        Category category = categoryRepository.save(Category.createCategory("post-create-category"));
+        PostCreateRequest request = new PostCreateRequest(category.getId(), "created title", "created content");
+
+        PostCreateResponse response = postService.createPost(user.getId(), request);
+
+        Post savedPost = postRepository.findById(response.postId()).orElseThrow();
+        assertThat(savedPost.getUser().getId()).isEqualTo(user.getId());
+        assertThat(savedPost.getCategory().getId()).isEqualTo(category.getId());
+        assertThat(savedPost.getTitle()).isEqualTo("created title");
+        assertThat(savedPost.getContent()).isEqualTo("created content");
+    }
+
+    @Test
     void getPostReturnsPostDetail() {
         User user = userRepository.save(User.createUser("post-detail@example.com", "password", "postDetailUser"));
         Category category = categoryRepository.save(Category.createCategory("post-detail-category"));
@@ -48,11 +65,12 @@ class PostServiceTest {
 
         PostDetailResponse response = postService.getPost(post.getId());
 
-        assertThat(response.getUserName()).isEqualTo("postDetailUser");
-        assertThat(response.getCategoryName()).isEqualTo("post-detail-category");
-        assertThat(response.getTitle()).isEqualTo("detail title");
-        assertThat(response.getContent()).isEqualTo("detail content");
-        assertThat(response.getCreatedAt()).isNotNull();
+        assertThat(response.postId()).isEqualTo(post.getId());
+        assertThat(response.userName()).isEqualTo("postDetailUser");
+        assertThat(response.categoryName()).isEqualTo("post-detail-category");
+        assertThat(response.title()).isEqualTo("detail title");
+        assertThat(response.content()).isEqualTo("detail content");
+        assertThat(response.createdAt()).isNotNull();
     }
 
     @Test
@@ -76,18 +94,19 @@ class PostServiceTest {
         List<PostListResponse> responses = postService.getPosts();
 
         assertThat(responses)
-                .extracting(PostListResponse::getPostId)
+                .extracting(PostListResponse::postId)
                 .contains(visiblePost.getId())
                 .doesNotContain(deletedPost.getId());
 
         PostListResponse response = responses.stream()
-                .filter(post -> post.getPostId().equals(visiblePost.getId()))
+                .filter(post -> post.postId().equals(visiblePost.getId()))
                 .findFirst()
                 .orElseThrow();
 
-        assertThat(response.getTitle()).isEqualTo("visible title");
-        assertThat(response.getWriterNickname()).isEqualTo("postListUser");
-        assertThat(response.isNewPost()).isTrue();
+        assertThat(response.title()).isEqualTo("visible title");
+        assertThat(response.writerNickname()).isEqualTo("postListUser");
+        assertThat(response.categoryName()).isEqualTo("post-list-category");
+        assertThat(response.newPost()).isTrue();
     }
 
     @Test
@@ -106,7 +125,7 @@ class PostServiceTest {
         List<PostListResponse> responses = postService.getPosts();
 
         assertThat(responses)
-                .extracting(PostListResponse::getPostId)
+                .extracting(PostListResponse::postId)
                 .containsSequence(recentPost.getId(), oldPost.getId());
     }
 
@@ -116,21 +135,15 @@ class PostServiceTest {
         Category originalCategory = categoryRepository.save(Category.createCategory("original-category"));
         Category newCategory = categoryRepository.save(Category.createCategory("new-category"));
         Post post = postRepository.save(Post.createPost(user, originalCategory, "original title", "original content"));
+        PostUpdateRequest request = createUpdateRequest(newCategory.getId(), "updated title", "updated content");
 
-        PostUpdateRequest request = createUpdateRequest(
-                user.getId(),
-                newCategory.getId(),
-                "updated title",
-                "updated content"
-        );
+        PostUpdateResponse response = postService.updatePost(post.getId(), user.getId(), request);
 
-        PostUpdateResponse response = postService.updatePost(post.getId(), request);
-
-        assertThat(response.getPostId()).isEqualTo(post.getId());
-        assertThat(response.getCategoryId()).isEqualTo(newCategory.getId());
-        assertThat(response.getTitle()).isEqualTo("updated title");
-        assertThat(response.getContent()).isEqualTo("updated content");
-        assertThat(response.getUpdatedAt()).isNotNull();
+        assertThat(response.postId()).isEqualTo(post.getId());
+        assertThat(response.categoryId()).isEqualTo(newCategory.getId());
+        assertThat(response.title()).isEqualTo("updated title");
+        assertThat(response.content()).isEqualTo("updated content");
+        assertThat(response.updatedAt()).isNotNull();
 
         Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
         assertThat(updatedPost.getCategory().getId()).isEqualTo(newCategory.getId());
@@ -144,14 +157,9 @@ class PostServiceTest {
         User anotherUser = userRepository.save(User.createUser("post-another@example.com", "password", "postAnother"));
         Category category = categoryRepository.save(Category.createCategory("author-check-category"));
         Post post = postRepository.save(Post.createPost(author, category, "title", "content"));
-        PostUpdateRequest request = createUpdateRequest(
-                anotherUser.getId(),
-                category.getId(),
-                "updated title",
-                "updated content"
-        );
+        PostUpdateRequest request = createUpdateRequest(category.getId(), "updated title", "updated content");
 
-        assertThatThrownBy(() -> postService.updatePost(post.getId(), request))
+        assertThatThrownBy(() -> postService.updatePost(post.getId(), anotherUser.getId(), request))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
@@ -161,35 +169,12 @@ class PostServiceTest {
     void updatePostThrowsWhenPostDoesNotExist() {
         User user = userRepository.save(User.createUser("post-missing@example.com", "password", "postMissingUser"));
         Category category = categoryRepository.save(Category.createCategory("post-missing-category"));
-        PostUpdateRequest request = createUpdateRequest(
-                user.getId(),
-                category.getId(),
-                "updated title",
-                "updated content"
-        );
+        PostUpdateRequest request = createUpdateRequest(category.getId(), "updated title", "updated content");
 
-        assertThatThrownBy(() -> postService.updatePost(999999L, request))
+        assertThatThrownBy(() -> postService.updatePost(999999L, user.getId(), request))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.POST_NOT_FOUND);
-    }
-
-    @Test
-    void updatePostThrowsWhenUserDoesNotExist() {
-        User author = userRepository.save(User.createUser("post-user-missing@example.com", "password", "postUserMissing"));
-        Category category = categoryRepository.save(Category.createCategory("user-missing-category"));
-        Post post = postRepository.save(Post.createPost(author, category, "title", "content"));
-        PostUpdateRequest request = createUpdateRequest(
-                999999L,
-                category.getId(),
-                "updated title",
-                "updated content"
-        );
-
-        assertThatThrownBy(() -> postService.updatePost(post.getId(), request))
-                .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.USER_NOT_FOUND);
     }
 
     @Test
@@ -197,14 +182,9 @@ class PostServiceTest {
         User user = userRepository.save(User.createUser("post-category-missing@example.com", "password", "postCategoryMissing"));
         Category category = categoryRepository.save(Category.createCategory("category-missing-original"));
         Post post = postRepository.save(Post.createPost(user, category, "title", "content"));
-        PostUpdateRequest request = createUpdateRequest(
-                user.getId(),
-                999999L,
-                "updated title",
-                "updated content"
-        );
+        PostUpdateRequest request = createUpdateRequest(999999L, "updated title", "updated content");
 
-        assertThatThrownBy(() -> postService.updatePost(post.getId(), request))
+        assertThatThrownBy(() -> postService.updatePost(post.getId(), user.getId(), request))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
@@ -219,7 +199,7 @@ class PostServiceTest {
         ReflectionTestUtils.setField(post, "updatedAt", oldUpdatedAt);
         postRepository.save(post);
 
-        postService.deletePost(post.getId());
+        postService.deletePost(post.getId(), user.getId());
 
         Post deletedPost = postRepository.findById(post.getId()).orElseThrow();
         assertThat(deletedPost.isDeleted()).isTrue();
@@ -227,8 +207,21 @@ class PostServiceTest {
     }
 
     @Test
+    void deletePostThrowsForbiddenWhenUserIsNotAuthor() {
+        User author = userRepository.save(User.createUser("post-delete-author@example.com", "password", "postDeleteAuthor"));
+        User anotherUser = userRepository.save(User.createUser("post-delete-another@example.com", "password", "postDeleteAnother"));
+        Category category = categoryRepository.save(Category.createCategory("post-delete-author-category"));
+        Post post = postRepository.save(Post.createPost(author, category, "delete title", "delete content"));
+
+        assertThatThrownBy(() -> postService.deletePost(post.getId(), anotherUser.getId()))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
+    }
+
+    @Test
     void deletePostThrowsWhenPostDoesNotExist() {
-        assertThatThrownBy(() -> postService.deletePost(999999L))
+        assertThatThrownBy(() -> postService.deletePost(999999L, 1L))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.POST_NOT_FOUND);
@@ -242,18 +235,13 @@ class PostServiceTest {
         ReflectionTestUtils.setField(post, "deleted", true);
         postRepository.save(post);
 
-        assertThatThrownBy(() -> postService.deletePost(post.getId()))
+        assertThatThrownBy(() -> postService.deletePost(post.getId(), user.getId()))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.POST_NOT_FOUND);
     }
 
-    private PostUpdateRequest createUpdateRequest(Long userId, Long categoryId, String title, String content) {
-        PostUpdateRequest request = new PostUpdateRequest();
-        ReflectionTestUtils.setField(request, "userId", userId);
-        ReflectionTestUtils.setField(request, "categoryId", categoryId);
-        ReflectionTestUtils.setField(request, "title", title);
-        ReflectionTestUtils.setField(request, "content", content);
-        return request;
+    private PostUpdateRequest createUpdateRequest(Long categoryId, String title, String content) {
+        return new PostUpdateRequest(categoryId, title, content);
     }
 }
