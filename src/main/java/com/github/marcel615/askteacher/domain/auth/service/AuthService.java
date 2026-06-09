@@ -24,15 +24,15 @@ public class AuthService {
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
-        validateDuplicateEmail(signupRequest.getEmail());
-        validateDuplicateNickname(signupRequest.getNickname());
+        validateDuplicateEmail(signupRequest.email());
+        validateDuplicateNickname(signupRequest.nickname());
 
-        String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
+        String encodedPassword = passwordEncoder.encode(signupRequest.password());
 
         User user = User.createUser(
-                signupRequest.getEmail(),
+                signupRequest.email(),
                 encodedPassword,
-                signupRequest.getNickname()
+                signupRequest.nickname()
         );
 
         User savedUser = userRepository.save(user);
@@ -42,10 +42,10 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail())
+        User user = userRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_LOGIN_INFO));
 
-        validatePassword(loginRequest.getPassword(), user.getPassword());
+        validatePassword(loginRequest.password(), user.getPassword());
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getRole());
 

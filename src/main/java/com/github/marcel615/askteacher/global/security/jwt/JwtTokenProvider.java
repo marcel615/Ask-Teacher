@@ -55,15 +55,14 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
 
-        String userId = claims.getSubject();
+        Long userId = Long.valueOf(claims.getSubject());
         String role = claims.get("role", String.class);
 
         List<SimpleGrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority(role)
         );
 
-        return new UsernamePasswordAuthenticationToken(userId, null,
-                authorities);
+        return new UsernamePasswordAuthenticationToken(userId, null, authorities);
     }
 
     private Claims parseClaims(String token) {
