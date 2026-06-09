@@ -19,6 +19,16 @@
 }
 ```
 
+## 인증
+
+로그인 성공 시 발급받은 Access Token을 인증이 필요한 API 요청에 사용한다.
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+이번 JWT 인증 개선 범위에서는 Refresh Token, 로그아웃, 토큰 재발급을 다루지 않는다.
+
 ## API 목록
 
 | 기능 | Method | URL | 상태 |
@@ -107,9 +117,8 @@
   "status": 200,
   "message": "로그인에 성공했습니다.",
   "data": {
-    "userId": 1,
-    "email": "user@example.com",
-    "nickname": "springUser"
+    "accessToken": "eyJ...",
+    "tokenType": "Bearer"
   }
 }
 ```

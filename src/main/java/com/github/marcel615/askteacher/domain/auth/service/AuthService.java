@@ -8,6 +8,7 @@ import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import com.github.marcel615.askteacher.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -45,7 +47,9 @@ public class AuthService {
 
         validatePassword(loginRequest.getPassword(), user.getPassword());
 
-        return LoginResponse.from(user);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getRole());
+
+        return LoginResponse.from(accessToken, "Bearer");
     }
 
 

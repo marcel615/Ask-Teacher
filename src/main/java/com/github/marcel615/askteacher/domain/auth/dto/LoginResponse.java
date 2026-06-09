@@ -6,14 +6,16 @@ import lombok.Getter;
 @Getter
 public class LoginResponse {
 
-    private final String nickname;
+    private String accessToken;
+    private String tokenType;
 
-    private LoginResponse(String nickname) {
-        this.nickname = nickname;
+    private LoginResponse(String accessToken, String tokenType) {
+        this.accessToken = accessToken;
+        this.tokenType = tokenType;
     }
 
-    public static LoginResponse from(User user) {
-        return new LoginResponse(user.getNickname());
+    public static LoginResponse from(String accessToken, String tokenType) {
+        return new LoginResponse(accessToken, tokenType);
     }
 
 }

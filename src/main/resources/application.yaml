@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: askteacher
+
+  datasource:
+    url: jdbc:h2:mem:askteacher
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: my-secret-key-my-secret-key-my-secret-key
+  expiration: 3600000
