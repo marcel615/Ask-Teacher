@@ -25,30 +25,70 @@ Content-Type: application/json
 
 ### Create old post for list check
 POST http://localhost:8080/api/posts
-Content-Type: application/json
 Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=list-post-old-boundary
 
-{
-  "categoryId": 1,
-  "title": "Spring Bean question",
-  "content": "Manual API check post content."
-}
+--list-post-old-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--list-post-old-boundary
+Content-Disposition: form-data; name="title"
+
+Spring Bean question
+--list-post-old-boundary
+Content-Disposition: form-data; name="content"
+
+Manual API check post content.
+--list-post-old-boundary--
 
 
 ### Create recent post for list sort check
 POST http://localhost:8080/api/posts
-Content-Type: application/json
 Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=list-post-recent-boundary
 
-{
-  "categoryId": 1,
-  "title": "Recent Spring Bean question",
-  "content": "Manual API check recent post content."
-}
+--list-post-recent-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--list-post-recent-boundary
+Content-Disposition: form-data; name="title"
+
+Recent Spring Bean question
+--list-post-recent-boundary
+Content-Disposition: form-data; name="content"
+
+Manual API check recent post content.
+--list-post-recent-boundary--
 
 
-### List posts
-GET http://localhost:8080/api/posts
+### List posts with default first page
+GET http://localhost:8080/api/posts?page=0&size=10
+
+
+### List posts by keyword
+GET http://localhost:8080/api/posts?keyword=Spring&page=0&size=10
+
+
+### List posts by category
+GET http://localhost:8080/api/posts?categoryId=1&page=0&size=10
+
+
+### List posts by keyword and category
+GET http://localhost:8080/api/posts?keyword=Spring&categoryId=1&page=0&size=10
+
+
+### List posts with invalid page
+GET http://localhost:8080/api/posts?page=-1&size=10
+
+
+### List posts with invalid size
+GET http://localhost:8080/api/posts?page=0&size=0
+
+
+### List posts with missing category
+GET http://localhost:8080/api/posts?categoryId=999999&page=0&size=10
 
 
 ### List posts success response example
@@ -56,24 +96,34 @@ GET http://localhost:8080/api/posts
 # {
 #   "status": 200,
 #   "message": "post list success message",
-#   "data": [
-#     {
-#       "postId": 2,
-#       "title": "Recent Spring Bean question",
-#       "writerNickname": "postListUser",
-#       "categoryName": "category",
-#       "likeCount": 0,
-#       "newPost": true,
-#       "createdAt": "2026-05-12T19:30:00"
-#     },
-#     {
-#       "postId": 1,
-#       "title": "Spring Bean question",
-#       "writerNickname": "postListUser",
-#       "categoryName": "category",
-#       "likeCount": 0,
-#       "newPost": true,
-#       "createdAt": "2026-05-11T19:30:00"
-#     }
-#   ]
+#   "data": {
+#     "content": [
+#       {
+#         "postId": 2,
+#         "title": "Recent Spring Bean question",
+#         "writerNickname": "postListUser",
+#         "categoryName": "category",
+#         "likeCount": 0,
+#         "newPost": true,
+#         "createdAt": "2026-05-12T19:30:00"
+#       },
+#       {
+#         "postId": 1,
+#         "title": "Spring Bean question",
+#         "writerNickname": "postListUser",
+#         "categoryName": "category",
+#         "likeCount": 0,
+#         "newPost": true,
+#         "createdAt": "2026-05-11T19:30:00"
+#       }
+#     ],
+#     "currentPage": 0,
+#     "pageSize": 10,
+#     "totalElements": 2,
+#     "totalPages": 1,
+#     "hasNext": false,
+#     "hasPrevious": false,
+#     "isFirst": true,
+#     "isLast": true
+#   }
 # }

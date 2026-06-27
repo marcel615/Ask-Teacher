@@ -37,7 +37,7 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 | 로그인 | POST | `/api/auth/login` | 불필요 | 구현됨 |
 | 카테고리 목록 조회 | GET | `/api/categories` | 불필요 | 구현됨 |
 | 게시글 작성 | POST | `/api/posts` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 예정 |
-| 게시글 목록 조회 | GET | `/api/posts` | 불필요 | 구현됨 |
+| 게시글 목록 조회 | GET | `/api/posts` | 불필요 | 구현됨, 검색/페이징/카테고리 필터 지원 예정 |
 | 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨, 첨부파일 정보 반환 예정 |
 | 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 예정 |
 | 게시글 삭제 | DELETE | `/api/posts/{postId}` | 필요 | 구현됨 |
@@ -230,23 +230,51 @@ Content-Type: multipart/form-data
 
 `GET /api/posts`
 
+### Query Parameters
+
+| 이름 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| keyword | String | 선택 | 제목 또는 내용 검색어. 없거나 공백이면 검색 조건 없이 조회 |
+| categoryId | Long | 선택 | 카테고리 ID. 없으면 전체 카테고리 조회 |
+| page | int | 선택 | 페이지 번호. 0 이상. 기본값 0 |
+| size | int | 선택 | 페이지 크기. 1 이상. 기본값 10 |
+
+### Request Examples
+
+```http
+GET /api/posts?page=0&size=10
+GET /api/posts?keyword=검색어&page=0&size=10
+GET /api/posts?categoryId=1&page=0&size=10
+GET /api/posts?keyword=검색어&categoryId=1&page=0&size=10
+```
+
 ### Response
 
 ```json
 {
   "status": 200,
   "message": "게시글 목록 조회에 성공했습니다.",
-  "data": [
-    {
-      "postId": 1,
-      "title": "Spring Bean이 뭔가요?",
-      "writerNickname": "springUser",
-      "categoryName": "Spring",
-      "newPost": true,
-      "likeCount": 3,
-      "createdAt": "2026-05-12T19:30:00"
-    }
-  ]
+  "data": {
+    "content": [
+      {
+        "postId": 1,
+        "title": "Spring Bean이 뭔가요?",
+        "writerNickname": "springUser",
+        "categoryName": "Spring",
+        "newPost": true,
+        "likeCount": 3,
+        "createdAt": "2026-05-12T19:30:00"
+      }
+    ],
+    "currentPage": 0,
+    "pageSize": 10,
+    "totalElements": 1,
+    "totalPages": 1,
+    "hasNext": false,
+    "hasPrevious": false,
+    "isFirst": true,
+    "isLast": true
+  }
 }
 ```
 
@@ -254,10 +282,16 @@ Content-Type: multipart/form-data
 
 | 상황 | Status |
 |---|---|
-| 성공 | 200 OK |
+| 조회 성공 | 200 OK |
+| page가 0 미만 | 400 Bad Request |
+| size가 1 미만 | 400 Bad Request |
+| 존재하지 않는 categoryId | 404 Not Found |
+| 서버 조회 실패 | 500 Internal Server Error |
 
 ### 비고
 
+- `keyword`가 없거나 공백이면 검색 조건 없이 조회한다.
+- `categoryId`가 없으면 전체 카테고리 게시글을 조회한다.
 - 삭제된 게시글은 목록에서 제외한다.
 - 게시글 목록은 `createdAt` 기준 내림차순으로 정렬해 최근에 생성된 게시글부터 반환한다.
 
