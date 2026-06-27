@@ -12,7 +12,7 @@ public record PostFileResponse(
         return new PostFileResponse(
                 postFile.getStoredFileName(),
                 postFile.getContentType(),
-                postFile.getFilePath()
+                "/files/" + postFile.getStoredFileName()
         );
     }
 }

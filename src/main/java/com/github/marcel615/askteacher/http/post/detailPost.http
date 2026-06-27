@@ -75,7 +75,7 @@ Authorization: Bearer {{accessToken}}
 #       {
 #         "storedFileName": "uuid-detail.png",
 #         "contentType": "image/png",
-#         "fileUrl": "C:\\path\\to\\uploads\\posts\\uuid-detail.png"
+#         "fileUrl": "/files/uuid-detail.png"
 #       }
 #     ]
 #   }

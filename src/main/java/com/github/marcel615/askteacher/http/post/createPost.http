@@ -101,6 +101,34 @@ Content-Type: image/png
 --post-empty-file-boundary--
 
 
+### Create post - file size exceeded
+# Prepare a local file larger than 10MB before running this request.
+# Example PowerShell:
+# fsutil file createnew C:\temp\over-10mb.pdf 10485761
+POST http://localhost:8080/api/posts
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-file-size-boundary
+
+--post-file-size-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-file-size-boundary
+Content-Disposition: form-data; name="title"
+
+File size exceeded
+--post-file-size-boundary
+Content-Disposition: form-data; name="content"
+
+Files larger than 10MB are rejected.
+--post-file-size-boundary
+Content-Disposition: form-data; name="files"; filename="over-10mb.pdf"
+Content-Type: application/pdf
+
+< C:\temp\over-10mb.pdf
+--post-file-size-boundary--
+
+
 ### Create post - missing title
 POST http://localhost:8080/api/posts
 Authorization: Bearer {{accessToken}}
