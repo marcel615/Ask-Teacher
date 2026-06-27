@@ -1,4 +1,4 @@
-### 게시글 목록 조회 준비
+### Signup user for post list check
 POST http://localhost:8080/api/auth/signup
 Content-Type: application/json
 
@@ -9,12 +9,26 @@ Content-Type: application/json
 }
 
 
-### 게시글 목록 조회 준비 - 게시글 작성
-POST http://localhost:8080/api/posts
+### Login user for post list check
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "userId": 1,
+  "email": "post-list-user@example.com",
+  "password": "password1234"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+### Create old post for list check
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
   "categoryId": 1,
   "title": "Spring Bean question",
   "content": "Manual API check post content."
@@ -24,20 +38,20 @@ Content-Type: application/json
 ### Create recent post for list sort check
 POST http://localhost:8080/api/posts
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
-  "userId": 1,
   "categoryId": 1,
   "title": "Recent Spring Bean question",
   "content": "Manual API check recent post content."
 }
 
 
-### 게시글 목록 조회 성공
+### List posts
 GET http://localhost:8080/api/posts
 
 
-### 게시글 목록 조회 성공 응답 예시
+### List posts success response example
 # HTTP/1.1 200
 # {
 #   "status": 200,
@@ -47,6 +61,8 @@ GET http://localhost:8080/api/posts
 #       "postId": 2,
 #       "title": "Recent Spring Bean question",
 #       "writerNickname": "postListUser",
+#       "categoryName": "category",
+#       "likeCount": 0,
 #       "newPost": true,
 #       "createdAt": "2026-05-12T19:30:00"
 #     },
@@ -54,6 +70,8 @@ GET http://localhost:8080/api/posts
 #       "postId": 1,
 #       "title": "Spring Bean question",
 #       "writerNickname": "postListUser",
+#       "categoryName": "category",
+#       "likeCount": 0,
 #       "newPost": true,
 #       "createdAt": "2026-05-11T19:30:00"
 #     }

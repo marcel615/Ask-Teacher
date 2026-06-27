@@ -10,6 +10,7 @@ import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.post.repository.PostRepository;
+import com.github.marcel615.askteacher.domain.postlike.repository.PostLikeRepository;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.CustomException;
@@ -26,6 +27,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final PostLikeRepository postLikeRepository;
 
     @Transactional
     public PostCreateResponse createPost(Long userId, PostCreateRequest postCreateRequest) {
@@ -51,10 +53,17 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostDetailResponse getPost(Long postId) {
-        Post post = postRepository.findWithUserAndCategoryById(postId)
+        return getPost(postId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public PostDetailResponse getPost(Long postId, Long userId) {
+        Post post = postRepository.findWithUserAndCategoryByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        return PostDetailResponse.from(post);
+        boolean likedByMe = userId != null && postLikeRepository.existsByPostIdAndUserId(postId, userId);
+
+        return PostDetailResponse.from(post, likedByMe);
     }
 
     @Transactional

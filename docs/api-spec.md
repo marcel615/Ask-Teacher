@@ -41,6 +41,8 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 | 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨 |
 | 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨 |
 | 게시글 삭제 | DELETE | `/api/posts/{postId}` | 필요 | 구현됨 |
+| 게시글 좋아요 등록 | POST | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
+| 게시글 좋아요 취소 | DELETE | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
 
 ---
 
@@ -234,6 +236,7 @@ Authorization: Bearer {accessToken}
       "writerNickname": "springUser",
       "categoryName": "Spring",
       "newPost": true,
+      "likeCount": 3,
       "createdAt": "2026-05-12T19:30:00"
     }
   ]
@@ -277,6 +280,8 @@ Authorization: Bearer {accessToken}
     "categoryName": "Spring",
     "title": "Spring Bean은 무엇인가요?",
     "content": "Spring Bean 개념이 궁금합니다.",
+    "likeCount": 3,
+    "likedByMe": true,
     "createdAt": "2026-05-12T19:30:00"
   }
 }
@@ -392,3 +397,75 @@ Authorization: Bearer {accessToken}
 - 이미 삭제된 게시글은 조회되지 않는 게시글로 보고 404 Not Found로 처리한다.
 - 삭제 시 `updatedAt`을 갱신한다.
 - 작성자 검증은 Authorization 헤더의 Access Token 사용자 ID와 게시글 작성자 ID를 비교한다.
+
+---
+
+## 게시글 좋아요 등록
+
+### Request
+
+`POST /api/posts/{postId}/likes`
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| postId | 필수, 존재하는 게시글 ID, 삭제되지 않은 게시글 |
+
+### Response
+
+```json
+{
+  "status": 200,
+  "message": "게시글 좋아요가 등록되었습니다."
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 등록 성공 | 200 OK |
+| 인증 실패 | 401 Unauthorized |
+| 중복 좋아요 요청 | 400 Bad Request |
+| 게시글 없음 | 404 Not Found |
+
+---
+
+## 게시글 좋아요 취소
+
+### Request
+
+`DELETE /api/posts/{postId}/likes`
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| postId | 필수, 존재하는 게시글 ID, 삭제되지 않은 게시글 |
+
+### Response
+
+```json
+{
+  "status": 200,
+  "message": "게시글 좋아요가 취소되었습니다."
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 취소 성공 | 200 OK |
+| 인증 실패 | 401 Unauthorized |
+| 좋아요 취소 대상 없음 | 400 Bad Request |
+| 게시글 없음 | 404 Not Found |
