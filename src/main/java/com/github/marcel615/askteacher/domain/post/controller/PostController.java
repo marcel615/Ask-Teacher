@@ -49,8 +49,11 @@ public class PostController {
 
     @GetMapping("/{postId}")
     @ResponseStatus(HttpStatus.OK)
-    public ApiResponse<PostDetailResponse> getPost(@PathVariable Long postId) {
-        PostDetailResponse postDetailResponse = postService.getPost(postId);
+    public ApiResponse<PostDetailResponse> getPost(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long postId
+    ) {
+        PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
         return ApiResponse.success(200, "게시글 상세 조회에 성공했습니다.", postDetailResponse);
     }
 

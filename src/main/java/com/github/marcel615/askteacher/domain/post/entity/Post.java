@@ -40,6 +40,9 @@ public class Post {
     private boolean deleted;
 
     @Column(nullable = false)
+    private long likeCount;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
@@ -54,6 +57,7 @@ public class Post {
         post.content = content;
         post.newPost = true;
         post.deleted = false;
+        post.likeCount = 0L;
         post.createdAt = LocalDateTime.now();
         post.updatedAt = LocalDateTime.now();
 
@@ -70,6 +74,16 @@ public class Post {
     public void delete() {
         this.deleted = true;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 
 }

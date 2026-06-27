@@ -25,5 +25,23 @@ Content-Type: application/json
 GET http://localhost:8080/api/posts/1
 
 
+### Detail post - success response example
+# HTTP/1.1 200
+# {
+#   "status": 200,
+#   "message": "post detail success message",
+#   "data": {
+#     "postId": 1,
+#     "userName": "postDetailAuthor",
+#     "categoryName": "category",
+#     "title": "Spring detail question",
+#     "content": "Post content for detail lookup.",
+#     "likeCount": 0,
+#     "likedByMe": false,
+#     "createdAt": "2026-05-12T19:30:00"
+#   }
+# }
+
+
 ### Detail post - not found
 GET http://localhost:8080/api/posts/999999

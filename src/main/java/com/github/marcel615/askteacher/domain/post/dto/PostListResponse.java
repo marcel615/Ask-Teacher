@@ -9,6 +9,7 @@ public record PostListResponse(
         String title,
         String writerNickname,
         String categoryName,
+        long likeCount,
         boolean newPost,
         LocalDateTime createdAt
 ) {
@@ -19,6 +20,7 @@ public record PostListResponse(
                 post.getTitle(),
                 post.getUser().getNickname(),
                 post.getCategory().getName(),
+                post.getLikeCount(),
                 post.isNewPost(),
                 post.getCreatedAt()
         );
