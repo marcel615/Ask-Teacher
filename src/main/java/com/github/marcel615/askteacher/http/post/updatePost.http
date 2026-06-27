@@ -1,57 +1,117 @@
-### Prepare update post - signup author
+### Signup author
 POST http://localhost:8080/api/auth/signup
 Content-Type: application/json
 
 {
-  "email": "post-update-author@example.com",
+  "email": "post-file-update-author@example.com",
   "password": "password1234",
-  "nickname": "postUpdateAuthor"
+  "nickname": "postFileUpdateAuthor"
 }
 
 
-### Prepare update post - create post
+### Login author
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "post-file-update-author@example.com",
+  "password": "password1234"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+### Create post for update
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-update-create-boundary
 
-{
-  "userId": 1,
-  "categoryId": 1,
-  "title": "Spring update target",
-  "content": "Post content before update."
-}
+--post-update-create-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-update-create-boundary
+Content-Disposition: form-data; name="title"
+
+Spring update target
+--post-update-create-boundary
+Content-Disposition: form-data; name="content"
+
+Post content before update.
+--post-update-create-boundary--
+
+> {%
+    client.global.set("postId", response.body.data.postId);
+%}
 
 
-### Update post - success
-PATCH http://localhost:8080/api/posts/1
-Content-Type: application/json
+### Update post - multipart success with pdf
+PATCH http://localhost:8080/api/posts/{{postId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-update-boundary
 
-{
-  "userId": 1,
-  "categoryId": 1,
-  "title": "Updated Spring question",
-  "content": "Updated post content."
-}
+--post-update-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-update-boundary
+Content-Disposition: form-data; name="title"
+
+Updated Spring question
+--post-update-boundary
+Content-Disposition: form-data; name="content"
+
+Updated post content with an attached PDF.
+--post-update-boundary
+Content-Disposition: form-data; name="files"; filename="answer.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4 fake pdf content
+--post-update-boundary--
 
 
-### Update post - author mismatch
-PATCH http://localhost:8080/api/posts/1
-Content-Type: application/json
+### Update post - invalid file type
+PATCH http://localhost:8080/api/posts/{{postId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-update-invalid-boundary
 
-{
-  "userId": 2,
-  "categoryId": 1,
-  "title": "Updated Spring question",
-  "content": "Updated post content."
-}
+--post-update-invalid-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-update-invalid-boundary
+Content-Disposition: form-data; name="title"
+
+Updated Spring question
+--post-update-invalid-boundary
+Content-Disposition: form-data; name="content"
+
+Invalid update file type.
+--post-update-invalid-boundary
+Content-Disposition: form-data; name="files"; filename="memo.txt"
+Content-Type: text/plain
+
+text file content
+--post-update-invalid-boundary--
 
 
 ### Update post - missing title
-PATCH http://localhost:8080/api/posts/1
-Content-Type: application/json
+PATCH http://localhost:8080/api/posts/{{postId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-update-missing-title-boundary
 
-{
-  "userId": 1,
-  "categoryId": 1,
-  "title": "",
-  "content": "Updated post content."
-}
+--post-update-missing-title-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-update-missing-title-boundary
+Content-Disposition: form-data; name="title"
+
+
+--post-update-missing-title-boundary
+Content-Disposition: form-data; name="content"
+
+Updated post content.
+--post-update-missing-title-boundary--

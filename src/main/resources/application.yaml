@@ -24,3 +24,8 @@ spring:
 jwt:
   secret: my-secret-key-my-secret-key-my-secret-key
   expiration: 3600000
+
+app:
+  file-storage:
+    post-upload-dir: uploads/posts
+    max-file-size: 10485760

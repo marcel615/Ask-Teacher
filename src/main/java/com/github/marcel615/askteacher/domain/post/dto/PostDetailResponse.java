@@ -1,8 +1,10 @@
 package com.github.marcel615.askteacher.domain.post.dto;
 
 import com.github.marcel615.askteacher.domain.post.entity.Post;
+import com.github.marcel615.askteacher.domain.post.entity.PostFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record PostDetailResponse(
         Long postId,
@@ -12,10 +14,15 @@ public record PostDetailResponse(
         String content,
         long likeCount,
         boolean likedByMe,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        List<PostFileResponse> files
 ) {
 
     public static PostDetailResponse from(Post post, boolean likedByMe) {
+        return from(post, likedByMe, List.of());
+    }
+
+    public static PostDetailResponse from(Post post, boolean likedByMe, List<PostFile> postFiles) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getUser().getNickname(),
@@ -24,7 +31,10 @@ public record PostDetailResponse(
                 post.getContent(),
                 post.getLikeCount(),
                 likedByMe,
-                post.getCreatedAt()
+                post.getCreatedAt(),
+                postFiles.stream()
+                        .map(PostFileResponse::from)
+                        .toList()
         );
     }
 }

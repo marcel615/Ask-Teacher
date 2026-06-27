@@ -1,91 +1,121 @@
-### 회원가입 성공
+### Signup user
 POST http://localhost:8080/api/auth/signup
 Content-Type: application/json
 
 {
-  "email": "user@example.com",
+  "email": "post-file-create@example.com",
   "password": "password1234",
-  "nickname": "springUser"
+  "nickname": "postFileCreateUser"
 }
 
 
-### 게시글 생성 성공
-POST http://localhost:8080/api/posts
+### Login user
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "userId": 1,
-  "categoryId": 1,
-  "title": "Spring 질문입니다",
-  "content": "게시글 작성 기능 테스트입니다."
+  "email": "post-file-create@example.com",
+  "password": "password1234"
 }
 
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
 
-### 게시글 생성 실패 - 존재하지 않는 유저
+
+### Create post - multipart success with png
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-create-boundary
 
-{
-  "userId": 999,
-  "categoryId": 1,
-  "title": "Spring 질문입니다",
-  "content": "존재하지 않는 유저 테스트입니다."
-}
+--post-create-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-create-boundary
+Content-Disposition: form-data; name="title"
+
+Spring multipart question
+--post-create-boundary
+Content-Disposition: form-data; name="content"
+
+Post content with an attached file.
+--post-create-boundary
+Content-Disposition: form-data; name="files"; filename="question.png"
+Content-Type: image/png
+
+fake-png-content
+--post-create-boundary--
+
+> {%
+    client.global.set("postId", response.body.data.postId);
+%}
 
 
-### 게시글 생성 실패 - 존재하지 않는 카테고리
+### Create post - invalid file type
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-invalid-type-boundary
 
-{
-  "userId": 1,
-  "categoryId": 999,
-  "title": "Spring 질문입니다",
-  "content": "존재하지 않는 카테고리 테스트입니다."
-}
+--post-invalid-type-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-invalid-type-boundary
+Content-Disposition: form-data; name="title"
+
+Invalid file type
+--post-invalid-type-boundary
+Content-Disposition: form-data; name="content"
+
+Only images and PDFs are allowed.
+--post-invalid-type-boundary
+Content-Disposition: form-data; name="files"; filename="memo.txt"
+Content-Type: text/plain
+
+text file content
+--post-invalid-type-boundary--
 
 
-### 게시글 생성 실패 - 제목 누락
+### Create post - empty file
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-empty-file-boundary
 
-{
-  "userId": 1,
-  "categoryId": 1,
-  "title": "",
-  "content": "제목 누락 테스트입니다."
-}
+--post-empty-file-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-empty-file-boundary
+Content-Disposition: form-data; name="title"
+
+Empty file
+--post-empty-file-boundary
+Content-Disposition: form-data; name="content"
+
+Empty files are rejected.
+--post-empty-file-boundary
+Content-Disposition: form-data; name="files"; filename="empty.png"
+Content-Type: image/png
+
+--post-empty-file-boundary--
 
 
-### 게시글 생성 실패 - 내용 누락
+### Create post - missing title
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=post-missing-title-boundary
 
-{
-  "userId": 1,
-  "categoryId": 1,
-  "title": "내용 누락 테스트",
-  "content": ""
-}
+--post-missing-title-boundary
+Content-Disposition: form-data; name="categoryId"
 
-
-### 게시글 생성 실패 - userId 누락
-POST http://localhost:8080/api/posts
-Content-Type: application/json
-
-{
-  "categoryId": 1,
-  "title": "작성자 누락 테스트",
-  "content": "userId 누락 테스트입니다."
-}
+1
+--post-missing-title-boundary
+Content-Disposition: form-data; name="title"
 
 
-### 게시글 생성 실패 - categoryId 누락
-POST http://localhost:8080/api/posts
-Content-Type: application/json
+--post-missing-title-boundary
+Content-Disposition: form-data; name="content"
 
-{
-  "userId": 1,
-  "title": "카테고리 누락 테스트",
-  "content": "categoryId 누락 테스트입니다."
-}
+Title is required.
+--post-missing-title-boundary--
