@@ -26,7 +26,7 @@ public class PostLikeController {
             @PathVariable Long postId
     ) {
         postLikeService.likePost(postId, userId);
-        return ApiResponse.success(200, "Post liked.");
+        return ApiResponse.success(200, "게시글 좋아요가 등록되었습니다.");
     }
 
     @DeleteMapping
@@ -36,6 +36,6 @@ public class PostLikeController {
             @PathVariable Long postId
     ) {
         postLikeService.unlikePost(postId, userId);
-        return ApiResponse.success(200, "Post like canceled.");
+        return ApiResponse.success(200, "게시글 좋아요가 취소되었습니다.");
     }
 }

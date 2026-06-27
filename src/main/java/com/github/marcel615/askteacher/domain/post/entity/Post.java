@@ -76,14 +76,4 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void increaseLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decreaseLikeCount() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
 }

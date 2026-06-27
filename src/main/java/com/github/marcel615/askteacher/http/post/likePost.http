@@ -51,3 +51,13 @@ GET http://localhost:8080/api/posts
 ### Check post like count from detail
 GET http://localhost:8080/api/posts/{{postId}}
 Authorization: Bearer {{accessToken}}
+
+
+### Unlike post
+DELETE http://localhost:8080/api/posts/{{postId}}/likes
+Authorization: Bearer {{accessToken}}
+
+
+### Check post like count after unlike from detail
+GET http://localhost:8080/api/posts/{{postId}}
+Authorization: Bearer {{accessToken}}

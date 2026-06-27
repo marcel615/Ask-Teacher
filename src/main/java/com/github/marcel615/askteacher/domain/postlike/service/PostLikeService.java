@@ -9,6 +9,7 @@ import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +32,13 @@ public class PostLikeService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        postLikeRepository.save(PostLike.create(post, user));
-        post.increaseLikeCount();
+        try {
+            postLikeRepository.saveAndFlush(PostLike.create(post, user));
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        postRepository.increaseLikeCount(postId);
     }
 
     @Transactional
@@ -46,6 +52,6 @@ public class PostLikeService {
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT_VALUE));
 
         postLikeRepository.delete(postLike);
-        post.decreaseLikeCount();
+        postRepository.decreaseLikeCount(postId);
     }
 }

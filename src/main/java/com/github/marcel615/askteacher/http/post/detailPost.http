@@ -1,4 +1,4 @@
-### Prepare detail post - signup author
+### Signup author for post detail check
 POST http://localhost:8080/api/auth/signup
 Content-Type: application/json
 
@@ -9,20 +9,39 @@ Content-Type: application/json
 }
 
 
-### Prepare detail post - create post
-POST http://localhost:8080/api/posts
+### Login author for post detail check
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "userId": 1,
+  "email": "post-detail-author@example.com",
+  "password": "password1234"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+### Create post for detail check
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
   "categoryId": 1,
   "title": "Spring detail question",
   "content": "Post content for detail lookup."
 }
 
+> {%
+    client.global.set("postId", response.body.data.postId);
+%}
+
 
 ### Detail post - success
-GET http://localhost:8080/api/posts/1
+GET http://localhost:8080/api/posts/{{postId}}
+Authorization: Bearer {{accessToken}}
 
 
 ### Detail post - success response example

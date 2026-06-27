@@ -58,7 +58,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostDetailResponse getPost(Long postId, Long userId) {
-        Post post = postRepository.findWithUserAndCategoryById(postId)
+        Post post = postRepository.findWithUserAndCategoryByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         boolean likedByMe = userId != null && postLikeRepository.existsByPostIdAndUserId(postId, userId);
