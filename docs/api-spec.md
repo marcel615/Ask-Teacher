@@ -36,10 +36,10 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 | 회원가입 | POST | `/api/auth/signup` | 불필요 | 구현됨 |
 | 로그인 | POST | `/api/auth/login` | 불필요 | 구현됨 |
 | 카테고리 목록 조회 | GET | `/api/categories` | 불필요 | 구현됨 |
-| 게시글 작성 | POST | `/api/posts` | 필요 | 구현됨 |
+| 게시글 작성 | POST | `/api/posts` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 예정 |
 | 게시글 목록 조회 | GET | `/api/posts` | 불필요 | 구현됨 |
-| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨 |
-| 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨 |
+| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨, 첨부파일 정보 반환 예정 |
+| 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 예정 |
 | 게시글 삭제 | DELETE | `/api/posts/{postId}` | 필요 | 구현됨 |
 | 게시글 좋아요 등록 | POST | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
 | 게시글 좋아요 취소 | DELETE | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
@@ -172,15 +172,15 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 
 ```http
 Authorization: Bearer {accessToken}
+Content-Type: multipart/form-data
 ```
 
-```json
-{
-  "categoryId": 1,
-  "title": "Spring Bean이 뭔가요?",
-  "content": "Spring Bean의 개념이 궁금합니다."
-}
-```
+| Part | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| categoryId | Long | 필수 | 카테고리 ID |
+| title | String | 필수 | 게시글 제목 |
+| content | String | 필수 | 게시글 내용 |
+| files | MultipartFile[] | 선택 | 첨부파일 목록 |
 
 ### Validation
 
@@ -189,6 +189,9 @@ Authorization: Bearer {accessToken}
 | categoryId | 필수, 존재하는 카테고리 ID |
 | title | 필수, 100자 이하 |
 | content | 필수, 5000자 이하 |
+| files | 선택, 여러 파일 첨부 가능 |
+| files.contentType | `image/jpeg`, `image/png`, `image/webp`, `application/pdf`만 허용 |
+| files.size | 0보다 커야 하며 설정된 최대 크기 이하여야 함 |
 
 ### Response
 
@@ -212,8 +215,12 @@ Authorization: Bearer {accessToken}
 | 생성 성공 | 201 Created |
 | 인증 실패 | 401 Unauthorized |
 | Validation 실패 | 400 Bad Request |
+| 허용되지 않은 파일 형식 | 400 Bad Request |
+| 빈 파일 | 400 Bad Request |
+| 파일 크기 초과 | 400 Bad Request |
 | 사용자 없음 | 404 Not Found |
 | 카테고리 없음 | 404 Not Found |
+| 파일 저장 실패 | 500 Internal Server Error |
 
 ---
 
@@ -282,7 +289,14 @@ Authorization: Bearer {accessToken}
     "content": "Spring Bean 개념이 궁금합니다.",
     "likeCount": 3,
     "likedByMe": true,
-    "createdAt": "2026-05-12T19:30:00"
+    "createdAt": "2026-05-12T19:30:00",
+    "files": [
+      {
+        "storedFileName": "uuid-image.png",
+        "contentType": "image/png",
+        "fileUrl": "/files/uuid-image.png"
+      }
+    ]
   }
 }
 ```
@@ -304,15 +318,15 @@ Authorization: Bearer {accessToken}
 
 ```http
 Authorization: Bearer {accessToken}
+Content-Type: multipart/form-data
 ```
 
-```json
-{
-  "categoryId": 1,
-  "title": "수정 게시글 제목",
-  "content": "수정 게시글 내용"
-}
-```
+| Part | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| categoryId | Long | 필수 | 카테고리 ID |
+| title | String | 필수 | 게시글 제목 |
+| content | String | 필수 | 게시글 내용 |
+| files | MultipartFile[] | 선택 | 첨부파일 목록 |
 
 ### Validation
 
@@ -322,6 +336,9 @@ Authorization: Bearer {accessToken}
 | categoryId | 필수, 존재하는 카테고리 ID |
 | title | 필수, 100자 이하 |
 | content | 필수, 5000자 이하 |
+| files | 선택, 여러 파일 첨부 가능 |
+| files.contentType | `image/jpeg`, `image/png`, `image/webp`, `application/pdf`만 허용 |
+| files.size | 0보다 커야 하며 설정된 최대 크기 이하여야 함 |
 
 ### Response
 
@@ -346,9 +363,13 @@ Authorization: Bearer {accessToken}
 | 수정 성공 | 200 OK |
 | 인증 실패 | 401 Unauthorized |
 | Validation 실패 | 400 Bad Request |
+| 허용되지 않은 파일 형식 | 400 Bad Request |
+| 빈 파일 | 400 Bad Request |
+| 파일 크기 초과 | 400 Bad Request |
 | 작성자 불일치 | 403 Forbidden |
 | 게시글 없음 | 404 Not Found |
 | 카테고리 없음 | 404 Not Found |
+| 파일 저장 실패 | 500 Internal Server Error |
 
 ### 비고
 

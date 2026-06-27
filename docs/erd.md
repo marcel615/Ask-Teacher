@@ -8,6 +8,7 @@
 | Category | categories | 게시글 카테고리 |
 | Post | posts | 질문 게시글 |
 | PostLike | post_likes | 게시글 좋아요 |
+| PostFile | post_files | 게시글 첨부파일 |
 
 ## User
 
@@ -54,6 +55,19 @@
 | user | User | FK, NOT NULL | 좋아요한 사용자 |
 | createdAt | LocalDateTime | NOT NULL | 생성일 |
 
+## PostFile
+
+| 필드 | 타입 | 제약조건 | 설명 |
+|---|---|---|---|
+| id | Long | PK, AUTO_INCREMENT | 게시글 첨부파일 ID |
+| post | Post | FK, NOT NULL | 첨부파일이 속한 게시글 |
+| originalFileName | String(255) | NOT NULL | 원본 파일명 |
+| storedFileName | String(255) | NOT NULL | 저장 파일명 |
+| filePath | String(500) | NOT NULL | 파일 저장 경로 또는 접근 경로 |
+| contentType | String(100) | NOT NULL | MIME 타입 |
+| fileSize | Long | NOT NULL | 파일 크기 |
+| createdAt | LocalDateTime | NOT NULL | 생성일 |
+
 ## 관계
 
 - User 1 : N Post
@@ -62,6 +76,8 @@
   - 하나의 카테고리는 여러 게시글을 가질 수 있다.
 - Post 1 : N PostLike
   - 하나의 게시글은 여러 좋아요를 가질 수 있다.
+- Post 1 : N PostFile
+  - 하나의 게시글은 여러 첨부파일을 가질 수 있다.
 - User 1 : N PostLike
   - 한 명의 사용자는 여러 게시글에 좋아요를 누를 수 있다.
 - User N : M Post
@@ -75,6 +91,7 @@
 | posts | category_id | categories | id |
 | post_likes | post_id | posts | id |
 | post_likes | user_id | users | id |
+| post_files | post_id | posts | id |
 
 ## Unique 제약
 

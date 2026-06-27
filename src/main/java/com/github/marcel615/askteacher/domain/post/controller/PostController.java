@@ -11,16 +11,19 @@ import com.github.marcel615.askteacher.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,13 +33,14 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<PostCreateResponse> createPost(
             @AuthenticationPrincipal Long userId,
-            @Valid @RequestBody PostCreateRequest postCreateRequest
+            @Valid @ModelAttribute PostCreateRequest postCreateRequest,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
-        PostCreateResponse postCreateResponse = postService.createPost(userId, postCreateRequest);
+        PostCreateResponse postCreateResponse = postService.createPost(userId, postCreateRequest, files);
         return ApiResponse.success(201, "게시글이 작성되었습니다.", postCreateResponse);
     }
 
@@ -57,14 +61,15 @@ public class PostController {
         return ApiResponse.success(200, "게시글 상세 조회에 성공했습니다.", postDetailResponse);
     }
 
-    @PatchMapping("/{postId}")
+    @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<PostUpdateResponse> updatePost(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long postId,
-            @Valid @RequestBody PostUpdateRequest postUpdateRequest
+            @Valid @ModelAttribute PostUpdateRequest postUpdateRequest,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
-        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userId, postUpdateRequest);
+        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userId, postUpdateRequest, files);
         return ApiResponse.success(200, "게시글이 수정되었습니다.", postUpdateResponse);
     }
 

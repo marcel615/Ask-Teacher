@@ -1,113 +1,94 @@
 # Current Task
 
-## Related Issue
+## Issue
 
-- Issue number: #24
-- Issue title: [Feature] post: 게시글 좋아요 기능
-- Issue URL: https://github.com/marcel615/Ask-Teacher/issues/24
+- Issue: #25
+- Title: [Feature] post: 게시글 파일 업로드 기능
+- URL: https://github.com/marcel615/Ask-Teacher/issues/25
+- State: OPEN
 
-## Task
+## 목표
 
-- 게시글 좋아요 등록/취소 기능을 구현한다.
-- 게시글 목록/상세 조회 응답에 좋아요 정보를 추가한다.
-- 좋아요 저장을 위한 `post_likes` 테이블과 `posts.likeCount` 필드를 추가한다.
+게시글 작성 및 수정 시 이미지/PDF 파일을 첨부할 수 있도록 하고, 게시글 상세 조회 응답에서 첨부파일 정보를 확인할 수 있게 한다.
 
-## Assumptions
+## 범위
 
-- `POST /api/posts/{postId}/likes`는 좋아요 등록만 수행한다.
-- 이미 좋아요한 게시글에 `POST`를 다시 요청하면 `400 Bad Request`로 처리한다.
-- 좋아요 취소는 `DELETE /api/posts/{postId}/likes`로 수행한다.
-- 삭제된 게시글은 존재하지 않는 게시글과 동일하게 보고 좋아요 등록/취소 대상에서 제외한다.
-- `posts.likeCount`는 조회 성능을 위한 카운터 필드이며, `post_likes`가 사용자별 좋아요 여부의 기준 데이터다.
-- Issue 요청에 따라 이번 작업의 검증은 자동 테스트 추가 없이 `.http` 수동 API 확인을 우선한다.
+- `POST /api/posts`에서 `multipart/form-data` 요청을 받아 게시글 내용과 파일을 함께 처리한다.
+- `PATCH /api/posts/{postId}`에서 `multipart/form-data` 요청을 받아 게시글 수정 내용과 파일을 함께 처리한다.
+- 첨부 가능한 파일 형식은 아래로 제한한다.
+  - `image/jpeg`
+  - `image/png`
+  - `image/webp`
+  - `application/pdf`
+- 빈 파일 업로드를 거부한다.
+- 파일 크기 제한을 적용한다.
+- 첨부파일을 서버 저장소 또는 지정된 파일 저장 경로에 저장한다.
+- 게시글 상세 조회 응답에 첨부파일 정보를 포함한다.
+  - 저장 파일명
+  - 파일 타입
+  - 파일 URL 또는 파일 경로
 
-## Scope
+## 제외 범위
 
-- 로그인 사용자의 게시글 좋아요 등록 API를 추가한다.
-- 로그인 사용자의 게시글 좋아요 취소 API를 추가한다.
-- 사용자당 게시글 1개에 좋아요 1개만 등록되도록 제한한다.
-- 존재하지 않거나 삭제된 게시글에는 좋아요를 등록/취소할 수 없도록 처리한다.
-- 중복 좋아요 등록 요청은 `400 Bad Request`로 처리한다.
-- 좋아요하지 않은 게시글의 좋아요 취소 요청은 `400 Bad Request`로 처리한다.
-- 게시글 목록 조회 응답 DTO에 `likeCount`를 추가한다.
-- 게시글 상세 조회 응답 DTO에 `likeCount`, `likedByMe`를 추가한다.
-- 좋아요 등록/취소 시 `posts.likeCount`를 갱신한다.
-- 수동 API 확인용 `.http` 파일을 추가 또는 수정한다.
-
-## Out Of Scope
-
-- 댓글 기능
-- 알림 기능
-- 좋아요 사용자 목록 조회
-- 좋아요 기반 정렬/검색/페이징
 - 프론트엔드 구현
-- 고도화된 권한 처리
-- 자동 테스트 추가
+- 첨부파일 삭제 API
+- 기존 첨부파일 교체/삭제 정책 고도화
+- 이미지 리사이징, 썸네일 생성, 바이러스 검사
+- 외부 스토리지 연동
+- 테스트 코드 작성은 이번 Issue 요구사항 기준으로 제외하고, `.http` 파일을 통한 수동 확인 범위까지만 진행한다.
 
-## API Summary
+## 요구사항 변경 요약
 
-### 게시글 좋아요 등록
+- `docs/requirements.md` 변경 필요
+  - 게시글 첨부파일 기능 요구사항 추가
+  - 기존 제외 범위의 파일 업로드 문구 조정
 
-- Method: `POST`
-- URL: `/api/posts/{postId}/likes`
-- Auth: 필요
-- Success: `200 OK`
-- Errors:
-  - `401 Unauthorized`: 인증되지 않은 사용자
-  - `404 Not Found`: 게시글 없음
-  - `400 Bad Request`: 이미 좋아요한 게시글
+## API 변경 요약
 
-### 게시글 좋아요 취소
+- `POST /api/posts`
+  - 기존 JSON 요청에서 `multipart/form-data` 요청 지원으로 변경
+  - 게시글 필드와 `files`를 함께 수신
+- `PATCH /api/posts/{postId}`
+  - 기존 JSON 요청에서 `multipart/form-data` 요청 지원으로 변경
+  - 게시글 수정 필드와 `files`를 함께 수신
+- `GET /api/posts/{postId}`
+  - 응답 `data.files`에 첨부파일 목록 추가
 
-- Method: `DELETE`
-- URL: `/api/posts/{postId}/likes`
-- Auth: 필요
-- Success: `200 OK`
-- Errors:
-  - `401 Unauthorized`: 인증되지 않은 사용자
-  - `404 Not Found`: 게시글 없음
-  - `400 Bad Request`: 좋아요 취소 대상 없음
+## ERD 변경
 
-### 게시글 목록 조회 응답 변경
+- ERD 변경 필요
+- 사유: 하나의 게시글에 여러 첨부파일을 연결해야 하므로 `post_files` 테이블과 `Post 1 : N PostFile` 관계가 필요하다.
+- 추가 Entity: `PostFile`
+- 추가 테이블: `post_files`
+- 주요 컬럼:
+  - `post_id`
+  - `original_file_name`
+  - `stored_file_name`
+  - `file_path`
+  - `content_type`
+  - `file_size`
+  - `created_at`
 
-- 기존 응답 DTO에 `likeCount` 필드를 추가한다.
+## 예외 처리
 
-### 게시글 상세 조회 응답 변경
+- 인증되지 않은 사용자: 401 Unauthorized
+- 허용되지 않은 파일 형식: 400 Bad Request
+- 빈 파일 업로드: 400 Bad Request
+- 파일 크기 초과: 400 Bad Request
+- 파일 저장 실패: 500 Internal Server Error
 
-- 기존 응답 DTO에 `likeCount` 필드를 추가한다.
-- 기존 응답 DTO에 `likedByMe` 필드를 추가한다.
+## 수동 확인
 
-## ERD Summary
+- `.http` 파일로 가능한 범위까지 확인한다.
+- 확인 대상:
+  - 게시글 작성 multipart 요청
+  - 게시글 수정 multipart 요청
+  - 게시글 상세 조회 첨부파일 응답
+  - 허용되지 않은 파일 형식
+  - 빈 파일
+  - 파일 크기 초과
 
-- ERD 변경 필요.
-- `post_likes` 테이블을 추가한다.
-- `post_likes.post_id`는 `posts.id`를 참조한다.
-- `post_likes.user_id`는 `users.id`를 참조한다.
-- `(post_id, user_id)` 유니크 제약을 추가한다.
-- `posts` 테이블에 `likeCount` 필드를 추가한다.
-
-## Branch
-
-- Base branch: `develop`
-- Working branch: `feature/issue-24-post-like`
-- PR direction: `feature/issue-24-post-like` -> `develop`
-
-## Completion Criteria
-
-- [ ] 로그인 사용자는 게시글 좋아요를 등록할 수 있다.
-- [ ] 로그인 사용자는 자신이 등록한 게시글 좋아요를 취소할 수 있다.
-- [ ] 인증되지 않은 사용자의 좋아요 등록/취소 요청은 `401 Unauthorized`로 실패한다.
-- [ ] 존재하지 않거나 삭제된 게시글에 대한 좋아요 등록/취소 요청은 `404 Not Found`로 실패한다.
-- [ ] 이미 좋아요한 게시글에 대한 중복 등록 요청은 `400 Bad Request`로 실패한다.
-- [ ] 좋아요하지 않은 게시글에 대한 취소 요청은 `400 Bad Request`로 실패한다.
-- [ ] 같은 사용자와 같은 게시글 조합의 좋아요는 1개만 저장된다.
-- [ ] 게시글 목록 조회 응답에 `likeCount`가 포함된다.
-- [ ] 게시글 상세 조회 응답에 `likeCount`, `likedByMe`가 포함된다.
-- [ ] 좋아요 등록/취소 시 `posts.likeCount`가 일관되게 갱신된다.
-- [ ] 관련 `.http` 파일로 수동 API 확인이 가능하다.
-- [ ] 변경 문서와 구현 범위가 Issue #24를 벗어나지 않는다.
-
-## Expected Files
+## 예상 변경 파일
 
 ### Architect 사전 반영 문서
 
@@ -118,14 +99,24 @@
 
 ### Builder 구현 변경 예상 파일
 
-- `src/main/java/com/github/marcel615/askteacher/domain/post/entity/Post.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/post/repository/PostRepository.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/post/service/PostService.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/post/controller/PostController.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/post/dto/*.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/postlike/entity/PostLike.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/postlike/repository/PostLikeRepository.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/postlike/service/PostLikeService.java`
-- `src/main/java/com/github/marcel615/askteacher/domain/postlike/controller/PostLikeController.java`
-- DB migration or schema initialization files if this project uses them
-- `src/main/java/com/github/marcel615/askteacher/http/*.http`
+- 게시글 요청 DTO 또는 multipart request DTO
+- 게시글 응답 DTO
+- 게시글 Controller
+- 게시글 Service
+- 게시글 Repository 또는 조회 로직
+- `PostFile` Entity
+- `PostFileRepository`
+- 파일 저장 서비스 또는 파일 스토리지 컴포넌트
+- 파일 업로드 설정 프로퍼티
+- 예외 타입 또는 예외 처리 매핑
+- DB 마이그레이션/DDL 관련 파일이 존재하는 경우 해당 파일
+- `src/main/java/com/github/marcel615/askteacher/http` 하위 `.http` 파일
+
+## 완료 조건
+
+- 게시글 작성 시 허용된 이미지/PDF 파일을 함께 업로드할 수 있다.
+- 게시글 수정 시 허용된 이미지/PDF 파일을 함께 업로드할 수 있다.
+- 허용되지 않은 파일 형식, 빈 파일, 파일 크기 초과는 400으로 실패한다.
+- 파일 저장 실패는 500으로 실패한다.
+- 게시글 상세 조회 응답에 첨부파일 정보가 포함된다.
+- `.http` 파일로 수동 확인 가능한 요청이 준비된다.

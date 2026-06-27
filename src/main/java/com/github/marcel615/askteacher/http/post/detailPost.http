@@ -25,14 +25,27 @@ Content-Type: application/json
 
 ### Create post for detail check
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=post-detail-create-boundary
 Authorization: Bearer {{accessToken}}
 
-{
-  "categoryId": 1,
-  "title": "Spring detail question",
-  "content": "Post content for detail lookup."
-}
+--post-detail-create-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-detail-create-boundary
+Content-Disposition: form-data; name="title"
+
+Spring detail question
+--post-detail-create-boundary
+Content-Disposition: form-data; name="content"
+
+Post content for detail lookup.
+--post-detail-create-boundary
+Content-Disposition: form-data; name="files"; filename="detail.png"
+Content-Type: image/png
+
+fake-png-content
+--post-detail-create-boundary--
 
 > {%
     client.global.set("postId", response.body.data.postId);
@@ -57,7 +70,14 @@ Authorization: Bearer {{accessToken}}
 #     "content": "Post content for detail lookup.",
 #     "likeCount": 0,
 #     "likedByMe": false,
-#     "createdAt": "2026-05-12T19:30:00"
+#     "createdAt": "2026-05-12T19:30:00",
+#     "files": [
+#       {
+#         "storedFileName": "uuid-detail.png",
+#         "contentType": "image/png",
+#         "fileUrl": "/files/uuid-detail.png"
+#       }
+#     ]
 #   }
 # }
 

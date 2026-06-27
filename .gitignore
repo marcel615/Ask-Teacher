@@ -42,3 +42,6 @@ application-local.properties
 application-local.yml
 application-secret.properties
 application-secret.yml
+
+### Uploaded files ###
+uploads/

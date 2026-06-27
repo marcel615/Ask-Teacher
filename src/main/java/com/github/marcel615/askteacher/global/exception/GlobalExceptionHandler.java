@@ -2,6 +2,7 @@ package com.github.marcel615.askteacher.global.exception;
 
 import com.github.marcel615.askteacher.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(ErrorCode.INVALID_INPUT_VALUE.getHttpStatus())
+                .body(errorResponse);
+
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException exception) {
+        ErrorResponse errorResponse = ErrorResponse.of(
+                ErrorCode.FILE_SIZE_EXCEEDED.getStatus(),
+                ErrorCode.FILE_SIZE_EXCEEDED.getMessage()
+        );
+
+        return ResponseEntity
+                .status(ErrorCode.FILE_SIZE_EXCEEDED.getHttpStatus())
                 .body(errorResponse);
 
     }
