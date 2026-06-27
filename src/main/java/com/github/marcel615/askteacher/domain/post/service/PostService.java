@@ -6,6 +6,7 @@ import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostDetailResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostListResponse;
+import com.github.marcel615.askteacher.domain.post.dto.PostPageResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
@@ -19,6 +20,8 @@ import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,6 +65,20 @@ public class PostService {
         return postRepository.findByDeletedFalseOrderByCreatedAtDesc().stream()
                 .map(PostListResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PostPageResponse getPosts(String keyword, Long categoryId, int page, int size) {
+        validatePageRequest(page, size);
+        validateCategory(categoryId);
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        String searchKeyword = normalizeKeyword(keyword);
+
+        return PostPageResponse.from(
+                postRepository.searchPosts(searchKeyword, categoryId, pageRequest)
+                        .map(PostListResponse::from)
+        );
     }
 
     @Transactional(readOnly = true)
@@ -116,5 +133,25 @@ public class PostService {
         if (!post.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.POST_AUTHOR_MISMATCH);
         }
+    }
+
+    private void validatePageRequest(int page, int size) {
+        if (page < 0 || size < 1) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+
+    private void validateCategory(Long categoryId) {
+        if (categoryId != null && !categoryRepository.existsById(categoryId)) {
+            throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        return keyword.trim();
     }
 }

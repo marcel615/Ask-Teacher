@@ -3,6 +3,7 @@ package com.github.marcel615.askteacher.global.exception;
 import com.github.marcel615.askteacher.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -35,6 +36,19 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.of(
                 ErrorCode.INVALID_INPUT_VALUE.getStatus(),
                 message
+        );
+
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getHttpStatus())
+                .body(errorResponse);
+
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException exception) {
+        ErrorResponse errorResponse = ErrorResponse.of(
+                ErrorCode.INVALID_INPUT_VALUE.getStatus(),
+                ErrorCode.INVALID_INPUT_VALUE.getMessage()
         );
 
         return ResponseEntity
