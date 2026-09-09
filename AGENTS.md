@@ -4,9 +4,11 @@
 
 - 사용자는 PM이자 최종 승인자다.
 - 한 번에 하나의 Issue만 진행한다.
+- Issue 작성/확장 시 Architect는 `.github/ISSUE_TEMPLATE`을 기준으로 사용자와 요구사항을 협의한다.
+- 요구사항이 불명확하면 Architect가 임의로 확정하지 않고 사용자에게 필요한 사항을 확인한다.
 - 구현 기준은 `docs/current-task.md`다.
 - `docs/current-task.md` 범위 밖은 구현하지 않는다.
-- 파일 수정, 브랜치 생성/이동, git add/commit/push, PR 생성, 삭제, DB/인증/인가 변경은 사용자 승인 후 진행한다.
+- GitHub Issue 생성/수정, 파일 수정, 브랜치 생성/이동, git add/commit/push, PR 생성, 삭제, DB/인증/인가 변경은 사용자 승인 후 진행한다.
 
 ## 브랜치
 
@@ -19,11 +21,13 @@
 
 - 상세 워크플로우: `.agents/skills/issue-driven-dev/SKILL.md`
 - 빠른 지시문: `prompts/quick.md`
+- Issue 템플릿: `.github/ISSUE_TEMPLATE/feature_request.yml`
 - 요구사항: `docs/requirements.md`
 - API 명세: `docs/api-spec.md`
 - ERD: `docs/erd.md`
 - 리뷰 기준: `docs/review-checklist.md`
-- 작업 기록: `docs/devlog/YYYY-MM.md`
+- 임시 구현 기록: `docs/current-work-log.md`
+- 영구 작업 기록: `docs/devlog/YYYY-MM.md`
 - PR 템플릿: `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
 
 ## 테스트
