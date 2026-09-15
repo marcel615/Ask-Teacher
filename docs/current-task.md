@@ -20,10 +20,11 @@
 - 게시글 삭제와 좋아요 취소는 204 No Content로 변경하고, 나머지 API의 기존 성공 HTTP 상태 코드는 유지한다.
 - 더 이상 사용하지 않는 `ApiResponse<T>` 성공 응답 타입을 정리한다.
 - `docs/api-spec.md`의 공통 및 개별 API 성공 응답 명세를 변경된 응답 형식에 맞게 갱신한다.
+- 사용자 후속 승인에 따라 `./gradlew test`를 실행하고, 변경 API의 `.http` 파일을 갱신하며 가능한 범위에서 수동 API를 확인한다.
 
 ## 제외 범위
 
-- 테스트 파일 작성, 테스트 실행, `.http` 수동 확인
+- 새 테스트 파일 작성
 - 오류 응답 구조 또는 `GlobalExceptionHandler` 처리 변경
 - API Method, URL, Request 형식 변경
 - DB 구조, Entity, 인증·인가 동작 변경
@@ -72,6 +73,9 @@
 - `src/main/java/com/github/marcel615/askteacher/domain/category/controller/CategoryController.java`
 - `src/main/java/com/github/marcel615/askteacher/domain/postlike/controller/PostLikeController.java`
 - `src/main/java/com/github/marcel615/askteacher/global/response/ApiResponse.java` — 미사용 타입 정리; 삭제가 필요하면 별도 승인
+- `src/main/java/com/github/marcel615/askteacher/http/auth/*.http`
+- `src/main/java/com/github/marcel615/askteacher/http/category/*.http`
+- `src/main/java/com/github/marcel615/askteacher/http/post/*.http`
 
 ## 완료 조건
 
