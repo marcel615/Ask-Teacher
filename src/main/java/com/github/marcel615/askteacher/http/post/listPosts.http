@@ -19,7 +19,7 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("accessToken", response.body.accessToken);
 %}
 
 
@@ -94,10 +94,7 @@ GET http://localhost:8080/api/posts?categoryId=999999&page=0&size=10
 ### List posts success response example
 # HTTP/1.1 200
 # {
-#   "status": 200,
-#   "message": "post list success message",
-#   "data": {
-#     "content": [
+#   "content": [
 #       {
 #         "postId": 2,
 #         "title": "Recent Spring Bean question",
@@ -117,13 +114,12 @@ GET http://localhost:8080/api/posts?categoryId=999999&page=0&size=10
 #         "createdAt": "2026-05-11T19:30:00"
 #       }
 #     ],
-#     "currentPage": 0,
-#     "pageSize": 10,
-#     "totalElements": 2,
-#     "totalPages": 1,
-#     "hasNext": false,
-#     "hasPrevious": false,
-#     "isFirst": true,
-#     "isLast": true
-#   }
+#   "currentPage": 0,
+#   "pageSize": 10,
+#   "totalElements": 2,
+#   "totalPages": 1,
+#   "hasNext": false,
+#   "hasPrevious": false,
+#   "isFirst": true,
+#   "isLast": true
 # }

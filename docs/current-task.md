@@ -2,135 +2,82 @@
 
 ## Issue
 
-- Issue: #26
-- Title: [Feature] post: 게시글 검색 / 페이징 / 카테고리 조회 기능
-- URL: https://github.com/marcel615/Ask-Teacher/issues/26
+- Issue: #32
+- Title: refactor: API 공통 응답 타입 개선
+- URL: https://github.com/marcel615/Ask-Teacher/issues/32
 - State: OPEN
 
 ## 목표
 
-게시글 목록 조회 API에서 전체 데이터를 한 번에 반환하지 않고, 검색 조건, 카테고리 조건, 페이지 조건을 조합해 최신순으로 조회할 수 있도록 개선한다.
+모든 기존 성공 API 응답에서 `ApiResponse<T>` 래퍼를 제거하고,
+`ResponseEntity`의 본문에 기존 응답 DTO 또는 목록을 직접 반환한다.
 
 ## 범위
 
-- `GET /api/posts`에서 페이지 단위 조회를 지원한다.
-- `GET /api/posts`에서 제목 또는 내용 기준 keyword 검색을 지원한다.
-- `GET /api/posts`에서 categoryId 기준 카테고리 필터를 지원한다.
-- keyword와 categoryId 조건을 함께 사용할 수 있다.
-- keyword가 없거나 공백이면 검색 조건 없이 조회한다.
-- categoryId가 없으면 전체 카테고리 게시글을 조회한다.
-- 게시글 목록은 생성일시 기준 최신순으로 정렬한다.
-- 삭제된 게시글은 목록에서 제외한다.
-- 응답에는 게시글 목록과 페이지 정보를 포함한다.
+- 인증, 게시글, 카테고리, 게시글 좋아요 API의 성공 응답 반환 타입을 `ResponseEntity`로 변경한다.
+- 데이터가 있는 응답은 기존 DTO 또는 목록을 본문으로 직접 반환한다.
+- 데이터가 없는 게시글 삭제·좋아요 등록·취소 응답은 본문 없이 반환한다.
+- 게시글 삭제와 좋아요 취소는 204 No Content로 변경하고, 나머지 API의 기존 성공 HTTP 상태 코드는 유지한다.
+- 더 이상 사용하지 않는 `ApiResponse<T>` 성공 응답 타입을 정리한다.
+- `docs/api-spec.md`의 공통 및 개별 API 성공 응답 명세를 변경된 응답 형식에 맞게 갱신한다.
 
 ## 제외 범위
 
-- 프론트엔드 구현
-- Entity 변경
-- DB 테이블 변경
-- 인증/인가 구조 변경
-- 게시글 상세 조회 변경
-- 게시글 작성/수정/삭제 변경
-- 카테고리 CRUD
-- 별도 정렬 조건 파라미터 추가
-- 테스트 코드 작성
+- 테스트 파일 작성, 테스트 실행, `.http` 수동 확인
+- 오류 응답 구조 또는 `GlobalExceptionHandler` 처리 변경
+- API Method, URL, Request 형식 변경
+- DB 구조, Entity, 인증·인가 동작 변경
+- 이번 응답 변경과 무관한 리팩터링
 
 ## 요구사항 변경 요약
 
-- `docs/requirements.md` 변경 필요
-  - 게시글 목록 조회에 검색, 페이징, 카테고리 필터 조건 추가
-  - 기존 제외 범위의 검색/페이징/정렬 파라미터 제외 문구를 Issue #26 범위에 맞게 조정
+- `docs/requirements.md` 변경 없음
+- 사유: 기존 사용자 기능 요구사항은 유지되고, 공통 응답 래퍼 규칙은 이 문서에 없음
 
 ## API 변경 요약
 
-- `GET /api/posts`
-  - query parameter 추가 또는 명세화
-    - `keyword`: 선택, 제목 또는 내용 검색어
-    - `categoryId`: 선택, 카테고리 ID
-    - `page`: 선택, 0 이상, 기본값 0
-    - `size`: 선택, 1 이상, 기본값 10
-  - 요청 예시
-    - `GET /api/posts?page=0&size=10`
-    - `GET /api/posts?keyword=검색어&page=0&size=10`
-    - `GET /api/posts?categoryId=1&page=0&size=10`
-    - `GET /api/posts?keyword=검색어&categoryId=1&page=0&size=10`
-  - 응답 data는 게시글 목록과 페이지 정보를 포함한다.
-    - `content`
-    - `currentPage`
-    - `pageSize`
-    - `totalElements`
-    - `totalPages`
-    - `hasNext`
-    - `hasPrevious`
-    - `isFirst`
-    - `isLast`
+- 모든 기존 성공 API에서 응답 본문의 `status`, `message`, `data` 래퍼를 제거한다.
+- 회원가입·게시글 작성: 201 Created, 기존 DTO를 본문으로 반환한다.
+- 로그인·카테고리 조회·게시글 조회·수정: 200 OK, 기존 DTO 또는 목록을 본문으로 반환한다.
+- 게시글 삭제·좋아요 취소: 204 No Content, 본문 없이 반환한다.
+- 게시글 좋아요 등록: 200 OK, 본문 없이 반환한다.
+- 기존 Method, URL, Request 및 오류 응답은 유지한다.
+- `docs/api-spec.md`의 공통 성공 응답과 각 대상 API의 Response 예시를 갱신한다.
 
 ## ERD 변경
 
 - ERD 변경 없음
-- 사유:
-  - Entity 변경 없음
-  - DB 테이블 변경 없음
-  - 기존 `Post -> Category` 관계로 카테고리 필터 조회 가능
-  - keyword 검색, 페이징, 최신순 정렬은 Repository 조회 조건 변경으로 처리
+- 사유: 응답 본문의 래퍼만 바꾸며 Entity, DB 테이블, 관계, 제약조건은 변경하지 않음
 
 ## Validation
 
-- `page`는 0 이상이어야 한다.
-- `size`는 1 이상이어야 한다.
-- `keyword`는 선택값이다.
-- `keyword`가 없거나 공백이면 검색 조건 없이 조회한다.
-- `categoryId`는 선택값이다.
-- `categoryId`가 없으면 전체 카테고리 게시글을 조회한다.
-- 존재하지 않는 `categoryId`로 요청하면 404 Not Found로 처리한다.
+- 기존 Request DTO 검증 규칙 유지
+- 새 검증 규칙 추가 없음
 
 ## 예외 처리
 
-- 잘못된 페이지 값: 400 Bad Request
-- 잘못된 페이지 크기 값: 400 Bad Request
-- 존재하지 않는 카테고리: 404 Not Found
-- 서버 조회 실패: 500 Internal Server Error
-
-## 수동 확인
-
-- `.http` 파일로 가능한 범위까지 확인한다.
-- 확인 대상:
-  - 전체 게시글 페이징 조회
-  - keyword 검색 + 페이징 조회
-  - categoryId 필터 + 페이징 조회
-  - keyword + categoryId 조합 조회
-  - page가 0 미만인 요청
-  - size가 1 미만인 요청
-  - 존재하지 않는 categoryId 요청
+- 기존 실패 조건, 실패 HTTP 상태 코드, `GlobalExceptionHandler`의 오류 응답 유지
 
 ## 예상 변경 파일
 
 ### Architect 사전 반영 문서
 
 - `docs/current-task.md`
-- `docs/requirements.md`
 - `docs/api-spec.md`
 
 ### Builder 구현 변경 예상 파일
 
-- 게시글 목록 조회 Request DTO 또는 query parameter 처리 코드
-- 게시글 목록 조회 Response DTO
-- 페이지 응답 DTO
-- 게시글 Controller
-- 게시글 Service
-- 게시글 Repository 또는 검색/페이징 조회 로직
-- 카테고리 존재 여부 확인 로직
-- 예외 타입 또는 예외 처리 매핑
-- `src/main/java/com/github/marcel615/askteacher/http` 하위 `.http` 파일
+- `src/main/java/com/github/marcel615/askteacher/domain/auth/controller/AuthController.java`
+- `src/main/java/com/github/marcel615/askteacher/domain/post/controller/PostController.java`
+- `src/main/java/com/github/marcel615/askteacher/domain/category/controller/CategoryController.java`
+- `src/main/java/com/github/marcel615/askteacher/domain/postlike/controller/PostLikeController.java`
+- `src/main/java/com/github/marcel615/askteacher/global/response/ApiResponse.java` — 미사용 타입 정리; 삭제가 필요하면 별도 승인
 
 ## 완료 조건
 
-- `GET /api/posts?page=0&size=10` 요청으로 전체 게시글을 페이지 단위로 조회할 수 있다.
-- `GET /api/posts?keyword=검색어&page=0&size=10` 요청으로 제목 또는 내용 검색 결과를 페이지 단위로 조회할 수 있다.
-- `GET /api/posts?categoryId=1&page=0&size=10` 요청으로 특정 카테고리 게시글을 페이지 단위로 조회할 수 있다.
-- `GET /api/posts?keyword=검색어&categoryId=1&page=0&size=10` 요청으로 검색어와 카테고리 조건을 함께 적용할 수 있다.
-- 응답에 게시글 목록과 페이지 정보가 포함된다.
-- 목록은 최신순으로 정렬된다.
-- 잘못된 page/size 요청은 400으로 실패한다.
-- 존재하지 않는 categoryId 요청은 404로 실패한다.
-- `.http` 파일로 수동 확인 가능한 요청이 준비된다.
+- [ ] 모든 대상 API의 성공 반환 타입이 `ResponseEntity`다.
+- [ ] 데이터가 있는 성공 응답은 기존 DTO 또는 목록을 본문으로 직접 반환한다.
+- [ ] 데이터가 없는 성공 응답은 본문이 없다.
+- [ ] 게시글 삭제·좋아요 취소는 204, 나머지 API의 기존 성공 HTTP 상태 코드와 오류 응답 처리는 유지된다.
+- [ ] 미사용 `ApiResponse<T>` 성공 응답 타입이 정리된다.
+- [ ] `docs/api-spec.md`의 성공 응답 명세가 변경된 응답 형식과 일치한다.

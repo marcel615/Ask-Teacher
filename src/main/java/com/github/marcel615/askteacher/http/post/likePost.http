@@ -19,29 +19,44 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("accessToken", response.body.accessToken);
 %}
 
 
 ### Create post for post like check
 POST http://localhost:8080/api/posts
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=post-like-create-boundary
 Authorization: Bearer {{accessToken}}
 
-{
-  "categoryId": 1,
-  "title": "Post like question",
-  "content": "Manual API check post content for likes."
-}
+--post-like-create-boundary
+Content-Disposition: form-data; name="categoryId"
+
+1
+--post-like-create-boundary
+Content-Disposition: form-data; name="title"
+
+Post like question
+--post-like-create-boundary
+Content-Disposition: form-data; name="content"
+
+Manual API check post content for likes.
+--post-like-create-boundary--
 
 > {%
-    client.global.set("postId", response.body.data.postId);
+    client.global.set("postId", response.body.postId);
 %}
 
 
 ### Like post
 POST http://localhost:8080/api/posts/{{postId}}/likes
 Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("좋아요 등록: 200과 빈 본문", function() {
+        client.assert(response.status === 200);
+        client.assert(!response.body);
+    });
+%}
 
 
 ### Check post like count from list
@@ -56,6 +71,13 @@ Authorization: Bearer {{accessToken}}
 ### Unlike post
 DELETE http://localhost:8080/api/posts/{{postId}}/likes
 Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("좋아요 취소: 204와 빈 본문", function() {
+        client.assert(response.status === 204);
+        client.assert(!response.body);
+    });
+%}
 
 
 ### Check post like count after unlike from detail
