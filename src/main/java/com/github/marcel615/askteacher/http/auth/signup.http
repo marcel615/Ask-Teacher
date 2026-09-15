@@ -8,6 +8,14 @@ Content-Type: application/json
   "nickname": "springUser"
 }
 
+> {%
+    client.test("회원가입: 201과 직접 반환한 사용자 DTO", function() {
+        client.assert(response.status === 201);
+        client.assert(response.body.userId);
+        client.assert(!response.body.data);
+    });
+%}
+
 ### 회원가입 실패 - 이메일 중복
 POST http://localhost:8080/api/auth/signup
 Content-Type: application/json

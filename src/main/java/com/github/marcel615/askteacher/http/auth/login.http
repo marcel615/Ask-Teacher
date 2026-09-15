@@ -18,6 +18,14 @@ Content-Type: application/json
   "password": "password1234"
 }
 
+> {%
+    client.test("로그인: 200과 직접 반환한 토큰 DTO", function() {
+        client.assert(response.status === 200);
+        client.assert(response.body.accessToken);
+        client.assert(!response.body.data);
+    });
+%}
+
 
 ### 로그인 실패 - 존재하지 않는 이메일
 POST http://localhost:8080/api/auth/login

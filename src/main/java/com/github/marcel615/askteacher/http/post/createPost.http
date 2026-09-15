@@ -19,7 +19,7 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("accessToken", response.body.accessToken);
 %}
 
 
@@ -48,7 +48,7 @@ fake-png-content
 --post-create-boundary--
 
 > {%
-    client.global.set("postId", response.body.data.postId);
+    client.global.set("postId", response.body.postId);
 %}
 
 

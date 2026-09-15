@@ -2,13 +2,9 @@
 
 ## 공통 성공 응답
 
-```json
-{
-  "status": 200,
-  "message": "요청에 성공했습니다.",
-  "data": {}
-}
-```
+성공 응답은 기존 DTO 또는 목록을 응답 본문으로 직접 반환한다.
+데이터가 없는 성공 응답은 응답 본문이 없다.
+각 API의 성공 HTTP 상태 코드는 아래 명세를 따른다.
 
 ## 공통 에러 응답
 
@@ -72,13 +68,9 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 
 ```json
 {
-  "status": 201,
-  "message": "회원가입 성공!",
-  "data": {
-    "userId": 1,
-    "email": "user@example.com",
-    "nickname": "springUser"
-  }
+  "userId": 1,
+  "email": "user@example.com",
+  "nickname": "springUser"
 }
 ```
 
@@ -116,12 +108,8 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 
 ```json
 {
-  "status": 200,
-  "message": "로그인에 성공했습니다.",
-  "data": {
-    "accessToken": "eyJ...",
-    "tokenType": "Bearer"
-  }
+  "accessToken": "eyJ...",
+  "tokenType": "Bearer"
 }
 ```
 
@@ -144,16 +132,12 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 ### Response
 
 ```json
-{
-  "status": 200,
-  "message": "카테고리 목록 조회에 성공했습니다.",
-  "data": [
-    {
-      "id": 1,
-      "name": "Spring"
-    }
-  ]
-}
+[
+  {
+    "id": 1,
+    "name": "Spring"
+  }
+]
 ```
 
 ### Status Code
@@ -197,14 +181,10 @@ Content-Type: multipart/form-data
 
 ```json
 {
-  "status": 201,
-  "message": "게시글이 작성되었습니다.",
-  "data": {
-    "postId": 1,
-    "title": "Spring Bean이 뭔가요?",
-    "newPost": true,
-    "createdAt": "2026-05-12T19:30:00"
-  }
+  "postId": 1,
+  "title": "Spring Bean이 뭔가요?",
+  "newPost": true,
+  "createdAt": "2026-05-12T19:30:00"
 }
 ```
 
@@ -252,29 +232,25 @@ GET /api/posts?keyword=검색어&categoryId=1&page=0&size=10
 
 ```json
 {
-  "status": 200,
-  "message": "게시글 목록 조회에 성공했습니다.",
-  "data": {
-    "content": [
-      {
-        "postId": 1,
-        "title": "Spring Bean이 뭔가요?",
-        "writerNickname": "springUser",
-        "categoryName": "Spring",
-        "newPost": true,
-        "likeCount": 3,
-        "createdAt": "2026-05-12T19:30:00"
-      }
-    ],
-    "currentPage": 0,
-    "pageSize": 10,
-    "totalElements": 1,
-    "totalPages": 1,
-    "hasNext": false,
-    "hasPrevious": false,
-    "isFirst": true,
-    "isLast": true
-  }
+  "content": [
+    {
+      "postId": 1,
+      "title": "Spring Bean이 뭔가요?",
+      "writerNickname": "springUser",
+      "categoryName": "Spring",
+      "newPost": true,
+      "likeCount": 3,
+      "createdAt": "2026-05-12T19:30:00"
+    }
+  ],
+  "currentPage": 0,
+  "pageSize": 10,
+  "totalElements": 1,
+  "totalPages": 1,
+  "hasNext": false,
+  "hasPrevious": false,
+  "isFirst": true,
+  "isLast": true
 }
 ```
 
@@ -313,25 +289,21 @@ GET /api/posts?keyword=검색어&categoryId=1&page=0&size=10
 
 ```json
 {
-  "status": 200,
-  "message": "게시글 상세 조회에 성공했습니다.",
-  "data": {
-    "postId": 1,
-    "userName": "springUser",
-    "categoryName": "Spring",
-    "title": "Spring Bean은 무엇인가요?",
-    "content": "Spring Bean 개념이 궁금합니다.",
-    "likeCount": 3,
-    "likedByMe": true,
-    "createdAt": "2026-05-12T19:30:00",
-    "files": [
-      {
-        "storedFileName": "uuid-image.png",
-        "contentType": "image/png",
-        "fileUrl": "/files/uuid-image.png"
-      }
-    ]
-  }
+  "postId": 1,
+  "userName": "springUser",
+  "categoryName": "Spring",
+  "title": "Spring Bean은 무엇인가요?",
+  "content": "Spring Bean 개념이 궁금합니다.",
+  "likeCount": 3,
+  "likedByMe": true,
+  "createdAt": "2026-05-12T19:30:00",
+  "files": [
+    {
+      "storedFileName": "uuid-image.png",
+      "contentType": "image/png",
+      "fileUrl": "/files/uuid-image.png"
+    }
+  ]
 }
 ```
 
@@ -378,15 +350,11 @@ Content-Type: multipart/form-data
 
 ```json
 {
-  "status": 200,
-  "message": "게시글이 수정되었습니다.",
-  "data": {
-    "postId": 1,
-    "categoryId": 1,
-    "title": "수정 게시글 제목",
-    "content": "수정 게시글 내용",
-    "updatedAt": "2026-05-12T19:30:00"
-  }
+  "postId": 1,
+  "categoryId": 1,
+  "title": "수정 게시글 제목",
+  "content": "수정 게시글 내용",
+  "updatedAt": "2026-05-12T19:30:00"
 }
 ```
 
@@ -430,18 +398,13 @@ Authorization: Bearer {accessToken}
 
 ### Response
 
-```json
-{
-  "status": 200,
-  "message": "게시글이 삭제되었습니다."
-}
-```
+응답 본문 없음.
 
 ### Status Code
 
 | 상황 | Status |
 |---|---|
-| 삭제 성공 | 200 OK |
+| 삭제 성공 | 204 No Content |
 | 인증 실패 | 401 Unauthorized |
 | 작성자 불일치 | 403 Forbidden |
 | 게시글 없음 | 404 Not Found |
@@ -473,12 +436,7 @@ Authorization: Bearer {accessToken}
 
 ### Response
 
-```json
-{
-  "status": 200,
-  "message": "게시글 좋아요가 등록되었습니다."
-}
-```
+응답 본문 없음.
 
 ### Status Code
 
@@ -509,18 +467,13 @@ Authorization: Bearer {accessToken}
 
 ### Response
 
-```json
-{
-  "status": 200,
-  "message": "게시글 좋아요가 취소되었습니다."
-}
-```
+응답 본문 없음.
 
 ### Status Code
 
 | 상황 | Status |
 |---|---|
-| 취소 성공 | 200 OK |
+| 취소 성공 | 204 No Content |
 | 인증 실패 | 401 Unauthorized |
 | 좋아요 취소 대상 없음 | 400 Bad Request |
 | 게시글 없음 | 404 Not Found |
