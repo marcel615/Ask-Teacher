@@ -2,336 +2,293 @@
 
 ## Issue
 
-- Issue: #33
-- Title: test: 전체 API 자동 테스트 구축 및 수동 테스트 지침 전환
-- URL: https://github.com/marcel615/Ask-Teacher/issues/33
+- Issue: #34
+- Title: feat: CI 구축 및 Codecov 커버리지 연동
+- URL: https://github.com/marcel615/Ask-Teacher/issues/34
 - State: OPEN
 - Labels: 없음
 
 ## 목표
 
-현재 구현된 모든 API에 대해 Controller, Service, Repository 테스트와
-통합 테스트를 구축한다.
+`develop` 대상 Pull Request와 `develop` 및 `main` 브랜치 push마다
+자동으로 Gradle 테스트를 실행한다.
 
-기존 .http 파일의 시나리오는 참고 자료로 활용하고,
-자동 테스트 전환 후 해당 파일을 삭제한다.
-앞으로 API를 추가하거나 변경할 때 테스트 클래스 기반 자동 테스트를
-작성·실행하고 결과를 기록하도록 작업 지침을 정비한다.
+JaCoCo로 XML 커버리지 리포트를 생성하고 Codecov에 업로드하여,
+README에서 `develop` 브랜치의 커버리지를 확인할 수 있도록 한다.
+
+커버리지 기준값은 적용하지 않으며 커버리지 수치가 낮다는 이유로
+CI를 실패시키지 않는다.
 
 ## 범위
 
-- 현재 구현된 인증, 카테고리, 게시글, 게시글 좋아요 API 전체
-- 게시글 첨부파일, 검색, 페이징, 카테고리 필터 포함
-- 기존 자동 테스트 검토 및 보완
-- Controller, Service, Repository별 책임을 검증하는 테스트 작성
-- HTTP 요청부터 인증, 비즈니스 로직, DB 처리까지 검증하는 통합 테스트 작성
-- 테스트용 DB, 인증 설정 및 파일 저장 경로 격리
-- 기존 .http 파일 9개 삭제
-- 관련 작업 지침과 Issue/PR 템플릿의 자동 테스트 기준 정비
-- API별 테스트 대상·시나리오·대응 테스트 클래스 기록
-- 인증 실패 응답 불일치 수정:
-  - 보호된 경로에 토큰 없이 접근하거나 유효하지 않은 토큰으로 접근하면
-    Security의 AuthenticationEntryPoint에서 401 Unauthorized를 반환한다.
-  - 기존 ErrorResponse 형식의 JSON 본문을 반환한다.
-  - status는 401, message는 "인증이 필요합니다."로 한다.
-  - 공통 Security 필터 체인의 미인증 접근 거부에 적용한다.
-  - 인증된 사용자의 작성자 불일치 403과 공개 API 접근 정책은 유지한다.
+- GitHub Actions CI workflow 신규 작성
+- `develop` 대상 Pull Request에서 CI 실행
+- `develop` 브랜치 push에서 CI 실행
+- `main` 브랜치 push에서 CI 실행
+- Java 17 환경 구성
+- Gradle Wrapper를 사용한 `./gradlew test` 실행
+- JaCoCo 플러그인 적용
+- `./gradlew test` 실행 시 JaCoCo XML 리포트 생성
+- 생성된 JaCoCo XML 리포트를 Codecov에 업로드
+- GitHub Actions Secret `CODECOV_TOKEN` 사용
+- Codecov 업로드 오류 발생 시 CI 실패
+- README에 `develop` 브랜치 기준 Codecov 배지 추가
+- 테스트 및 커버리지 실행 결과와 미검증 사항 기록
 
 ## 제외 범위
 
-- 신규 API 및 기능 추가
-- 기존 API 동작, 요청·응답 규격, Validation 및 에러 정책 변경
-  - 예외: 이번에 승인한 미인증 접근의 401 및 오류 JSON 응답 처리
-- 운영 Entity, DB 구조, 인증·인가 구조 변경
-  - 예외: 위 응답 처리를 위한 최소한의 Security 예외 처리 설정
-  - JWT 발급·검증, 인증 정보 구성, 접근 허용 규칙 변경은 제외
-- 테스트 자동화와 무관한 운영 코드 리팩터링
-- CI 파이프라인 구성
-- 성능·부하 테스트
-- 과거 devlog에 기록된 수동 확인 이력의 소급 수정
+- 최소 커버리지 기준 설정
+- 커버리지 수치 또는 감소율에 따른 CI 실패 처리
+- `jacocoTestCoverageVerification` 기준 추가
+- `codecov.yml`을 이용한 별도 커버리지 정책 구성
+- `main` 브랜치 기준 README 커버리지 배지 추가
+- 배포 자동화(CD)
+- Docker 이미지 빌드 및 배포
+- 정적 분석 및 코드 포맷 검사
+- Dependabot 설정
+- GitHub 브랜치 보호 규칙 설정
+- API, Entity 및 운영 DB 구조 변경
+- 기존 테스트의 기대 결과 변경 또는 테스트 비활성화
+- CI 구축과 직접 관련 없는 애플리케이션 코드 수정
 - 기존 기능 버그 수정
-  - 위 인증 실패 응답 불일치만 이번 Issue에서 수정한다.
-  - 그 밖의 버그는 기록하고 별도 Issue로 분리한다.
 
-기존 버그나 명세와 구현의 동작 불일치를 발견하면 임의로 기대값을 바꾸거나
-테스트를 비활성화하여 통과시키지 않는다.
-영향받는 시나리오와 완료 조건을 사용자에게 보고하고 처리 방향을 협의한다.
-별도 Issue 생성은 승인 후 진행한다.
+기존 테스트 실패나 명세 불일치를 발견하면 기대값 변경이나
+테스트 비활성화로 숨기지 않는다.
+
+실패한 테스트와 CI에 미치는 영향을 사용자에게 보고하고,
+별도 수정이 필요하면 범위를 먼저 협의한다.
 
 ## 요구사항 변경 요약
 
 - docs/requirements.md 변경 없음
-- 사유: 사용자 기능과 비즈니스 규칙은 유지한다.
-- 자동 테스트 작성·실행 의무는 AGENTS.md와 관련 작업 지침에 반영한다.
+- 사유:
+  - 이번 Issue는 사용자 기능이나 비즈니스 규칙을 변경하지 않는다.
+  - 테스트 자동 실행과 커버리지 수집을 위한 개발 인프라 작업이다.
 - 참조: docs/requirements.md
 
 ## API 변경 요약
 
 - docs/api-spec.md 변경 없음
-- 신규 API 및 기존 API 계약 변경 없음
-- 성공 응답 DTO, 페이지 응답, 본문 없는 응답과 기존 오류 응답을 검증한다.
+- 신규 API 또는 기존 API 계약 변경 없음
+- 요청·응답 DTO, Validation, 상태 코드 및 오류 응답 변경 없음
 - 참조: docs/api-spec.md
-- 보호된 경로의 미인증 응답을 실제 403에서 기존 명세의 401로 수정한다.
-- 기존 공통 오류 응답 형식인 status, message를 사용한다.
-- API 명세의 상태 코드 및 응답 구조 변경은 없다.
-
-### 대상 API 및 주요 검증 시나리오
-
-| API | 성공 응답 | 주요 검증 |
-|---|---|---|
-| POST /api/auth/signup | 201, 가입 DTO | 가입, 비밀번호 암호화, 이메일·닉네임 중복, 입력 검증 |
-| POST /api/auth/login | 200, 토큰 DTO | 로그인, 발급 토큰 사용, 잘못된 이메일·비밀번호, 입력 검증 |
-| GET /api/categories | 200, 목록 | 비로그인 조회, 목록 매핑, 빈 목록 |
-| POST /api/posts | 201, 작성 DTO | 인증 사용자 작성, multipart, 첨부 유무, 초기 상태, 입력·카테고리·파일 검증 |
-| GET /api/posts | 200, 페이지 DTO | 검색, 카테고리 필터, 조건 조합, 공백 검색어, 페이징, 최신순, 삭제 제외, 잘못된 조회 조건 |
-| GET /api/posts/{postId} | 200, 상세 DTO | 비로그인·로그인 조회, likedByMe, 좋아요 수, 첨부파일 정보, 없거나 삭제된 게시글 |
-| PATCH /api/posts/{postId} | 200, 수정 DTO | 작성자 수정, multipart, 첨부 처리, 변경·유지 필드, updatedAt, 입력 오류, 작성자 불일치, 데이터 없음 |
-| DELETE /api/posts/{postId} | 204, 본문 없음 | 작성자 삭제, soft delete, updatedAt, 조회 제외, 작성자 불일치, 없거나 이미 삭제된 게시글 |
-| POST /api/posts/{postId}/likes | 200, 본문 없음 | 등록, 좋아요 수 증가, 중복 등록, 없거나 삭제된 게시글 |
-| DELETE /api/posts/{postId}/likes | 204, 본문 없음 | 취소, 좋아요 수 감소, 취소 대상 없음, 없거나 삭제된 게시글 |
-
-- 인증이 필요한 API는 토큰 누락·유효하지 않은 토큰 등 인증 실패를 검증한다.
-- 공개 조회 API는 인증 없이 접근할 수 있음을 검증한다.
-- 사용자 없음 등 Service에서 처리하는 실패 조건도 해당 계층에서 검증한다.
-- 위 목록을 기준으로 구체적인 테스트 메서드와 대응 관계를
-  docs/current-work-log.md에 기록한다.
 
 ## ERD 변경
 
 - ERD 변경 없음
-- 사유: 테스트 자동화, 테스트 실행 환경 및 미인증 응답 처리를 변경하며,
-  Entity, 운영 DB 테이블, 관계, 제약조건은 변경하지 않는다.
-- 테스트는 기존 User, Category, Post, PostLike, PostFile 매핑을 사용한다.
+- 사유:
+  - JaCoCo, GitHub Actions 및 Codecov 연동만 추가한다.
+  - Entity, 운영 DB 테이블, 컬럼, 관계 및 제약조건을 변경하지 않는다.
 - 참조: docs/erd.md
 
-## 테스트 설계
+## CI 설계
 
-### Controller 테스트
+### 실행 조건
 
-- 서비스 의존성을 대체하여 웹 계층을 분리해 검증한다.
-- 요청 매핑, JSON 및 multipart 바인딩, Validation을 검증한다.
-- HTTP 상태 코드, 응답 DTO·목록·페이지 구조, 빈 응답 본문을 검증한다.
-- 예외 처리와 인증 사용자 ID 전달을 검증한다.
-- Controller 메서드 직접 호출만으로 웹 계층 검증을 대체하지 않는다.
+GitHub Actions workflow는 다음 이벤트에서 실행한다.
 
-### Service 단위 테스트
+- `pull_request`
+  - 대상 브랜치: `develop`
+- `push`
+  - 대상 브랜치: `develop`
+  - 대상 브랜치: `main`
 
-- Repository, 비밀번호 처리, 토큰 발급, 파일 저장 등 의존성을
-  필요한 범위에서 mock으로 대체한다.
-- 비즈니스 규칙, 데이터 변경, 정상 처리와 실패 조건을 검증한다.
-- AuthService, CategoryService, PostService, PostLikeService를 대상으로 한다.
-- 기존 PostServiceTest는 Spring 전체 컨텍스트와 DB를 사용하는 테스트이므로,
-  기존 검증을 보존하면서 단위 테스트와 통합 테스트 역할을 구분한다.
+`develop` 및 `main` 외 브랜치 push와 `main` 대상 Pull Request는
+이번 Issue의 자동 실행 대상에 포함하지 않는다.
 
-### Repository 테스트
+### 실행 환경
 
-- UserRepository, CategoryRepository, PostRepository,
-  PostLikeRepository, PostFileRepository를 대상으로 한다.
-- 테스트용 DB를 사용하는 JPA 슬라이스 테스트로 구성한다.
-- Repository 자체를 mock 처리하는 방식으로 쿼리 검증을 대체하지 않는다.
-- 실제 사용하는 저장·조회·변경 동작과 Entity 매핑을 검증한다.
-- 검색 조건, 페이징·정렬, 삭제 제외, 좋아요 수 증감,
-  사용자·게시글별 좋아요 조회, 첨부파일 조회 순서를 검증한다.
-- 기존 유니크 제약 등 DB 제약은 flush 및 재조회로 검증한다.
-- Repository 테스트는 DB를 사용하는 계층 테스트임을 명시한다.
+- GitHub-hosted Ubuntu runner 사용
+- Java 17 사용
+- Gradle Wrapper 사용
+- 애플리케이션 서버를 별도로 기동하지 않음
+- 테스트는 기존 테스트 프로필과 격리된 테스트 환경을 사용
 
-### API 통합 테스트
+### 실행 순서
 
-- 실제 애플리케이션 구성, Security, Service, Repository를 연결해 검증한다.
-- 모든 대상 API의 정상 흐름과 주요 실패 흐름을 포함한다.
-- 회원가입 → 로그인 → 발급 토큰을 사용한 요청을 검증한다.
-- 게시글 작성 → 조회 → 수정 → 삭제 흐름을 검증한다.
-- 좋아요 등록·취소 결과가 목록·상세 응답 및 DB에 반영되는지 검증한다.
-- 첨부파일 저장 결과와 상세 조회의 파일 정보를 검증한다.
-- MockMvc 기반 통합 테스트를 기본으로 하되,
-  서블릿의 multipart 업로드 제한처럼 실제 HTTP 처리가 필요한 검증은
-  RANDOM_PORT 서버를 테스트가 직접 시작하여 확인한다.
-- 수동 서버 기동이나 .http 실행을 완료 조건으로 사용하지 않는다.
+1. 저장소 코드를 checkout한다.
+2. Java 17 환경을 구성한다.
+3. Gradle 실행 환경을 구성한다.
+4. `./gradlew test`를 실행한다.
+5. JaCoCo XML 리포트 생성 여부를 확인한다.
+6. 생성된 XML 리포트를 Codecov에 업로드한다.
 
-### 첨부파일 검증
+테스트가 실패하면 Gradle 명령과 GitHub Actions 작업도 실패해야 하며,
+Codecov 업로드 단계는 실행하지 않는다.
 
-- PostFileStorage 테스트를 포함한다.
-- 허용 MIME 타입, 빈 파일, 크기 경계값·초과, 저장 실패를 검증한다.
-- 정상 저장 시 파일과 메타데이터를 확인한다.
-- 실제 저장은 테스트 전용 임시 디렉터리를 사용한다.
-- 애플리케이션의 파일 크기 검증과 서블릿 업로드 제한을 구분하여 검증한다.
+### JaCoCo 설정
 
-### 테스트 환경과 격리
+- `build.gradle`에 JaCoCo 플러그인을 적용한다.
+- 기존 `test` 작업의 JUnit Platform 설정을 유지한다.
+- `test` 완료 후 `jacocoTestReport`가 실행되도록 연결한다.
+- `./gradlew test` 한 번으로 테스트와 리포트 생성을 완료해야 한다.
+- Codecov 업로드용 XML 리포트를 활성화한다.
+- HTML 리포트도 로컬 확인용으로 생성한다.
+- 커버리지 검증 규칙은 추가하지 않는다.
+- 기존 테스트 코드나 테스트 대상을 커버리지 수치를 높이기 위해 변경하지 않는다.
 
-- 테스트 프로필과 H2 메모리 DB를 사용한다.
-- 개발·운영 DB와 기존 uploads 경로를 사용하지 않는다.
-- 테스트 전용 JWT 설정을 사용한다.
-- DB 데이터와 임시 파일은 테스트별로 준비하고 정리한다.
-- 실제 HTTP 서버를 사용하는 테스트는 테스트 메서드의 트랜잭션 롤백만으로
-  서버가 저장한 데이터가 정리된다고 가정하지 않는다.
-- 고정 ID, 기존 데이터, 실행 순서 및 외부 서버에 의존하지 않는다.
-- H2 검증이 MySQL 고유 동작 검증을 대신하지 않는다는 한계를 기록한다.
-- build.gradle의 기존 테스트 의존성을 우선 활용한다.
+예상 XML 리포트 경로:
 
-## Validation
+`build/reports/jacoco/test/jacocoTestReport.xml`
 
-- 현재 Request DTO의 필수값, 형식, 길이 및 경계값을 검증한다.
-- page, size 등 조회 조건의 기존 검증을 포함한다.
-- 신규 Validation 규칙을 추가하거나 기존 규칙을 변경하지 않는다.
+실제 경로가 다르면 Builder가 설정과 생성 결과를 확인하고
+workflow의 업로드 경로를 동일하게 맞춘다.
 
-## 예외 처리
+### Codecov 설정
 
-- 기존 비즈니스 예외, HTTP 상태 코드와 에러 응답을 검증한다.
-- 입력 오류, 인증 실패, 작성자 불일치, 대상 없음, 중복 요청,
-  파일 검증 실패 및 파일 저장 실패를 포함한다.
-- Security의 AuthenticationEntryPoint에 미인증 응답 처리를 추가한다.
-- ErrorCode.UNAUTHORIZED:
-  - HTTP 상태: 401 Unauthorized
-  - 메시지: "인증이 필요합니다."
-- 응답은 ErrorResponse를 JSON으로 직렬화하고,
-  Content-Type 및 UTF-8 인코딩을 명시한다.
-- GlobalExceptionHandler, 기존 로그인 실패와 작성자 불일치 응답은 유지한다.
-- JWT 필터·토큰 검증 로직 및 별도 AccessDeniedHandler 변경은 포함하지 않는다.
+- 공식 Codecov GitHub Action을 사용한다.
+- 구현 시점에 지원되는 안정 버전을 사용하고 버전을 명시한다.
+- 업로드 파일은 JaCoCo XML 리포트 경로로 명시한다.
+- 인증에는 `${{ secrets.CODECOV_TOKEN }}`을 사용한다.
+- 업로드 오류가 발생하면 workflow가 실패하도록 설정한다.
+- 커버리지 수치 미달에 따른 실패 정책은 설정하지 않는다.
+- Codecov 토큰 값을 workflow나 저장소 파일에 직접 작성하지 않는다.
 
-## 작업 지침 변경
+`CODECOV_TOKEN`은 사용자가 Codecov에서 발급받아 GitHub 저장소의
+Actions repository secret으로 등록한다.
 
-- AGENTS.md:
-  - 수동 API 확인 절을 자동 테스트 기준으로 교체한다.
-  - 새 API·변경 API의 관련 계층 테스트와 통합 테스트 작성 의무를 명시한다.
-  - ./gradlew test 실행 및 결과 기록 기준을 명시한다.
-  - 빠른 지시문 참조 경로를 docs/prompts/quick.md로 바로잡는다.
-- docs/prompts/quick.md:
-  - .http 작성·수동 확인 지시를 자동 테스트 작성·실행 지시로 변경한다.
-  - 보고 항목을 자동 테스트 범위·결과·미검증 사항 기준으로 변경한다.
-- docs/review-checklist.md:
-  - 수동 API 확인 절을 계층별 테스트, 통합 테스트, 환경 격리,
-    실행 결과 확인 항목으로 교체한다.
-- .agents/skills/issue-driven-dev/SKILL.md:
-  - Builder의 테스트 작성·실행·기록 및 Architect의 검증 기준을 명시한다.
-- .github/ISSUE_TEMPLATE/feature_request.yml:
-  - 완료 조건 예시의 수동 API 확인을 자동 테스트 작성·통과 기준으로 변경한다.
-- .github/PULL_REQUEST_TEMPLATE/pull_request_template.md:
-  - 직접 실행 확인 항목을 자동 테스트 범위·실행 결과 확인 항목으로 변경한다.
-- 다른 문서에서 현재 적용되는 수동 확인 의무를 발견하면
-  해당 문서와 수정 내용을 기록하고 같은 기준으로 정비한다.
-- 과거 수행 기록과 API 명세의 HTTP 요청 예시는 삭제 대상이 아니다.
+Secret 등록과 실제 Codecov 서비스 연결은 저장소 외부 설정이므로
+Builder의 파일 변경 대상에는 포함하지 않는다.
+
+### README 배지
+
+README 상단의 프로젝트 제목 인근에 Codecov 배지를 추가한다.
+
+- Repository: `marcel615/Ask-Teacher`
+- 기준 브랜치: `develop`
+- 배지 클릭 시 해당 저장소의 Codecov 페이지로 이동
+- `main` 브랜치 배지는 추가하지 않음
+
+## 보안 및 제약
+
+- workflow에는 필요한 최소 권한만 부여한다.
+- `CODECOV_TOKEN`을 로그나 파일에 출력하지 않는다.
+- GitHub Actions가 Secret 값을 마스킹하더라도 출력 명령을 추가하지 않는다.
+- 외부 fork에서 생성된 Pull Request에는 저장소 Secret이 전달되지 않을 수 있다.
+- 현재 작업은 저장소 내부 브랜치에서 생성한 Pull Request를 기본 대상으로 한다.
+- 외부 fork Pull Request 지원이 필요하면 토큰 없는 업로드 또는
+  업로드 단계 조건 처리를 별도로 협의한다.
+
+## 테스트 및 검증
+
+### 로컬 검증
+
+Windows PowerShell에서는 다음 명령을 실행한다.
+
+`.\gradlew.bat test`
+
+다음 항목을 확인한다.
+
+- 전체 테스트 통과
+- 테스트 실패 시 Gradle 명령 실패
+- JaCoCo XML 리포트 생성
+- JaCoCo HTML 리포트 생성
+- 기존 테스트 수와 검증 범위 유지
+- 커버리지 기준 미달 검증 작업이 추가되지 않음
+
+### 정적 설정 검토
+
+- workflow YAML 문법 확인
+- `develop` 대상 Pull Request trigger 확인
+- `develop` push trigger 확인
+- `main` push trigger 확인
+- Java 17 설정 확인
+- Gradle Wrapper 명령 확인
+- Codecov XML 경로 확인
+- `CODECOV_TOKEN` 참조 확인
+- 업로드 오류 실패 설정 확인
+- README 배지의 저장소와 `develop` 브랜치 확인
+
+### 원격 검증
+
+실제 GitHub Actions와 Codecov 동작은 사용자가 확인한다.
+
+- `develop` 대상 Pull Request에서 workflow 실행
+- `develop` push에서 workflow 실행
+- `main` push에서 workflow 실행
+- 테스트 결과 반영
+- Codecov 업로드 성공
+- README 배지에서 `develop` 커버리지 표시
+
+Builder는 실제 원격 실행을 확인하지 못한 경우 이를 완료로 간주하지 않고
+미검증 사항으로 작업 기록과 PR 요약에 남긴다.
 
 ## 예상 변경 파일
 
 ### Architect 사전 반영 문서
 
 - docs/current-task.md
+  - Issue #34의 확정된 목표, 범위, 설계 및 완료 조건 반영
 
-이번 초안 승인 후 Architect가 반영하는 파일이다.
-requirements.md, api-spec.md, erd.md는 변경이 필요하지 않아 포함하지 않는다.
+이번 초안 승인 후 Architect가 반영하는 문서다.
+
+다음 문서는 실제 변경이 필요하지 않아 포함하지 않는다.
+
+- docs/requirements.md
+- docs/api-spec.md
+- docs/erd.md
 
 ### Builder 구현 변경 예상 파일
 
-아래 Java 경로의 기준은
-src/test/java/com/github/marcel615/askteacher/ 이다.
+- .github/workflows/ci.yml
+  - GitHub Actions CI workflow 신규 작성
+  - `develop` 대상 Pull Request와 `develop` 및 `main` push trigger 설정
+  - Java 17, Gradle 테스트, Codecov 업로드 구성
 
-- domain/auth/controller/AuthControllerTest.java
-- domain/auth/service/AuthServiceTest.java
-- domain/category/controller/CategoryControllerTest.java
-- domain/category/service/CategoryServiceTest.java
-- domain/category/repository/CategoryRepositoryTest.java
-- domain/user/repository/UserRepositoryTest.java
-- domain/post/controller/PostControllerTest.java
-- domain/post/service/PostServiceTest.java
-- domain/post/repository/PostRepositoryTest.java
-- domain/post/repository/PostFileRepositoryTest.java
-- domain/post/storage/PostFileStorageTest.java
-- domain/postlike/controller/PostLikeControllerTest.java
-- domain/postlike/service/PostLikeServiceTest.java
-- domain/postlike/repository/PostLikeRepositoryTest.java
-- integration/*IntegrationTest.java
-  - 인증、카테고리、게시글、좋아요 및 실제 HTTP 업로드 제한 검증
-- integration/ApiIntegrationTest.java
-  - 보호 API 5개 × 토큰 누락·무효 10개 시나리오에서
-    401, JSON Content-Type, status, message를 검증한다.
-  - 작성자 불일치 403 및 기존 오류 본문을 검증한다.
-  - 공개 API 접근과 로그인 실패 응답의 회귀 여부를 검증한다.
-- support/*.java
-  - 필요한 최소한의 테스트 데이터 및 환경 지원 코드
-- AskteacherApplicationTests.java
-- global/config/SecurityConfigTest.java
-  - 기존 isIn(401, 403) 검증을 정확한 401 검증으로 강화한다.
-  - 실제 HTTP 응답의 JSON 본문과 Content-Type을 검증한다.
-- global/security/jwt/JwtTokenProviderTest.java
-  - 기존 테스트는 필요한 보완 범위에서 수정하며 기존 검증을 유지한다.
-
-미인증 응답 수정에 한해 허용하는 운영 코드:
-
-- src/main/java/com/github/marcel615/askteacher/global/config/SecurityConfig.java
-  - AuthenticationEntryPoint 설정 및 401 JSON 응답 처리
-- src/main/java/com/github/marcel615/askteacher/global/exception/ErrorCode.java
-  - UNAUTHORIZED 추가
-
-테스트 설정 및 작업 지침:
-
-- src/test/resources/application-test.yaml
 - build.gradle
-  - 테스트 실행에 필요한 설정·의존성 보완이 확인된 경우에 한정한다.
-- AGENTS.md
-- docs/prompts/quick.md
-- docs/review-checklist.md
-- .agents/skills/issue-driven-dev/SKILL.md
-- .github/ISSUE_TEMPLATE/feature_request.yml
-- .github/PULL_REQUEST_TEMPLATE/pull_request_template.md
+  - JaCoCo 플러그인 적용
+  - `test`와 `jacocoTestReport` 연계
+  - XML 및 HTML 커버리지 리포트 설정
+
+- README.md
+  - `develop` 브랜치 기준 Codecov 배지 추가
+
 - docs/current-work-log.md
-  - 구현 시작 시 Issue #33 기준으로 초기화하고 테스트 대응표와 결과를 기록한다.
-- 추가로 발견한 현재 적용 중인 수동 API 확인 지침 문서
-  - 발견 경로와 변경 사유를 작업 기록에 남긴다.
+  - Issue #34 기준으로 초기화
+  - 구현 결정, 테스트 결과, 리포트 경로 및 미검증 사항 기록
 
-삭제 대상:
-src/main/java/com/github/marcel615/askteacher/http/ 아래
+위 파일 외의 변경이 필요하면 Builder가 변경 사유와 범위를 먼저 보고하고
+사용자 승인을 받은 후 진행한다.
 
-- auth/signup.http
-- auth/login.http
-- category/category.http
-- post/createPost.http
-- post/listPosts.http
-- post/detailPost.http
-- post/updatePost.http
-- post/deletePost.http
-- post/likePost.http
+## 외부 설정
 
-운영 코드 변경은 위 SecurityConfig.java와 ErrorCode.java의
-미인증 응답 처리에 한정한다.
-그 밖의 운영 코드 및 운영 설정 파일 변경이 필요하면
-사유와 대안을 제시하고 범위를 먼저 협의한다.
+파일 변경과 별도로 다음 설정이 필요하다.
+
+- Codecov에 `marcel615/Ask-Teacher` 저장소 연결
+- Codecov repository upload token 발급
+- GitHub Actions repository secret `CODECOV_TOKEN` 등록
+
+Secret 등록은 사용자가 수행한다.
 
 ## 구현 및 검증 순서
 
-1. 기존 테스트와 .http 시나리오를 확인하고 API별 테스트 대응표를 작성한다.
-2. 테스트용 DB, 인증 설정, 임시 파일 저장 환경을 구성한다.
-3. 계층별 테스트와 통합 테스트를 작성·보완한다.
-4. API별 정상·실패 시나리오의 누락 여부를 확인한다.
-5. 자동 테스트 전환을 확인한 뒤 기존 .http 파일을 삭제한다.
-6. 관련 지침과 템플릿을 자동 테스트 기준으로 변경한다.
-7. ./gradlew test로 전체 테스트를 실행한다.
-8. 전체 테스트를 다시 실행해 데이터·파일 잔존으로 인한 실패가 없는지 확인한다.
-9. 테스트 대상, 실행 결과 및 미검증 사항을 작업 기록과 PR 요약에 남긴다.
-
-Windows PowerShell에서는 같은 Gradle test 작업을
-.\gradlew.bat test로 실행할 수 있다.
+1. `build.gradle`에 JaCoCo를 적용한다.
+2. `./gradlew test` 실행 시 XML 및 HTML 리포트가 생성되도록 설정한다.
+3. 로컬에서 전체 테스트와 리포트 생성을 검증한다.
+4. `.github/workflows/ci.yml`을 작성한다.
+5. workflow의 trigger, Java 버전, 명령 및 업로드 경로를 검토한다.
+6. README에 `develop` 브랜치 기준 Codecov 배지를 추가한다.
+7. 전체 테스트를 다시 실행한다.
+8. 테스트 결과와 미검증 원격 항목을 `docs/current-work-log.md`에 기록한다.
+9. 사용자가 실제 GitHub Actions 실행과 Codecov 반영 결과를 확인한다.
 
 ## 완료 조건
 
-- [ ] 보호 API 5개에서 토큰 누락·무효 10개 시나리오가 모두
-      401과 합의된 JSON 오류 본문을 반환한다.
-- [ ] 실제 HTTP 요청에서도 401, JSON Content-Type 및 오류 본문을 확인했다.
-- [ ] 인증된 비작성자의 수정·삭제는 기존 403과 오류 본문을 유지한다.
-- [ ] 공개 API 접근 및 로그인 정보 불일치 응답이 유지된다.
-- [ ] SecurityConfigTest에서 401 또는 403을 모두 허용하는 검증을 제거했다.
-- [ ] 기존 104개 테스트와 추가한 회귀 테스트가 모두 통과한다.
-- [ ] 테스트를 실제 재실행하여 전체 통과를 확인하고,
-      실행 수·실패 수·skip 수를 기록했다.
-- [ ] 전체 10개 API와 관련 계층의 테스트 대응표가 작성되었다.
-- [ ] Controller 4개, Service 4개, Repository 5개를 대상으로 테스트가 작성·보완되었다.
-- [ ] 전체 API의 정상 흐름과 주요 실패 흐름에 대한 통합 테스트가 작성되었다.
-- [ ] 검색·페이징·삭제 제외·좋아요·첨부파일 동작이 검증되었다.
-- [ ] 기존 자동 테스트의 검증 범위가 유지되었다.
-- [ ] 테스트 DB·인증 설정·파일 저장 경로가 개발·운영 환경과 격리되었다.
-- [ ] ./gradlew test 전체 통과 및 반복 실행을 확인했다.
-- [ ] 기존 .http 파일 9개를 삭제했다.
-- [ ] 관련 작업 지침과 Issue/PR 템플릿을 자동 테스트 기준으로 변경했다.
-- [ ] 현재 적용되는 수동 API 확인 의무가 남아 있는지 검색·검토했다.
-- [ ] 테스트 범위·실행 결과·미검증 사항을 PR 요약 또는 devlog에 기록했다.
-- [ ] 발견된 기존 버그와 명세 불일치의 처리 상태를 기록했으며,
-      미해결 사항이 있다면 완료 여부를 사용자와 협의했다.
+- [ ] `develop` 대상 Pull Request에서 CI가 실행되도록 구성되어 있다.
+- [ ] `develop` 브랜치 push에서 CI가 실행되도록 구성되어 있다.
+- [ ] `main` 브랜치 push에서 CI가 실행되도록 구성되어 있다.
+- [ ] Java 17과 Gradle Wrapper를 사용한다.
+- [ ] CI에서 `./gradlew test`를 실행한다.
+- [ ] 테스트 실패 시 CI 작업도 실패한다.
+- [ ] `./gradlew test` 실행으로 JaCoCo XML 리포트가 생성된다.
+- [ ] JaCoCo HTML 리포트가 생성된다.
+- [ ] Codecov 업로드 대상 XML 경로가 실제 생성 경로와 일치한다.
+- [ ] Codecov 업로드에 `CODECOV_TOKEN`을 사용한다.
+- [ ] Codecov 업로드 오류 시 CI가 실패하도록 구성되어 있다.
+- [ ] 최소 커버리지 기준이나 미달 실패 정책이 적용되지 않았다.
+- [ ] README에 `develop` 브랜치 기준 Codecov 배지가 추가되었다.
+- [ ] 로컬 전체 테스트가 통과했다.
+- [ ] 기존 테스트 범위와 기대 결과를 임의로 변경하지 않았다.
+- [ ] 테스트 결과, 커버리지 리포트 경로 및 미검증 사항을 기록했다.
+- [ ] 사용자가 실제 GitHub Actions 실행 결과를 확인했다.
+- [ ] 사용자가 Codecov 업로드 및 README 배지 반영 결과를 확인했다.
