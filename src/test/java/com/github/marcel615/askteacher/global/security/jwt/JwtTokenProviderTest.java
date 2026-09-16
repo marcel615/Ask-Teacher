@@ -21,5 +21,18 @@ class JwtTokenProviderTest {
 
         assertThat(authentication.getPrincipal()).isEqualTo(1L);
         assertThat(authentication.getPrincipal()).isInstanceOf(Long.class);
+        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        assertThat(authentication.getAuthorities()).extracting("authority").containsExactly("USER");
+    }
+
+    @Test
+    void rejectsMalformedExpiredAndWrongSignatureTokens() {
+        assertThat(jwtTokenProvider.validateToken("invalid")).isFalse();
+        assertThat(jwtTokenProvider.validateToken("")).isFalse();
+        assertThat(jwtTokenProvider.validateToken(null)).isFalse();
+        JwtTokenProvider expired = new JwtTokenProvider("my-secret-key-my-secret-key-my-secret-key", -1000);
+        assertThat(jwtTokenProvider.validateToken(expired.createAccessToken(1L, UserRole.USER))).isFalse();
+        JwtTokenProvider other = new JwtTokenProvider("other-test-key-other-test-key-other-test-key", 3600000);
+        assertThat(jwtTokenProvider.validateToken(other.createAccessToken(1L, UserRole.USER))).isFalse();
     }
 }

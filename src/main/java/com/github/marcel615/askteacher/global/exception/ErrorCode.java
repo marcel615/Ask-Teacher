@@ -10,6 +10,7 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글입니다."),
 
     //인증/인가 검증
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     INVALID_LOGIN_INFO(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
     POST_AUTHOR_MISMATCH(HttpStatus.FORBIDDEN, "게시글 작성자만 수정할 수 있습니다."),
 

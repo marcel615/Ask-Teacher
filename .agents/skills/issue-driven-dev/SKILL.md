@@ -71,7 +71,11 @@ git checkout -b feature/issue-번호-작업명
 8. Builder는 `current-task.md` 범위 안에서만 구현한다.
 9. 구현 중 트러블슈팅, 주요 의사결정, 예상과 다른 동작, 중요한 테스트/검증 결과가 발생하면 `docs/current-work-log.md`에 간단히 기록한다.
 10. 필요한 경우 `docs/api-spec.md`, `docs/erd.md`, `docs/requirements.md`를 필요한 부분만 참고한다.
-11. 구현 후 테스트를 실행한다.
+11. 새 API 또는 변경된 API의 Controller / Service / Repository 테스트와 통합 테스트를 작성·보완하고 실행한다.
+- Repository는 테스트 DB에서 실제 쿼리·매핑을 검증하고 통합 테스트는 인증부터 DB 처리까지 정상·주요 실패 흐름을 검증한다.
+- 테스트 DB, 인증 설정, 파일 경로를 개발·운영 환경과 격리하고 데이터·파일을 정리한다.
+- API별 테스트 대상·시나리오·대응 테스트 클래스, 실행 결과·미검증 사항을 작업 기록에 남긴다.
+- 기존 버그나 명세 불일치는 기대값 변경 또는 테스트 비활성화로 숨기지 않고 사용자에게 보고한다.
 
 ```bash
 ./gradlew test
@@ -80,6 +84,7 @@ git checkout -b feature/issue-번호-작업명
 12. 변경 파일, 테스트 결과, git diff, PR 초안을 요약한다.
 13. 사용자 승인 후 `feature/*` → `develop` PR을 만든다.
 14. Architect가 `docs/review-checklist.md` 기준으로 리뷰 초안을 작성한다.
+- 관련 계층 테스트와 API 통합 테스트 범위, 환경 격리, 실행 결과, 미검증 사항 및 기존 검증 유지 여부를 확인한다.
 15. 사용자 승인 후 Architect 리뷰를 PR에 등록한다.
 16. Builder가 PR 리뷰를 검토하고 반영안을 제안한다.
 17. 사용자 승인 후 승인된 리뷰 항목만 수정한다.

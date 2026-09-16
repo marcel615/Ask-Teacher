@@ -154,8 +154,8 @@ body:
         - [ ] Request / Response DTO 구현
         - [ ] Validation 적용
         - [ ] 예외 처리 적용
-        - [ ] 테스트 통과
-        - [ ] 수동 API 확인
+        - [ ] 관련 Controller / Service / Repository 테스트 및 API 통합 테스트 작성
+        - [ ] ./gradlew test 통과 및 테스트 범위·실행 결과·미검증 사항 기록
         - [ ] API 문서 반영
     validations:
       required: true
