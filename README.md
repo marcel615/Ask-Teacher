@@ -1,5 +1,7 @@
 # AskTeacher
 
+[![codecov](https://codecov.io/gh/marcel615/Ask-Teacher/graph/badge.svg?token=PBDYIDAYZS)](https://codecov.io/gh/marcel615/Ask-Teacher)
+
 AskTeacher는 사용자가 질문 게시글을 작성하고 조회할 수 있는 Q&A 기반 백엔드 API 프로젝트입니다.
 
 현재 1차 구현 범위에서는 회원가입, 로그인, 카테고리 조회, 게시글 작성/목록/상세/수정/삭제 기능을 제공합니다. 인증 토큰 기반 권한 처리, 댓글, 검색, 페이징, 배포는 추후 확장 범위로 분리했습니다.
