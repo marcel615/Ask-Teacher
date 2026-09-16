@@ -22,3 +22,5 @@
 - workflow의 실행 조건(`develop` 대상 PR, `main` push), Java 17, Gradle Wrapper 명령, XML 경로, `CODECOV_TOKEN`, 업로드 실패 처리를 정적으로 확인했다.
 - 로컬 환경에 `actionlint` 또는 별도 YAML 파서가 없어 GitHub Actions 전용 스키마 검증은 수행하지 못했다.
 - 실제 GitHub Actions 실행, Codecov 업로드 및 README 배지 표시는 Codecov 저장소 연결과 `CODECOV_TOKEN` 등록 후 사용자 확인이 필요하다.
+- PR #37의 최초 CI는 `./gradlew: Permission denied`와 종료 코드 126으로 테스트 시작 전에 실패했다. Git에 기록된 `gradlew` 모드가 `100644`인 것이 원인이었다.
+- workflow에 별도 `chmod` 단계를 추가하지 않고 `git update-index --chmod=+x gradlew`로 실행 비트를 `100755`로 기록했다.
