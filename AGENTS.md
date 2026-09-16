@@ -20,7 +20,7 @@
 ## 참고 문서
 
 - 상세 워크플로우: `.agents/skills/issue-driven-dev/SKILL.md`
-- 빠른 지시문: `prompts/quick.md`
+- 빠른 지시문: `docs/prompts/quick.md`
 - Issue 템플릿: `.github/ISSUE_TEMPLATE/feature_request.yml`
 - 요구사항: `docs/requirements.md`
 - API 명세: `docs/api-spec.md`
@@ -36,13 +36,15 @@
 ./gradlew test
 ```
 
-## 수동 API 확인
+## 자동 API 테스트
 
-- 프론트엔드가 없는 동안 `.http` 파일을 수동 API 확인용으로 사용한다.
-- `.http` 파일은 자동 테스트를 대체하지 않으며, 기본 검증은 `./gradlew test`다.
-- 새 API 또는 변경된 API가 있으면 관련 `.http` 파일을 추가/수정하고 가능한 범위에서 실행 확인한다.
-- `.http` 파일 위치는 기존 구조를 유지한다: `src/main/java/com/github/marcel615/askteacher/http`
-- 수동 API 확인 결과는 PR 요약 또는 devlog에 기록한다.
+- 새 API 또는 변경된 API는 관련 Controller, Service, Repository 테스트와 통합 테스트를 작성·보완한다.
+- Controller는 요청 바인딩·Validation·응답·예외 처리를, Service는 비즈니스 규칙을, Repository는 테스트 DB에서 실제 쿼리와 매핑을 검증한다.
+- 통합 테스트는 인증을 포함한 HTTP 요청부터 DB 처리까지 정상·주요 실패 흐름을 검증한다.
+- 테스트 DB, 인증 설정, 파일 저장 경로를 개발·운영 환경과 격리하고 데이터와 파일을 정리한다.
+- 기본 검증은 `./gradlew test`다. Windows PowerShell에서는 `.\gradlew.bat test`를 실행할 수 있다.
+- 테스트 대상·시나리오·대응 테스트 클래스와 실행 결과·미검증 사항을 작업 기록 및 PR 요약 또는 devlog에 기록한다.
+- 기존 버그나 명세 불일치는 기대값 변경 또는 테스트 비활성화로 숨기지 않고 사용자에게 보고한다.
 
 ## Global Codex Guidelines
 

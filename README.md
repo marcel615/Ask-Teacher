@@ -17,7 +17,7 @@ AskTeacher는 사용자가 질문 게시글을 작성하고 조회할 수 있는
 | Database | H2, MySQL Connector |
 | Test | JUnit 5, Spring Boot Test, AssertJ |
 | Build Tool | Gradle |
-| 기타 | Lombok, `.http` 수동 API 테스트 파일 |
+| 기타 | Lombok |
 
 ## 주요 기능
 
@@ -217,16 +217,14 @@ macOS/Linux:
 ./gradlew test
 ```
 
-### 수동 API 확인
+### API 자동 테스트
 
-프론트엔드가 없는 동안 `.http` 파일로 API를 수동 확인합니다.
-
-```text
-src/main/java/com/github/marcel615/askteacher/http
-├── auth
-├── category
-└── post
-```
+`src/test/java/com/github/marcel615/askteacher`에서 Controller, Service, Repository 및 API 통합 테스트를 관리합니다.
+새 API 또는 변경된 API에는 관련 계층 테스트와 통합 테스트를 작성하고 위 Gradle 명령으로 실행합니다.
+테스트는 `test` 프로필의 H2 메모리 DB와 테스트 전용 JWT 설정을 사용하며, 실제 첨부파일은 임시 디렉터리에 저장하고 정리합니다.
+서블릿 업로드 제한은 테스트가 시작하는 임의 포트 HTTP 서버로 검증하므로 수동 서버 기동이 필요하지 않습니다.
+테스트 범위·실행 결과·미검증 사항은 `docs/current-work-log.md`와 PR 요약 또는 devlog에 기록합니다.
+H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 
 ## 트러블슈팅
 

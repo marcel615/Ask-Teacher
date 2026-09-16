@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:${random.uuid};DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+jwt:
+  secret: isolated-test-secret-key-isolated-test-secret-key
+  expiration: 3600000
+app:
+  file-storage:
+    post-upload-dir: ${java.io.tmpdir}/askteacher-test-${random.uuid}
+    max-file-size: 10485760
