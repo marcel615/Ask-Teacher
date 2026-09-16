@@ -1,6 +1,6 @@
 # AskTeacher
 
-[![codecov](https://codecov.io/gh/marcel615/Ask-Teacher/graph/badge.svg?token=PBDYIDAYZS)](https://codecov.io/gh/marcel615/Ask-Teacher)
+[![codecov](https://codecov.io/gh/marcel615/Ask-Teacher/branch/develop/graph/badge.svg?token=PBDYIDAYZS)](https://codecov.io/gh/marcel615/Ask-Teacher)
 
 AskTeacher는 사용자가 질문 게시글을 작성하고 조회할 수 있는 Q&A 기반 백엔드 API 프로젝트입니다.
 

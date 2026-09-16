@@ -10,8 +10,8 @@
 
 ## 목표
 
-`develop` 대상 Pull Request와 `main` 브랜치 push마다 자동으로
-Gradle 테스트를 실행한다.
+`develop` 대상 Pull Request와 `develop` 및 `main` 브랜치 push마다
+자동으로 Gradle 테스트를 실행한다.
 
 JaCoCo로 XML 커버리지 리포트를 생성하고 Codecov에 업로드하여,
 README에서 `develop` 브랜치의 커버리지를 확인할 수 있도록 한다.
@@ -23,6 +23,7 @@ CI를 실패시키지 않는다.
 
 - GitHub Actions CI workflow 신규 작성
 - `develop` 대상 Pull Request에서 CI 실행
+- `develop` 브랜치 push에서 CI 실행
 - `main` 브랜치 push에서 CI 실행
 - Java 17 환경 구성
 - Gradle Wrapper를 사용한 `./gradlew test` 실행
@@ -89,10 +90,11 @@ GitHub Actions workflow는 다음 이벤트에서 실행한다.
 - `pull_request`
   - 대상 브랜치: `develop`
 - `push`
+  - 대상 브랜치: `develop`
   - 대상 브랜치: `main`
 
-그 밖의 브랜치 push와 `main` 대상 Pull Request는 이번 Issue의
-자동 실행 대상에 포함하지 않는다.
+`develop` 및 `main` 외 브랜치 push와 `main` 대상 Pull Request는
+이번 Issue의 자동 실행 대상에 포함하지 않는다.
 
 ### 실행 환경
 
@@ -188,6 +190,7 @@ Windows PowerShell에서는 다음 명령을 실행한다.
 
 - workflow YAML 문법 확인
 - `develop` 대상 Pull Request trigger 확인
+- `develop` push trigger 확인
 - `main` push trigger 확인
 - Java 17 설정 확인
 - Gradle Wrapper 명령 확인
@@ -201,6 +204,7 @@ Windows PowerShell에서는 다음 명령을 실행한다.
 실제 GitHub Actions와 Codecov 동작은 사용자가 확인한다.
 
 - `develop` 대상 Pull Request에서 workflow 실행
+- `develop` push에서 workflow 실행
 - `main` push에서 workflow 실행
 - 테스트 결과 반영
 - Codecov 업로드 성공
@@ -228,7 +232,7 @@ Builder는 실제 원격 실행을 확인하지 못한 경우 이를 완료로 �
 
 - .github/workflows/ci.yml
   - GitHub Actions CI workflow 신규 작성
-  - `develop` 대상 Pull Request 및 `main` push trigger 설정
+  - `develop` 대상 Pull Request와 `develop` 및 `main` push trigger 설정
   - Java 17, Gradle 테스트, Codecov 업로드 구성
 
 - build.gradle
@@ -271,6 +275,7 @@ Secret 등록은 사용자가 수행한다.
 ## 완료 조건
 
 - [ ] `develop` 대상 Pull Request에서 CI가 실행되도록 구성되어 있다.
+- [ ] `develop` 브랜치 push에서 CI가 실행되도록 구성되어 있다.
 - [ ] `main` 브랜치 push에서 CI가 실행되도록 구성되어 있다.
 - [ ] Java 17과 Gradle Wrapper를 사용한다.
 - [ ] CI에서 `./gradlew test`를 실행한다.

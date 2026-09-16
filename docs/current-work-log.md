@@ -19,9 +19,11 @@
 - `.\gradlew.bat test`: 105개 실행, 실패 0, 오류 0, skip 0, `BUILD SUCCESSFUL`.
 - `test` 완료 후 `jacocoTestReport`가 실행되었고 XML은 `build/reports/jacoco/test/jacocoTestReport.xml`, HTML은 `build/reports/jacoco/test/html/index.html`에 생성됐다.
 - 신규 또는 변경 API가 없어 Controller, Service, Repository 및 API 통합 테스트를 추가하지 않았으며 기존 105개 테스트를 그대로 실행했다.
-- workflow의 실행 조건(`develop` 대상 PR, `main` push), Java 17, Gradle Wrapper 명령, XML 경로, `CODECOV_TOKEN`, 업로드 실패 처리를 정적으로 확인했다.
+- workflow의 실행 조건(`develop` 대상 PR, `develop` 및 `main` push), Java 17, Gradle Wrapper 명령, XML 경로, `CODECOV_TOKEN`, 업로드 실패 처리를 정적으로 확인했다.
 - 로컬 환경에 `actionlint` 또는 별도 YAML 파서가 없어 GitHub Actions 전용 스키마 검증은 수행하지 못했다.
 - PR #37의 최초 CI는 `./gradlew: Permission denied`와 종료 코드 126으로 테스트 시작 전에 실패했다. Git에 기록된 `gradlew` 모드가 `100644`인 것이 원인이었다.
 - workflow에 별도 `chmod` 단계를 추가하지 않고 `git update-index --chmod=+x gradlew`로 실행 비트를 `100755`로 기록했다.
 - 수정 후 GitHub Actions run `35093686170`에서 Gradle 테스트, `jacocoTestReport`, JaCoCo XML 파일 확인 및 Codecov 업로드 단계가 모두 성공했고 전체 job이 통과했다.
-- `CODECOV_TOKEN`이 적용된 Codecov 업로드 성공을 확인했다. `main` push trigger와 README 배지의 기준 브랜치 및 실제 표시는 아직 미검증이다.
+- `CODECOV_TOKEN`이 적용된 Codecov 업로드 성공을 확인했다.
+- 사용자 결정에 따라 README 배지를 `develop` 브랜치로 고정하고, 병합 후 커버리지 갱신을 위해 CI의 push trigger를 `develop`과 `main`으로 확장했다.
+- `develop` 및 `main` push trigger와 수정된 배지의 실제 표시는 사용자가 직접 확인할 미검증 항목이다.
