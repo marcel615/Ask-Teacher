@@ -35,6 +35,7 @@ class SecurityConfigTest {
         assertThat(statusOfGet("/api/categories")).isEqualTo(200);
         assertThat(statusOfGet("/api/posts")).isEqualTo(200);
         assertThat(statusOfGet("/api/posts/999999")).isEqualTo(404);
+        assertThat(statusOfGet("/api/posts/999999/comments")).isEqualTo(404);
     }
 
     @ParameterizedTest

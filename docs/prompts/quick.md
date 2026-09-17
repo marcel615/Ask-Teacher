@@ -99,6 +99,7 @@ current-task.md 초안에는 다음도 포함해줘.
 
 ```text
 current-task.md 초안 승인.
+`예상 변경 파일 > Architect 사전 반영 문서`에 포함된 문서 수정안도 함께 승인한 것으로 보고 모두 반영해줘.
 docs/current-task.md에 반영해줘.
 ```
 

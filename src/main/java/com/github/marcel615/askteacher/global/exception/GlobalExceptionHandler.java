@@ -2,6 +2,7 @@ package com.github.marcel615.askteacher.global.exception;
 
 import com.github.marcel615.askteacher.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -55,6 +56,18 @@ public class GlobalExceptionHandler {
                 .status(ErrorCode.INVALID_INPUT_VALUE.getHttpStatus())
                 .body(errorResponse);
 
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMessageNotReadableException(HttpMessageNotReadableException exception) {
+        ErrorResponse errorResponse = ErrorResponse.of(
+                ErrorCode.INVALID_INPUT_VALUE.getStatus(),
+                ErrorCode.INVALID_INPUT_VALUE.getMessage()
+        );
+
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getHttpStatus())
+                .body(errorResponse);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

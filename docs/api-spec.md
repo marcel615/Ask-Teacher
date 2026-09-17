@@ -39,6 +39,12 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 | 게시글 삭제 | DELETE | `/api/posts/{postId}` | 필요 | 구현됨 |
 | 게시글 좋아요 등록 | POST | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
 | 게시글 좋아요 취소 | DELETE | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
+| 댓글 작성 | POST | `/api/posts/{postId}/comments` | 필요 | 구현 예정 |
+| 댓글 목록 조회 | GET | `/api/posts/{postId}/comments` | 선택 | 구현 예정 |
+| 댓글 수정 | PATCH | `/api/comments/{commentId}` | 필요 | 구현 예정 |
+| 댓글 삭제 | DELETE | `/api/comments/{commentId}` | 필요 | 구현 예정 |
+| 댓글 좋아요 등록 | POST | `/api/comments/{commentId}/likes` | 필요 | 구현 예정 |
+| 댓글 좋아요 취소 | DELETE | `/api/comments/{commentId}/likes` | 필요 | 구현 예정 |
 
 ---
 
@@ -477,3 +483,311 @@ Authorization: Bearer {accessToken}
 | 인증 실패 | 401 Unauthorized |
 | 좋아요 취소 대상 없음 | 400 Bad Request |
 | 게시글 없음 | 404 Not Found |
+
+---
+
+## 댓글 작성
+
+### Request
+
+`POST /api/posts/{postId}/comments`
+
+```http
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+```
+
+```json
+{
+  "content": "댓글 내용"
+}
+```
+
+댓글 작성자 ID는 request body로 받지 않고 Access Token의 사용자 ID를 사용한다.
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| postId | 필수, 존재하고 삭제되지 않은 게시글 ID |
+| content | 필수, 공백만 입력 불가, 최대 1000자 |
+
+`content`는 저장 전에 앞뒤 공백을 제거한다.
+
+### Response
+
+```json
+{
+  "commentId": 1,
+  "postId": 1,
+  "writerId": 1,
+  "writerNickname": "springUser",
+  "content": "댓글 내용",
+  "likeCount": 0,
+  "likedByMe": false,
+  "createdAt": "2026-09-16T12:00:00",
+  "updatedAt": "2026-09-16T12:00:00"
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 생성 성공 | 201 Created |
+| 인증 실패 | 401 Unauthorized |
+| Validation 실패 | 400 Bad Request |
+| 사용자 없음 | 404 Not Found |
+| 게시글 없음 | 404 Not Found |
+
+---
+
+## 댓글 목록 조회
+
+### Request
+
+`GET /api/posts/{postId}/comments`
+
+인증 없이 조회할 수 있다. 유효한 Access Token을 함께 보내면 현재 사용자의 댓글 좋아요 여부를 반환한다.
+
+### Query Parameters
+
+| 이름 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| page | int | 선택 | 페이지 번호. 0 이상. 기본값 0 |
+| size | int | 선택 | 페이지 크기. 1 이상 100 이하. 기본값 20 |
+| sort | String | 선택 | `latest` 또는 `likeCount`. 기본값 `latest` |
+
+### Request Examples
+
+```http
+GET /api/posts/1/comments?page=0&size=20&sort=latest
+GET /api/posts/1/comments?page=0&size=20&sort=likeCount
+```
+
+### Response
+
+```json
+{
+  "comments": [
+    {
+      "commentId": 1,
+      "postId": 1,
+      "writerId": 1,
+      "writerNickname": "springUser",
+      "content": "댓글 내용",
+      "likeCount": 3,
+      "likedByMe": false,
+      "createdAt": "2026-09-16T12:00:00",
+      "updatedAt": "2026-09-16T12:00:00"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1,
+  "hasNext": false,
+  "sort": "latest"
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 조회 성공 | 200 OK |
+| page가 0 미만 | 400 Bad Request |
+| size가 1 미만 또는 100 초과 | 400 Bad Request |
+| 허용되지 않은 sort | 400 Bad Request |
+| 게시글 없음 | 404 Not Found |
+
+### 비고
+
+- 삭제된 댓글은 조회하지 않는다.
+- 비로그인 사용자의 `likedByMe`는 `false`다.
+- 로그인 사용자는 실제 댓글 좋아요 여부를 `likedByMe`로 반환한다.
+- `latest`는 `createdAt DESC`, `commentId DESC` 순서로 정렬한다.
+- `likeCount`는 `likeCount DESC`, `createdAt DESC`, `commentId DESC` 순서로 정렬한다.
+- 댓글 좋아요 수는 `comment_likes` 데이터를 집계하여 반환한다.
+
+---
+
+## 댓글 수정
+
+### Request
+
+`PATCH /api/comments/{commentId}`
+
+```http
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+```
+
+```json
+{
+  "content": "수정한 댓글 내용"
+}
+```
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| commentId | 필수, 존재하고 삭제되지 않은 댓글 ID |
+| content | 필수, 공백만 입력 불가, 최대 1000자 |
+
+`content`는 저장 전에 앞뒤 공백을 제거한다.
+
+### Response
+
+```json
+{
+  "commentId": 1,
+  "postId": 1,
+  "writerId": 1,
+  "writerNickname": "springUser",
+  "content": "수정한 댓글 내용",
+  "likeCount": 3,
+  "likedByMe": true,
+  "createdAt": "2026-09-16T12:00:00",
+  "updatedAt": "2026-09-16T13:00:00"
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 수정 성공 | 200 OK |
+| 인증 실패 | 401 Unauthorized |
+| Validation 실패 | 400 Bad Request |
+| 작성자 불일치 | 403 Forbidden |
+| 댓글 없음 | 404 Not Found |
+
+---
+
+## 댓글 삭제
+
+### Request
+
+`DELETE /api/comments/{commentId}`
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| commentId | 필수, 존재하고 삭제되지 않은 댓글 ID |
+
+### Response
+
+응답 본문 없음.
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 삭제 성공 | 204 No Content |
+| 인증 실패 | 401 Unauthorized |
+| 작성자 불일치 | 403 Forbidden |
+| 댓글 없음 | 404 Not Found |
+
+### 비고
+
+- 댓글 DB row는 물리 삭제하지 않고 `Comment.deleted = true`로 변경한다.
+- 이미 삭제된 댓글은 존재하지 않는 댓글과 동일하게 처리한다.
+- 댓글 삭제 시 `updatedAt`을 갱신한다.
+- 댓글 삭제와 같은 트랜잭션에서 관련 `comment_likes` 행을 물리 삭제한다.
+
+---
+
+## 댓글 좋아요 등록
+
+### Request
+
+`POST /api/comments/{commentId}/likes`
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+요청 본문 없음.
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| commentId | 필수, 존재하고 삭제되지 않은 댓글 ID |
+
+### Response
+
+```json
+{
+  "commentId": 1,
+  "likeCount": 4,
+  "likedByMe": true
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 등록 성공 | 201 Created |
+| 인증 실패 | 401 Unauthorized |
+| 중복 좋아요 요청 | 409 Conflict |
+| 사용자 없음 | 404 Not Found |
+| 댓글 없음 | 404 Not Found |
+
+### 비고
+
+- `(comment_id, user_id)` 유니크 제약으로 동시 중복 요청도 방지한다.
+- 등록 후 `comment_likes`를 집계한 좋아요 수를 반환한다.
+
+---
+
+## 댓글 좋아요 취소
+
+### Request
+
+`DELETE /api/comments/{commentId}/likes`
+
+```http
+Authorization: Bearer {accessToken}
+```
+
+요청 본문 없음.
+
+### Validation
+
+| 필드 | 규칙 |
+|---|---|
+| commentId | 필수, 존재하고 삭제되지 않은 댓글 ID |
+
+### Response
+
+```json
+{
+  "commentId": 1,
+  "likeCount": 3,
+  "likedByMe": false
+}
+```
+
+### Status Code
+
+| 상황 | Status |
+|---|---|
+| 취소 성공 | 200 OK |
+| 인증 실패 | 401 Unauthorized |
+| 좋아요 취소 대상 없음 | 404 Not Found |
+| 사용자 없음 | 404 Not Found |
+| 댓글 없음 | 404 Not Found |
+
+### 비고
+
+- 좋아요 취소 시 해당 `comment_likes` 행을 물리 삭제한다.
+- 취소 후 `comment_likes`를 집계한 좋아요 수를 반환한다.
