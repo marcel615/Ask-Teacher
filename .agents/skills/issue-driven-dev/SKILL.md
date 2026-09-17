@@ -91,6 +91,10 @@ git checkout -b feature/issue-번호-작업명
 18. 리뷰 반영 중 새로 발생한 트러블슈팅이나 주요 의사결정도 docs/current-work-log.md에 추가한다.
 19. 리뷰 반영 내용을 commit/push하여 기존 PR에 반영한다.
 20. Reporter가 Issue, PR, docs/current-work-log.md를 참고하여 docs/devlog/YYYY-MM.md에 추가할 기록 초안을 작성한다.
+21. 사용자 승인 후 devlog를 append-only로 반영하고 commit/push하여 기존 PR에 반영한다.
+22. 사용자가 GitHub에서 PR을 직접 merge한다.
+23. PR merge가 확인된 경우 `develop`으로 이동하여 원격 최신 상태를 반영하고, 이번 Issue에서 사용한 feature 브랜치를 정리한다.
+24. 현재 브랜치와 `git status`를 확인하고 Issue 작업을 종료한다.
 
 ## 중단 조건
 
