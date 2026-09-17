@@ -14,6 +14,8 @@
 - JPA Auditing 설정을 별도 `JpaAuditingConfig`로 분리해 실제 애플리케이션과 JPA 테스트에는 적용하면서 JPA metamodel이 없는 MVC 슬라이스와 격리했다.
 - `JpaAuditingConfig`에는 상호 호출하는 `@Bean` 메서드가 없어 불필요한 `proxyBeanMethods=false` 옵션을 두지 않는다.
 - 게시글·댓글 수정 응답은 Auditing 콜백이 반영된 `updatedAt`을 반환하도록 DTO 변환 전에 flush한다.
+- `JpaAuditingConfig`, 게시글·댓글 Service 및 기존 테스트 파일의 추가 변경은 예상과 다른 Auditing 동작을 보고한 뒤 사용자 승인을 받아 반영했다.
+- Architect 리뷰에 따라 시스템 시각의 짧은 차이를 직접 비교하지 않고, 수정 전 `updatedAt`을 하루 전 값으로 설정한 뒤 Auditing이 더 최신 값으로 덮어쓰는지 검증한다. 별도 테스트용 `DateTimeProvider`는 이번 범위에 비해 과도해 도입하지 않았다.
 
 ## 테스트 및 미검증 사항
 
@@ -25,5 +27,6 @@
 - `PostServiceIntegrationTest`: 13개 실행, 실패 0. Auditing 저장 이후 테스트 생성 시각을 조정하도록 보완해 최신순 정렬을 결정적으로 검증했다.
 - 최종 `.\gradlew.bat test`: 전체 131개 실행, 실패 0, 오류 0, skip 0, `BUILD SUCCESSFUL`.
 - `JpaAuditingConfig`의 `proxyBeanMethods=false` 제거 후 Auditing·MVC 슬라이스 타깃 테스트와 전체 131개 테스트를 재실행했으며 모두 통과했다.
+- Architect 리뷰 반영 후 결정화한 `JpaAuditingRepositoryTest` 2개와 전체 131개 테스트를 재실행했으며 실패·오류·skip 없이 통과했다.
 - Repository 및 통합 테스트는 격리된 H2 테스트 DB에서 실행했다. 실제 MySQL의 DDL 생성 결과와 시간 정밀도는 미검증이다.
 - `git diff --check`가 통과했다.

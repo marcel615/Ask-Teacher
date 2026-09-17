@@ -215,11 +215,12 @@ Entity를 각각 대표하여 DB 기반 JPA 테스트로 수행한다.
 - `src/main/java/com/github/marcel615/askteacher/global/entity/BaseEntity.java`
 - `src/main/java/com/github/marcel615/askteacher/global/entity/BaseUpdatableEntity.java`
 
-JPA Auditing 설정 수정:
+JPA Auditing 설정:
 
-- `src/main/java/com/github/marcel615/askteacher/AskteacherApplication.java`
+- `src/main/java/com/github/marcel615/askteacher/global/config/JpaAuditingConfig.java`
   - JPA Auditing 활성화
   - 최초 저장 시 수정 시각 설정 동작 유지
+  - MVC 슬라이스 테스트와 Auditing 설정 격리
 
 기존 Entity 수정:
 
@@ -231,6 +232,12 @@ JPA Auditing 설정 수정:
 - `src/main/java/com/github/marcel615/askteacher/domain/comment/entity/Comment.java`
 - `src/main/java/com/github/marcel615/askteacher/domain/commentlike/entity/CommentLike.java`
 
+Auditing 반영 시점 보완:
+
+- `src/main/java/com/github/marcel615/askteacher/domain/post/service/PostService.java`
+- `src/main/java/com/github/marcel615/askteacher/domain/comment/service/CommentService.java`
+  - 수정 응답 생성 전 flush하여 갱신된 `updatedAt` 반영
+
 신규 테스트 파일:
 
 - `src/test/java/com/github/marcel615/askteacher/global/entity/JpaAuditingRepositoryTest.java`
@@ -238,6 +245,19 @@ JPA Auditing 설정 수정:
   - `BaseUpdatableEntity` 생성·수정 시각 자동 설정 검증
   - 생성 시각 불변 검증
   - 기존 DB 매핑 유지 검증
+
+기존 테스트 보완:
+
+- `src/test/java/com/github/marcel615/askteacher/support/RepositoryTestSupport.java`
+- `src/test/java/com/github/marcel615/askteacher/domain/comment/service/CommentServiceTest.java`
+- `src/test/java/com/github/marcel615/askteacher/domain/post/repository/PostFileRepositoryTest.java`
+- `src/test/java/com/github/marcel615/askteacher/domain/post/service/PostServiceTest.java`
+- `src/test/java/com/github/marcel615/askteacher/domain/post/storage/PostFileStorageTest.java`
+- `src/test/java/com/github/marcel615/askteacher/integration/PostServiceIntegrationTest.java`
+  - JPA Auditing의 persist·flush 시점에 맞춰 기존 검증 보완
+
+위 서비스 및 기존 테스트 변경은 구현 중 예상과 다른 Auditing 동작을
+보고한 뒤 사용자 승인에 따라 추가 반영했다.
 
 작업 기록:
 

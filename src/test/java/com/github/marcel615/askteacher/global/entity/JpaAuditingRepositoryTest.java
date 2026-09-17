@@ -4,6 +4,7 @@ import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.postlike.entity.PostLike;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 
@@ -39,22 +40,24 @@ class JpaAuditingRepositoryTest extends RepositoryTestSupport {
 
         var saved = em.find(Post.class, post.getId());
         LocalDateTime createdAt = saved.getCreatedAt();
-        LocalDateTime updatedAt = saved.getUpdatedAt();
 
         assertThat(saved.getId()).isNotNull();
         assertThat(createdAt).isNotNull();
-        assertThat(updatedAt).isNotNull();
+        assertThat(saved.getUpdatedAt()).isNotNull();
+
+        LocalDateTime previousUpdatedAt = LocalDateTime.now().minusDays(1);
+        ReflectionTestUtils.setField(saved, "updatedAt", previousUpdatedAt);
 
         saved.update(saved.getCategory(), "changed title", "changed content");
         em.flush();
 
         assertThat(saved.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(saved.getUpdatedAt()).isAfter(updatedAt);
+        assertThat(saved.getUpdatedAt()).isAfter(previousUpdatedAt);
 
         Long postId = saved.getId();
         flushAndClear();
         var reloaded = em.find(Post.class, postId);
         assertThat(reloaded.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(reloaded.getUpdatedAt()).isAfter(updatedAt);
+        assertThat(reloaded.getUpdatedAt()).isAfter(previousUpdatedAt);
     }
 }
