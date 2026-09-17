@@ -3,14 +3,17 @@ package com.github.marcel615.askteacher.support;
 import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.user.entity.User;
+import com.github.marcel615.askteacher.global.config.JpaAuditingConfig;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 /** DB-backed JPA slice tests; H2 does not verify MySQL-specific behavior. */
 @DataJpaTest
 @ActiveProfiles("test")
+@Import(JpaAuditingConfig.class)
 public abstract class RepositoryTestSupport {
     @Autowired protected EntityManager em;
 

@@ -29,7 +29,6 @@ class PostFileStorageTest {
         assertThat(file.getStoredFileName()).endsWith(".file").isNotEqualTo("test.file");
         assertThat(file.getFileSize()).isEqualTo(4);
         assertThat(file.getContentType()).isEqualTo(mime);
-        assertThat(file.getCreatedAt()).isNotNull();
         assertThat(Path.of(file.getFilePath()).getParent()).isEqualTo(directory.toAbsolutePath());
         assertThat(Files.readAllBytes(Path.of(file.getFilePath()))).containsExactly(bytes);
     }

@@ -42,6 +42,9 @@ class PostServiceTest {
         ReflectionTestUtils.setField(category, "id", 2L);
         post = Post.createPost(user, category, "title", "content");
         ReflectionTestUtils.setField(post, "id", 3L);
+        LocalDateTime auditDate = LocalDateTime.now().minusDays(1);
+        ReflectionTestUtils.setField(post, "createdAt", auditDate);
+        ReflectionTestUtils.setField(post, "updatedAt", auditDate);
     }
 
     @Test void createSavesInitialStateAndAttachments() {
@@ -55,6 +58,9 @@ class PostServiceTest {
             assertThat(saved.isDeleted()).isFalse();
             assertThat(saved.getLikeCount()).isZero();
             ReflectionTestUtils.setField(saved, "id", 3L);
+            LocalDateTime auditDate = LocalDateTime.now();
+            ReflectionTestUtils.setField(saved, "createdAt", auditDate);
+            ReflectionTestUtils.setField(saved, "updatedAt", auditDate);
             return saved;
         });
         var upload = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
@@ -120,6 +126,10 @@ class PostServiceTest {
         when(categories.findById(2L)).thenReturn(Optional.of(category));
         LocalDateTime created = post.getCreatedAt();
         ReflectionTestUtils.setField(post, "updatedAt", created.minusDays(1));
+        doAnswer(invocation -> {
+            ReflectionTestUtils.setField(post, "updatedAt", created.plusSeconds(1));
+            return null;
+        }).when(posts).flush();
         var result = service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body"));
         assertThat(result.title()).isEqualTo("new");
         assertThat(result.content()).isEqualTo("body");
@@ -129,6 +139,7 @@ class PostServiceTest {
         assertThat(post.isNewPost()).isTrue();
         assertThat(post.isDeleted()).isFalse();
         verify(storage).store(post, List.of());
+        verify(posts).flush();
     }
 
     @Test void updateRejectsMissingPostWrongAuthorAndMissingCategory() {
@@ -154,11 +165,8 @@ class PostServiceTest {
         assertThatThrownBy(() -> service.deletePost(3L, 1L)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
         when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
         assertThatThrownBy(() -> service.deletePost(3L, 9L)).extracting("errorCode").isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
-        ReflectionTestUtils.setField(post, "updatedAt", LocalDateTime.now().minusDays(1));
-        var before = post.getUpdatedAt();
         service.deletePost(3L, 1L);
         assertThat(post.isDeleted()).isTrue();
-        assertThat(post.getUpdatedAt()).isAfter(before);
         verify(posts, never()).delete(any());
     }
 }
