@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
-import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.*;
 
 class PostFileRepositoryTest extends RepositoryTestSupport {
@@ -19,9 +18,9 @@ class PostFileRepositoryTest extends RepositoryTestSupport {
         var other = post(user, category, "other", "body");
         var recent = PostFile.create(post, "recent.pdf", "recent.pdf", "/test/recent.pdf", "application/pdf", 2);
         var old = PostFile.create(post, "old.png", "old.png", "/test/old.png", "image/png", 1);
-        ReflectionTestUtils.setField(old, "createdAt", LocalDateTime.now().minusDays(1));
-        repository.save(recent);
-        repository.save(old);
+        repository.saveAndFlush(recent);
+        repository.saveAndFlush(old);
+        ReflectionTestUtils.setField(old, "createdAt", recent.getCreatedAt().minusDays(1));
         repository.save(PostFile.create(other, "other.png", "other.png", "/test/other.png", "image/png", 1));
         flushAndClear();
         var found = repository.findByPostIdOrderByCreatedAtAsc(post.getId());

@@ -47,6 +47,9 @@ class CommentServiceTest {
         ReflectionTestUtils.setField(post, "id", 3L);
         comment = Comment.create(post, user, "original");
         ReflectionTestUtils.setField(comment, "id", 4L);
+        LocalDateTime auditDate = LocalDateTime.now().minusDays(1);
+        ReflectionTestUtils.setField(comment, "createdAt", auditDate);
+        ReflectionTestUtils.setField(comment, "updatedAt", auditDate);
     }
 
     @Test void createTrimsContentAndInitializesResponse() {
@@ -82,11 +85,16 @@ class CommentServiceTest {
         when(likes.countByCommentId(4L)).thenReturn(2L);
         when(likes.existsByCommentIdAndUserId(4L, 1L)).thenReturn(true);
         var before = comment.getUpdatedAt();
+        doAnswer(invocation -> {
+            ReflectionTestUtils.setField(comment, "updatedAt", before.plusSeconds(1));
+            return null;
+        }).when(comments).flush();
         var result = service.updateComment(4L, 1L, new CommentUpdateRequest(" changed "));
         assertThat(result.content()).isEqualTo("changed");
         assertThat(result.likeCount()).isEqualTo(2);
         assertThat(result.likedByMe()).isTrue();
-        assertThat(result.updatedAt()).isAfterOrEqualTo(before);
+        assertThat(result.updatedAt()).isAfter(before);
+        verify(comments).flush();
         assertThatThrownBy(() -> service.updateComment(4L, 9L, new CommentUpdateRequest("x")))
                 .extracting("errorCode").isEqualTo(ErrorCode.COMMENT_AUTHOR_MISMATCH);
     }

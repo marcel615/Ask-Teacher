@@ -118,13 +118,11 @@ class PostServiceIntegrationTest {
         User user = userRepository.save(User.createUser("post-list-sort@example.com", "password", "postListSortUser"));
         Category category = categoryRepository.save(Category.createCategory("post-list-sort-category"));
 
-        Post oldPost = Post.createPost(user, category, "old title", "old content");
+        Post oldPost = postRepository.saveAndFlush(Post.createPost(user, category, "old title", "old content"));
+        Post recentPost = postRepository.saveAndFlush(Post.createPost(user, category, "recent title", "recent content"));
         ReflectionTestUtils.setField(oldPost, "createdAt", LocalDateTime.now().minusDays(2));
-        postRepository.save(oldPost);
-
-        Post recentPost = Post.createPost(user, category, "recent title", "recent content");
         ReflectionTestUtils.setField(recentPost, "createdAt", LocalDateTime.now().minusDays(1));
-        postRepository.save(recentPost);
+        postRepository.flush();
 
         List<PostListResponse> responses = postService.getPosts();
 

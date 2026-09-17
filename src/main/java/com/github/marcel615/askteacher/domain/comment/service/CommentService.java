@@ -61,6 +61,7 @@ public class CommentService {
         Comment comment = getActiveComment(commentId);
         validateAuthor(comment, userId);
         comment.update(request.content().trim());
+        commentRepository.flush();
         long likeCount = commentLikeRepository.countByCommentId(commentId);
         boolean likedByMe = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
         return CommentResponse.from(comment, likeCount, likedByMe);

@@ -2,22 +2,17 @@ package com.github.marcel615.askteacher.domain.post.entity;
 
 import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.user.entity.User;
+import com.github.marcel615.askteacher.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "posts")
-public class Post {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Post extends BaseUpdatableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -42,12 +37,6 @@ public class Post {
     @Column(nullable = false)
     private long likeCount;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
     public static Post createPost(User user, Category category, String title, String content) {
         Post post = new Post();
 
@@ -58,8 +47,6 @@ public class Post {
         post.newPost = true;
         post.deleted = false;
         post.likeCount = 0L;
-        post.createdAt = LocalDateTime.now();
-        post.updatedAt = LocalDateTime.now();
 
         return post;
     }
@@ -68,12 +55,10 @@ public class Post {
         this.category = category;
         this.title = title;
         this.content = content;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void delete() {
         this.deleted = true;
-        this.updatedAt = LocalDateTime.now();
     }
 
 }

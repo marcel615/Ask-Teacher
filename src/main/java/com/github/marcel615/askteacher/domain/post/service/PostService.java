@@ -115,6 +115,7 @@ public class PostService {
         post.update(category, postUpdateRequest.title(), postUpdateRequest.content());
         List<PostFile> postFiles = postFileStorage.store(post, files);
         postFileRepository.saveAll(postFiles);
+        postRepository.flush();
 
         return PostUpdateResponse.from(post);
     }
