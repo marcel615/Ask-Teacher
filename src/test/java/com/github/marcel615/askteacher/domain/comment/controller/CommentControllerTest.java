@@ -68,6 +68,21 @@ class CommentControllerTest extends WebTestSupport {
         verify(service, never()).createComment(any(), any(), any());
     }
 
+    @Test void createAndUpdateRejectEmptyOrMalformedJsonWithCommonErrorResponse() throws Exception {
+        for (var request : List.of(
+                post("/api/posts/3/comments").with(authenticated()),
+                patch("/api/comments/5").with(authenticated())
+        )) {
+            for (String body : List.of("", "{\"content\":")) {
+                mvc.perform(request.contentType("application/json").content(body))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.status").value(ErrorCode.INVALID_INPUT_VALUE.getStatus()))
+                        .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
+            }
+        }
+        verifyNoInteractions(service);
+    }
+
     private CommentResponse response(String content, boolean likedByMe) {
         LocalDateTime now = LocalDateTime.of(2026, 9, 16, 12, 0);
         return new CommentResponse(5L, 3L, 7L, "writer", content, likedByMe ? 1 : 0, likedByMe, now, now);

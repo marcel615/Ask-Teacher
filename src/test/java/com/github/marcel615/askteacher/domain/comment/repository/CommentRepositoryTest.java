@@ -8,12 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.*;
 
 class CommentRepositoryTest extends RepositoryTestSupport {
     @Autowired CommentRepository comments;
+    @Autowired DataSource dataSource;
 
     @Test void latestPageExcludesDeletedAndMapsLikeCountAndCurrentUser() {
         var alice = user("alice");
@@ -55,6 +59,39 @@ class CommentRepositoryTest extends RepositoryTestSupport {
         assertThat(comments.findLikeCountPage(post.getId(), null, PageRequest.of(0, 10)).getContent())
                 .extracting(row -> row.commentId())
                 .containsExactly(popular.getId(), second.getId(), first.getId());
+    }
+
+    @Test void latestSortUsesIdDescendingWhenCreatedAtIsEqual() {
+        var user = user("alice");
+        var post = post(user, category("Java"), "title", "body");
+        LocalDateTime sameTime = LocalDateTime.now();
+        var first = comment(post, user, "first", sameTime);
+        var second = comment(post, user, "second", sameTime);
+        flushAndClear();
+
+        assertThat(comments.findLatestPage(post.getId(), null, PageRequest.of(0, 10)).getContent())
+                .extracting(row -> row.commentId())
+                .containsExactly(second.getId(), first.getId());
+    }
+
+    @Test void generatedSchemaContainsCommentLookupIndexAndDeletedDefault() throws SQLException {
+        try (var connection = dataSource.getConnection()) {
+            var metadata = connection.getMetaData();
+            var indexedColumns = new ArrayList<String>();
+            try (var indexes = metadata.getIndexInfo(null, null, "COMMENTS", false, false)) {
+                while (indexes.next()) {
+                    if ("idx_comments_post_deleted_created_id".equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
+                        indexedColumns.add(indexes.getString("COLUMN_NAME").toLowerCase());
+                    }
+                }
+            }
+            assertThat(indexedColumns).containsExactly("post_id", "deleted", "created_at", "id");
+
+            try (var columns = metadata.getColumns(null, null, "COMMENTS", "DELETED")) {
+                assertThat(columns.next()).isTrue();
+                assertThat(columns.getString("COLUMN_DEF")).isEqualToIgnoringCase("false");
+            }
+        }
     }
 
     private Comment comment(com.github.marcel615.askteacher.domain.post.entity.Post post,

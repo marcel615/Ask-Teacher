@@ -288,8 +288,10 @@
   - 댓글 관련 API 6개와 요청·응답·상태 코드 반영
 - `docs/erd.md`
   - Comment, CommentLike, 관계, FK 및 유니크 제약 반영
+- `docs/prompts/quick.md`
+  - Issue 기반 역할별 빠른 지시문에 자동 API 테스트 기준 반영
 
-위 네 문서는 이번 초안 승인 후 Architect가 사전 반영한다.
+위 다섯 문서는 이번 초안 승인 후 Architect가 사전 반영한다.
 
 ### Builder 구현 변경 예상 파일
 

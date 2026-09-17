@@ -76,7 +76,6 @@ class CommentApiIntegrationTest extends ApiTestSupport {
         String bob = signupAndLogin("bob");
         Long postId = createPost(alice);
         long first = createComment(postId, alice, "first");
-        Thread.sleep(5);
         long second = createComment(postId, alice, "second");
 
         mvc.perform(post("/api/comments/{id}/likes", first).header("Authorization", "Bearer " + alice))
@@ -123,6 +122,24 @@ class CommentApiIntegrationTest extends ApiTestSupport {
                 }
                 mvc.perform(request).andExpect(status().isUnauthorized())
                         .andExpect(jsonPath("$.status").value(401));
+            }
+        }
+    }
+
+    @Test void commentWritesRejectEmptyOrMalformedJsonWithBadRequest() throws Exception {
+        String token = signupAndLogin("alice");
+        Long postId = createPost(token);
+        long commentId = createComment(postId, token, "comment");
+
+        for (var request : new MockHttpServletRequestBuilder[]{
+                post("/api/posts/{postId}/comments", postId).header("Authorization", "Bearer " + token),
+                patch("/api/comments/{commentId}", commentId).header("Authorization", "Bearer " + token)
+        }) {
+            for (String body : new String[]{"", "{\"content\":"}) {
+                mvc.perform(request.contentType("application/json").content(body))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.status").value(ErrorCode.INVALID_INPUT_VALUE.getStatus()))
+                        .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
             }
         }
     }

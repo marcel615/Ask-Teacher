@@ -10,6 +10,9 @@
 
 - 댓글 목록은 페이지 내 댓글별 추가 쿼리를 피하기 위해 `Comment`와 `CommentLike`를 조인·그룹화하여 좋아요 수와 `likedByMe`를 함께 투영한다.
 - 최초 타깃 테스트에서 좋아요 일괄 삭제 쿼리의 `clearAutomatically=true`가 관리 중인 댓글 엔티티를 분리해 논리 삭제가 반영되지 않는 동작을 확인했다. 자동 clear를 제거해 좋아요 물리 삭제와 댓글 논리 삭제가 같은 트랜잭션에서 정상 반영되도록 수정했다.
+- PR #38 리뷰에 따라 빈 본문·잘못된 JSON의 `HttpMessageNotReadableException`을 공통 `INVALID_INPUT_VALUE` 응답으로 변환해 400 상태와 기존 오류 형식을 유지했다.
+- 승인된 ERD와 JPA 생성 스키마를 일치시키기 위해 `comments(post_id, deleted, created_at, id)` 인덱스와 `deleted DEFAULT false`를 Entity에 선언하고, H2 JDBC 메타데이터로 실제 생성 결과를 검증했다.
+- 시간 지연에 의존하던 통합 테스트의 `Thread.sleep(5)`를 제거하고 동일 생성 시각의 최신순 `commentId DESC` 동률 정렬을 Repository 테스트로 고정 검증했다.
 
 ## 테스트 및 미검증 사항
 
@@ -25,3 +28,5 @@
 - 테스트 프로필의 H2와 격리된 애플리케이션 컨텍스트를 사용하고, 통합 테스트마다 댓글 좋아요→댓글→기존 데이터 순으로 정리했다.
 - MySQL에서의 JPQL 실행 계획·성능과 실제 동시 중복 좋아요 경합은 미검증이다. 중복 경합은 DB 유니크 제약 및 `DataIntegrityViolationException` 변환 단위 테스트로 검증했다.
 - `git diff --check`가 통과했다.
+- PR #38 리뷰 반영 후 댓글 관련 타깃 테스트 24개가 모두 통과했다.
+- PR #38 리뷰 반영 후 `.\gradlew.bat test`: 전체 129개 실행, 실패 0, 오류 0, skip 0, `BUILD SUCCESSFUL`.

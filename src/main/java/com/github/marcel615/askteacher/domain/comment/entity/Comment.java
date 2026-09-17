@@ -8,19 +8,27 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "comments")
+@Table(
+        name = "comments",
+        indexes = @Index(
+                name = "idx_comments_post_deleted_created_id",
+                columnList = "post_id, deleted, created_at, id"
+        )
+)
 public class Comment {
 
     @Id
@@ -39,6 +47,7 @@ public class Comment {
     private String content;
 
     @Column(nullable = false)
+    @ColumnDefault("false")
     private boolean deleted;
 
     @Column(nullable = false)
