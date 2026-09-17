@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/{postId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/{postId}/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/files/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
