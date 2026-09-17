@@ -67,8 +67,8 @@ Issue #번호 확장해서 작성하자.
 ```text
 Issue 수정안 승인.
 
-최종 제목과 본문을 보여준 뒤
-현재 GitHub Issue에 반영해줘.
+방금 승인한 제목과 본문을 그대로 현재 GitHub Issue에 반영해줘.
+내용을 다시 분석하거나 재작성하지 마.
 ```
 
 ## 1. Issue → current-task
@@ -76,46 +76,52 @@ Issue 수정안 승인.
 ```text
 Issue #번호 작업하자.
 
-gh issue view 번호 --json title,body,labels,state,url 로 조회하고,
+같은 세션에서 확정된 최신 Issue 내용을 이미 확인했다면 다시 조회하지 말고 사용해.
+필요한 경우에만 gh issue view로 조회해.
+
 아래 순서로 초안을 작성해줘.
 
-1. 이 Issue가 requirements.md / api-spec.md / erd.md 변경을 필요로 하는지 판단
-2. 변경이 필요하다면 각 문서별 수정안 초안 작성
+1. requirements.md / api-spec.md / erd.md 변경 필요 여부 판단
+2. 변경이 필요한 문서만 수정안 초안 작성
 3. docs/current-task.md 초안 작성
+
+필요한 문서만 읽고 관련 없는 프로젝트 파일은 확인하지 마.
 
 current-task.md 초안에는 다음도 포함해줘.
 
-- Architect가 승인받아 수정한 문서를 `예상 변경 파일 > Architect 사전 반영 문서`에 기록
-- `docs/current-task.md`는 current-task 확정 시 항상 포함
+- 승인 후 수정할 문서를 `예상 변경 파일 > Architect 사전 반영 문서`에 기록
+- `docs/current-task.md`는 항상 포함
 - `docs/requirements.md`, `docs/api-spec.md`, `docs/erd.md`는 실제 변경이 필요한 경우에만 포함
 - ERD 변경이 필요하지 않다면 `ERD 변경 없음`과 사유를 기록
 - Builder가 구현 중 생성/수정할 수 있는 파일은 `예상 변경 파일 > Builder 구현 변경 예상 파일`에 따로 기록
 
 아직 파일은 수정하지 마.
-내가 승인하면 필요한 문서와 current-task.md에 반영해.
 ```
 
 ## 2. current-task 승인
 
 ```text
-current-task.md 초안 승인.
-`예상 변경 파일 > Architect 사전 반영 문서`에 포함된 문서 수정안도 함께 승인한 것으로 보고 모두 반영해줘.
-docs/current-task.md에 반영해줘.
+current-task와 Architect 사전 반영 문서 수정안 승인.
+
+방금 승인한 수정안만 각 문서와 docs/current-task.md에 반영해줘.
+새로운 분석이나 범위 확장은 하지 마.
 ```
 
 ## 3. 구현 계획 + 브랜치 제안
 
 ```text
-docs/current-task.md 기준으로 구현 계획 세우자.
-먼저 git status, git branch --show-current, git remote -v만 확인해.
+docs/current-task.md의 확정된 범위 기준으로 구현 계획을 세워줘.
+
+git status, git branch --show-current, git remote -v만 확인하고
 develop 최신화와 feature 브랜치 생성 계획을 제안해줘.
-git status에서 변경된 문서가 보이면 docs/current-task.md의 `예상 변경 파일 > Architect 사전 반영 문서`에 포함된 파일인지 확인하고,
-포함되어 있다면 이번 Issue의 승인된 사전 문서 변경으로 간주해 feature 브랜치에 함께 가져갈 계획을 세워줘.
 
-새 Issue 작업을 시작하는 경우 `docs/current-work-log.md`에 이전 작업 기록이 남아 있다면,
-구현 시작 시 현재 Issue 기준으로 초기화할 계획도 함께 제안해줘.
+승인된 Architect 사전 반영 문서 변경이 있으면
+feature 브랜치에 그대로 가져갈 계획에 포함해줘.
 
-아직 파일 수정, 브랜치 이동, 브랜치 생성은 하지 마.
+새 Issue라면 구현 시작 시 `docs/current-work-log.md` 초기화도 계획에 포함해줘.
+
+새로운 요구사항 분석은 하지 마.
+아직 파일 수정이나 브랜치 변경은 하지 마.
 ```
 
 ## 4. 구현 승인
@@ -130,9 +136,13 @@ develop을 최신화하고 제안한 feature 브랜치에서 구현해줘.
 구현 중 발생한 트러블슈팅, 주요 의사결정, 예상과 다른 동작,
 중요한 테스트/검증 결과는 `docs/current-work-log.md`에 간단히 기록해.
 
-구현 후 ./gradlew test 실행,
-새 API 또는 변경된 API가 있다면 관련 계층 테스트와 통합 테스트를 작성·실행하고,
-변경 파일, 자동 테스트 범위·실행 결과·미검증 사항, git diff 요약, PR 초안을 보여줘.
+구현 후 ./gradlew test를 실행하고,
+새 API 또는 변경된 API가 있다면 필요한 계층 테스트와 통합 테스트를 작성·실행해줘.
+
+완료 후 아래만 요약해줘.
+- 변경 파일과 핵심 변경 내용
+- 자동 테스트 범위 / 실행 결과 / 미검증 사항
+- git diff 요약
 
 아직 git add, commit, push, PR 생성은 하지 마.
 ```
@@ -142,10 +152,15 @@ develop을 최신화하고 제안한 feature 브랜치에서 구현해줘.
 ```text
 PR 준비하자.
 
-feature/* → develop 방향으로 PR 본문과 커밋 메시지를 제안해줘.
-PR 본문은 `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` 템플릿 형식을 기준으로 작성해줘.
-테스트 결과와 체크리스트는 실제로 확인한 항목만 체크해줘.
+앞에서 확인한 구현 결과와 git diff를 기준으로
+feature/* → develop PR 본문과 커밋 메시지를 제안해줘.
+
+PR 본문은 `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` 형식을 기준으로 작성하고,
+테스트 결과와 체크리스트는 실제 확인한 항목만 반영해줘.
+
 커밋 메시지는 Conventional Commit 형식으로 제안해줘.
+
+이미 확인한 코드를 다시 분석하지 마.
 아직 git add, commit, push, gh pr create는 하지 마.
 ```
 
@@ -153,24 +168,33 @@ PR 본문은 `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` 템플릿 
 
 ```text
 PR 본문과 커밋 메시지 승인.
-최종 명령어 목록을 보여준 뒤,
-feature 브랜치 push와 develop 대상 PR 생성을 진행해줘.
+
+방금 승인한 내용 그대로 commit/push하고 develop 대상 PR을 생성해줘.
+새로운 코드 분석이나 PR 본문 재작성은 하지 마.
+
+실행할 명령을 간단히 보여준 뒤 진행해줘.
 ```
 
 ## 7. PR 리뷰 준비
 
 ```text
 현재 PR을 리뷰하자.
+
 docs/review-checklist.md 기준으로 현재 PR을 리뷰해줘.
-PR에는 아직 리뷰를 남기지 말고, 작성할 리뷰 내용을 먼저 나에게 보여줘.
-리뷰는 반드시 수정 / 선택 개선 / 통과 항목으로 나눠줘.
+
+추가 문맥이 필요한 경우에만 관련 파일을 읽고,
+변경과 무관한 프로젝트 파일은 확인하지 마.
+
+PR에는 아직 리뷰를 남기지 말고
+반드시 수정 / 선택 개선 / 통과 항목으로 나눠 리뷰 초안만 보여줘.
 ```
 
 ## 8. PR 리뷰 등록 승인
 
 ```text
 PR 리뷰 내용 승인.
-방금 작성한 리뷰 내용을 현재 PR에 리뷰로 등록해줘. 
+
+방금 작성한 리뷰 내용을 현재 PR에 일반 리뷰로 등록해줘. 
 리뷰 본문에는 Architect가 작성한 리뷰임을 명확히 표시해줘.
 ```
 
@@ -201,25 +225,30 @@ PR에 등록된 Architect 및 사용자 리뷰를 검토해줘.
 ## 11. 리뷰 반영 커밋 및 Push
 
 ```text
-리뷰 반영 수정 내용을 커밋하고 push하자.
-변경사항을 확인한 뒤 Conventional Commit 형식의 커밋 메시지를 제안해줘.
-최종 명령어 목록을 보여준 뒤,
-리뷰 반영 수정사항을 commit하고 현재 feature 브랜치에 push해줘.
-기존 PR에 정상 반영되었는지도 확인해줘.
+리뷰 반영 수정사항을 commit하고 push해줘.
+
+git status와 현재 변경 파일만 확인하고
+Conventional Commit 형식의 커밋 메시지를 제안한 뒤 commit/push해줘.
+
+새로운 코드 리뷰나 수정 분석은 하지 마.
+기존 PR에 정상 반영됐는지만 확인해줘.
 ```
 
-## 12. devlog
+## 12. devlog 초안 작성
 
 ```text
 이번 Issue와 PR 기준으로 docs/devlog/YYYY-MM.md에 추가할 기록 초안을 작성해줘.
-Issue, PR과 함께 `docs/current-work-log.md`가 존재하면 참고해서
-구현 중 발생한 트러블슈팅, 주요 의사결정, 테스트/검증 결과가 누락되지 않도록 해줘.
+
+참고 대상은 다음으로 제한해줘.
+- 현재 Issue
+- 현재 PR
+- docs/current-work-log.md
+- 형식 확인이 필요한 경우 기존 devlog의 가장 최근 항목 1개
 
 규칙:
 - 기존 devlog 전체를 재작성하지 마.
 - 기존 기록은 수정하지 마.
 - 현재 Issue/PR에 대한 기록만 새 항목으로 추가해.
-- 형식이 필요하면 가장 최근 항목 하나만 참고해.
 - 파일 맨 아래에 append-only로 추가하는 기준으로 작성해.
 
 devlog에는 아래 항목을 포함해줘.
@@ -235,7 +264,36 @@ devlog에는 아래 항목을 포함해줘.
 아직 파일은 수정하지 마.
 ```
 
-## 13. 작업 중단 / 확인 요청
+## 13. devlog 작성 및 Push 승인
+
+```text
+devlog 초안 승인.
+
+방금 승인한 내용을 docs/devlog/YYYY-MM.md 맨 아래에 그대로 추가해줘.
+devlog 내용을 다시 분석하거나 재작성하지 마.
+
+변경사항을 Conventional Commit 형식으로 commit하고
+현재 feature 브랜치에 push해줘.
+
+기존 PR에 정상 반영됐는지만 확인해줘.
+```
+
+## 14. develop 최신화 및 작업 브랜치 정리
+
+```text
+PR 머지 완료했어.
+
+현재 PR이 실제로 merge된 상태인지 확인한 뒤,
+develop으로 이동해서 원격 최신 상태를 반영해줘.
+
+이번 Issue에서 사용한 feature 브랜치는 merge된 것이 확인된 경우에만 정리해줘.
+원격 브랜치가 이미 삭제됐다면 추가 삭제는 하지 마.
+
+현재 Issue와 무관한 브랜치는 건드리지 말고,
+완료 후 현재 브랜치와 git status만 간단히 알려줘.
+```
+
+## 15. 작업 중단 / 확인 요청
 
 ```text
 현재 작업을 잠시 멈추고 상태를 정리해줘.

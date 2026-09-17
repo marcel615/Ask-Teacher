@@ -43,64 +43,32 @@
 - 통합 테스트는 인증을 포함한 HTTP 요청부터 DB 처리까지 정상·주요 실패 흐름을 검증한다.
 - 테스트 DB, 인증 설정, 파일 저장 경로를 개발·운영 환경과 격리하고 데이터와 파일을 정리한다.
 - 기본 검증은 `./gradlew test`다. Windows PowerShell에서는 `.\gradlew.bat test`를 실행할 수 있다.
-- 테스트 대상·시나리오·대응 테스트 클래스와 실행 결과·미검증 사항을 작업 기록 및 PR 요약 또는 devlog에 기록한다.
+- 테스트 범위, 실행 결과, 미검증 사항을 PR 요약 또는 devlog에 기록한다.
 - 기존 버그나 명세 불일치는 기대값 변경 또는 테스트 비활성화로 숨기지 않고 사용자에게 보고한다.
+
+## 작업 효율 규칙
+
+- 같은 세션에서 이미 확인했고 이후 변경되지 않은 문서나 코드는 다시 읽지 않는다.
+- 승인 단계에서는 직전 단계에서 승인된 내용을 다시 분석하거나 재작성하지 않고 그대로 실행한다.
+- 코드 탐색과 리뷰는 `git diff`와 변경 파일부터 확인하고, 추가 문맥이 필요한 경우에만 주변 파일을 읽는다.
+- 현재 Issue와 직접 관련 없는 프로젝트 파일은 탐색하지 않는다.
+- 테스트 성공 로그는 전체를 반복해서 분석하지 않고 실행 결과와 실패 원인 중심으로 확인한다.
+- 이미 보고한 내용은 다음 단계에서 반복해서 길게 설명하지 않는다.
+- 각 단계에서는 해당 단계의 목적에 필요한 작업만 수행하고 다음 단계의 작업을 미리 수행하지 않는다.
 
 ## Global Codex Guidelines
 
-These guidelines reduce common LLM coding mistakes. Prefer caution over speed.
+### 1. Clarify Before Changing
+- 요구사항이 불명확하면 임의로 결정하지 않는다.
 
-### 1. Think Before Coding
+### 2. Keep Changes Minimal
+- 요청 범위에 필요한 최소한의 코드만 작성한다.
+- 관련 없는 리팩터링, 추상화, 기능 추가를 하지 않는다.
+- 기존 프로젝트 스타일을 따른다.
 
-Before implementing:
-- State assumptions explicitly.
-- If requirements are unclear, ask or clearly name the uncertainty.
-- If multiple interpretations exist, present them instead of silently choosing one.
-- If a simpler approach exists, prefer it.
-- Push back when the requested solution seems overcomplicated or risky.
+### 3. Verify Changes
+- 변경된 동작을 적절한 테스트로 검증한다.
+- 기존 실패나 명세 불일치를 테스트 수정이나 비활성화로 숨기지 않는다.
 
-### 2. Simplicity First
-
-Implement the minimum code that solves the task.
-
-- Do not add features beyond the request.
-- Do not create abstractions for single-use code.
-- Do not add configurability or flexibility that was not requested.
-- Do not over-engineer error handling for unrealistic scenarios.
-- If the solution becomes much larger than necessary, simplify it.
-
-### 3. Surgical Changes
-
-Touch only what is required.
-
-- Do not refactor unrelated code.
-- Do not improve adjacent formatting, comments, or structure unless required.
-- Match the existing project style.
-- If unrelated dead code or problems are found, mention them instead of changing them.
-- Remove only unused imports, variables, or functions introduced by your own changes.
-
-Every changed line should directly support the requested task.
-
-### 4. Goal-Driven Execution
-
-Turn the task into verifiable goals.
-
-For multi-step tasks:
-1. State a brief plan.
-2. Define success criteria.
-3. Implement the smallest necessary change.
-4. Verify with tests, build commands, or manual checks.
-5. Report changed files and verification results.
-
-Examples:
-- "Add validation" → test invalid inputs and make them fail correctly.
-- "Fix a bug" → reproduce the bug, fix it, then verify the fix.
-- "Refactor" → ensure behavior is unchanged before and after.
-
-### 5. Final Response
-
-After implementation, summarize:
-- What changed
-- Files changed
-- How it was verified
-- Remaining TODOs or assumptions
+### 4. Report Concisely
+- 새로 변경된 내용, 검증 결과, 남은 문제만 간단히 보고한다.
