@@ -1,107 +1,38 @@
 ---
 name: issue-driven-dev
-description: GitHub Issue 기반 개발 워크플로우가 필요할 때 사용한다. Issue를 current-task.md로 정리하고, develop에서 feature 브랜치를 생성해 구현/테스트/PR/리뷰/devlog까지 진행하는 작업에 사용한다.
+description: GitHub Issue를 분석하고 사용자 승인 아래 설계, 구현, 테스트, PR, 리뷰와 devlog를 진행한다.
 ---
 
-# Issue-driven Development Skill
+# Issue-driven Development
+
+공통 규칙과 승인 범위는 `AGENTS.md`를 따른다. Main은 한 번에 한 Issue를 조율하고 Architect → Builder → Architect 리뷰 → Reporter를 순차 호출한다. Subagent를 호출할 수 없거나 필요한 결과를 받지 못하면 중단하고 보고한다. Main은 이 스킬을 읽고 각 인계에 Issue, 해당 단계의 작업·필수 규칙, 사용자 승인 범위와 미승인 행동, 관련 파일, 직전 결과와 기대 산출물을 전달한다. Subagent는 스킬 전체를 매번 읽을 필요가 없으며 필요한 문서만 확인한다. 작업이나 승인 범위가 불명확하면 추측하지 않고 Main에게 확인한다. 같은 파일을 동시에 수정하지 않는다.
 
 ## 역할
 
-- Architect: Issue 작성/확장 협의, Issue 분석, 설계 문서/current-task.md 초안, PR 리뷰
-- Builder: 승인된 구현, 테스트, PR 준비, 구현 작업 기록
-- Reporter: devlog / README / 포트폴리오 기록 초안
+- Main: 작업과 승인 범위 관리, 결과 확인, 사용자 보고.
+- Architect: Issue 분석·설계, 승인된 설계 문서 반영과 독립적인 변경 리뷰.
+- Builder: 승인된 구현·테스트·PR 준비와 필요한 임시 작업 기록.
+- Reporter: Issue, PR, 임시 기록을 참고한 devlog 초안.
 
-## 핵심 원칙
+## 진행 순서
 
-- Issue 작성/확장 시 `.github/ISSUE_TEMPLATE`의 해당 템플릿을 기준으로 한다.
-- Issue 내용이 부족하면 Architect가 임의로 요구사항을 확정하지 않고, 목표/범위/완료 조건/제외 범위 등 필요한 사항을 사용자와 먼저 협의한다.
-- GitHub Issue 생성/수정은 수정안을 먼저 제시하고 사용자 승인 후 진행한다.
-- Issue는 원격 GitHub의 작업 요청 원본이다.
-- 구현 기준은 `docs/current-task.md`다.
-- API / ERD / 요구사항 전체는 각각 `docs/api-spec.md`, `docs/erd.md`, `docs/requirements.md`에 둔다.
-- Issue 분석 시 `current-task.md`만 작성하지 않고, `requirements.md` / `api-spec.md` / `erd.md` 변경 필요 여부를 먼저 판단한다.
-- `current-task.md`에는 이번 Issue 관련 API/ERD 요약과 참조만 둔다.
-- 구현은 `develop`에서 생성한 `feature/*` 브랜치에서 진행한다.
-- 구현 중 작업 기록은 `docs/current-work-log.md`에 임시로 관리한다.
-- `docs/current-work-log.md`는 새 Issue 구현 시작 시 현재 Issue 기준으로 초기화한다.
-- Builder는 트러블슈팅, 주요 의사결정, 예상과 다른 동작, 중요한 테스트/검증 결과만 작업 기록에 남긴다.
-- PR 방향은 `feature/*` → `develop`이다.
-- 리뷰 기준은 `docs/review-checklist.md`에 둔다.
-- devlog는 `docs/devlog/YYYY-MM.md`에 월별로 누적한다.
-- Reporter는 devlog 작성 시 Issue, PR, `docs/current-work-log.md`를 함께 참고한다.
-- 승인 전 파일 수정, 브랜치 변경, git add/commit/push, PR 생성을 하지 않는다.
-
-## 흐름
-
-1. Issue를 조회하고 해당 Issue 템플릿을 확인한다.
-
-```bash
-gh issue view ISSUE_NUMBER --json title,body,labels,state,url
-```
-
-2. 필요한 경우 Architect가 Issue 확장 협의를 진행한다.
-- 현재 Issue에서 부족하거나 결정이 필요한 내용을 찾는다.
-- 사용자에게 필요한 질문만 제시한다.
-- 사용자 답변을 바탕으로 Issue 수정안을 작성한다.
-- 바로 GitHub Issue를 수정하지 않는다.
-- 사용자 승인 후 기존 Issue에 반영한다.
-
-3. Architect가 Issue를 분석한다.
-- docs/requirements.md 변경 필요 여부를 판단한다.
-- docs/api-spec.md 변경 필요 여부를 판단한다.
-- docs/erd.md 변경 필요 여부를 판단한다.
-- 설계 문서 변경이 필요하면 각 문서별 수정안 초안을 먼저 작성한다.
-- 파일은 바로 수정하지 않고 사용자 승인 후 반영한다.
-
-4. Architect가 `docs/current-task.md` 초안을 작성한다.
-- current-task.md에는 이번 Issue와 직접 관련된 API/ERD/요구사항 요약과 참조만 작성한다.
-
-5. 사용자 승인 후 `current-task.md`에 반영한다.
-6. Builder가 구현 계획과 브랜치 계획을 제안한다.
-7. 사용자 승인 후 develop을 최신화하고 feature 브랜치를 만든다.
-
-```bash
-git status
-git fetch origin
-git checkout develop
-git pull origin develop
-git checkout -b feature/issue-번호-작업명
-```
-
-8. Builder는 `current-task.md` 범위 안에서만 구현한다.
-9. 구현 중 트러블슈팅, 주요 의사결정, 예상과 다른 동작, 중요한 테스트/검증 결과가 발생하면 `docs/current-work-log.md`에 간단히 기록한다.
-10. 필요한 경우 `docs/api-spec.md`, `docs/erd.md`, `docs/requirements.md`를 필요한 부분만 참고한다.
-11. 새 API 또는 변경된 API의 Controller / Service / Repository 테스트와 통합 테스트를 작성·보완하고 실행한다.
-- Repository는 테스트 DB에서 실제 쿼리·매핑을 검증하고 통합 테스트는 인증부터 DB 처리까지 정상·주요 실패 흐름을 검증한다.
-- 테스트 DB, 인증 설정, 파일 경로를 개발·운영 환경과 격리하고 데이터·파일을 정리한다.
-- API별 테스트 대상·시나리오·대응 테스트 클래스, 실행 결과·미검증 사항을 작업 기록에 남긴다.
-- 기존 버그나 명세 불일치는 기대값 변경 또는 테스트 비활성화로 숨기지 않고 사용자에게 보고한다.
-
-```bash
-./gradlew test
-```
-
-12. 변경 파일, 테스트 결과, git diff, PR 초안을 요약한다.
-13. 사용자 승인 후 `feature/*` → `develop` PR을 만든다.
-14. Architect가 `docs/review-checklist.md` 기준으로 리뷰 초안을 작성한다.
-- 관련 계층 테스트와 API 통합 테스트 범위, 환경 격리, 실행 결과, 미검증 사항 및 기존 검증 유지 여부를 확인한다.
-15. 사용자 승인 후 Architect 리뷰를 PR에 등록한다.
-16. Builder가 PR 리뷰를 검토하고 반영안을 제안한다.
-17. 사용자 승인 후 승인된 리뷰 항목만 수정한다.
-18. 리뷰 반영 중 새로 발생한 트러블슈팅이나 주요 의사결정도 docs/current-work-log.md에 추가한다.
-19. 리뷰 반영 내용을 commit/push하여 기존 PR에 반영한다.
-20. Reporter가 Issue, PR, docs/current-work-log.md를 참고하여 docs/devlog/YYYY-MM.md에 추가할 기록 초안을 작성한다.
-21. 사용자 승인 후 devlog를 append-only로 반영하고 commit/push하여 기존 PR에 반영한다.
-22. 사용자가 GitHub에서 PR을 직접 merge한다.
-23. PR merge가 확인된 경우 `develop`으로 이동하여 원격 최신 상태를 반영하고, 이번 Issue에서 사용한 feature 브랜치를 정리한다.
-24. 현재 브랜치와 `git status`를 확인하고 Issue 작업을 종료한다.
+1. Main은 기존 Issue의 종료·devlog 반영 여부와 Git 상태를 확인한다. 승인되지 않은 변경이나 불확실한 상태가 있으면 중단한다.
+2. Architect는 Issue와 템플릿을 확인한다. 부족한 요구사항은 사용자에게 확인하고 Issue 변경이 필요하면 초안을 제안한다. Issue 생성·수정은 사용자 승인 후 진행한다.
+3. Architect는 요구사항·API·ERD의 변경 필요 여부를 판단하고 `docs/current-task.md` 및 필요한 설계 문서 초안을 제안한다. Architect는 사용자 승인 후 승인된 current-task.md, requirements.md, api-spec.md, erd.md 변경만 반영한다. 리뷰는 읽기 전용으로 수행한다. 전체 명세는 복사하지 않고 Issue 관련 요약과 참조를 둔다.
+4. Builder는 승인된 범위의 구현·브랜치 계획을 제안한다. 사용자 승인 후 develop 최신 상태와 브랜치 전환 가능 여부를 확인하고 feature 브랜치를 만든다. 승인된 사전 문서 변경을 보존하며 충돌 또는 불확실성이 있으면 중단한다.
+5. 이전 Issue의 devlog 반영을 확인한 후 승인 범위에서 `docs/current-work-log.md`를 초기화한다. Builder는 주요 결정, 문제·해결, 예상과 다른 동작, 중요한 검증 결과만 기록한다.
+6. Builder는 승인된 범위에서 구현하고 관련 자동 테스트와 전체 테스트를 실행한다. 변경 파일, 결과, 미검증 사항과 PR 초안을 Main에 전달한다.
+7. Main은 사용자 승인 후 승인된 commit·push와 PR 생성을 진행한다.
+8. Architect는 변경 diff와 `docs/review-checklist.md`를 기준으로 필수 수정·선택 개선·통과 항목과 근거를 반환한다. PR 리뷰 등록은 사용자 승인 후 진행한다.
+9. Builder는 리뷰 반영안을 제안하고 승인된 항목만 수정·재검증한다. 리뷰와 수정은 최대 2회 반복하고 필수 문제가 남거나 범위 변경이 필요하면 중단해 보고한다. 후속 commit·push도 사용자 승인 범위에 따른다.
+10. Reporter는 Issue, PR, 임시 기록을 바탕으로 월별 devlog의 새 항목만 초안으로 반환한다. 사용자 승인 후 append-only로 반영하고 승인된 commit·push를 수행한다.
+11. 사용자가 PR을 merge한다. Main은 merge와 devlog 반영을 확인하고 승인된 develop 이동·최신화를 수행한다. 이번 Issue의 feature 브랜치는 merge와 미반영 커밋·변경이 없음을 확인한 경우 별도 승인 없이 정리할 수 있다. 실행 환경의 권한 정책은 별도로 따른다.
+12. Main은 테스트·CI의 확인된 결과, 미검증 사항, 브랜치·PR 상태와 남은 작업을 보고하고 종료한다.
 
 ## 중단 조건
 
-아래 상황이면 작업을 멈추고 사용자에게 보고한다.
-
-- `git status`에 이번 Issue의 승인된 변경으로 설명되지 않는 수정사항이 존재함
-- pull 중 충돌 발생
-- current-task.md 범위를 벗어난 변경 필요
-- DB 구조 또는 인증/인가 구조 변경 필요
-- 삭제, reset, clean 등 위험 명령 필요
+- 승인되지 않은 변경, 브랜치 전환 위험 또는 pull 충돌
+- 승인 범위 밖 변경이나 DB·인증·인가 변경 필요
+- Subagent 호출 실패, 필수 리뷰 문제 미해결 또는 검증 실패
+- 이전 devlog 반영, PR merge 또는 브랜치의 미반영 내용 확인 불가
+- 위에서 허용한 feature 브랜치 정리를 제외한 삭제, reset, clean 등 승인되지 않은 위험 작업
