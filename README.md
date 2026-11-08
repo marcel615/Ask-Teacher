@@ -212,25 +212,23 @@ Password:
 
 ### Docker Desktop PostgreSQL 개발 DB
 
-Docker Desktop을 실행한 후 PowerShell에서 다음을 수행합니다. 예시는 로컬 전용 컨테이너와 Docker 볼륨을 사용합니다. 비밀번호는 프롬프트에 입력하고 저장소나 명령 기록에 적지 않습니다.
+Docker Desktop과 Docker Compose 2.30 이상을 준비하고 저장소 루트에 `.env.example`을 복사해 `.env`를 만듭니다. 기존 `.env`는 덮어쓰지 마세요. `.env`의 `DB_PASSWORD`에 로컬 개발 전용 비밀번호를 따옴표 없이 설정합니다. 각 값은 한 줄에 작성하며 값의 앞뒤 공백은 피하세요. 실제 `.env`는 Git에서 제외되므로 커밋하거나 공유하지 마세요.
 
 ```powershell
-$env:DB_PASSWORD = [System.Net.NetworkCredential]::new('', (Read-Host '개발 DB 비밀번호' -AsSecureString)).Password
-$env:POSTGRES_PASSWORD = $env:DB_PASSWORD
-docker volume create askteacher-postgres-data
-docker run --name askteacher-postgres -d -p 127.0.0.1:5432:5432 `
-  -e POSTGRES_DB=askteacher -e POSTGRES_USER=askteacher_user -e POSTGRES_PASSWORD `
-  -v askteacher-postgres-data:/var/lib/postgresql/data postgres:17
-$env:DB_URL = 'jdbc:postgresql://localhost:5432/askteacher'
-$env:DB_USERNAME = 'askteacher_user'
-.\gradlew.bat bootRun --args='--spring.profiles.active=dev'
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# .env 파일에 DB_PASSWORD 설정 후 실행
+docker compose up -d
+docker compose exec postgres sh -c 'pg_isready -U "$DB_USERNAME" -d "$DB_NAME"'
+.\run-dev.ps1
 ```
 
-기존 컨테이너는 Docker Desktop에서 시작하거나 `docker start askteacher-postgres`로 다시 시작합니다. 볼륨은 컨테이너를 중지하거나 삭제해도 남으며, 삭제하면 저장된 데이터도 삭제됩니다. 비밀번호 환경변수는 작업이 끝나면 `Remove-Item Env:DB_PASSWORD, Env:POSTGRES_PASSWORD`로 지울 수 있습니다.
+`pg_isready`가 연결 가능 상태를 표시한 뒤 애플리케이션을 시작하세요. Compose와 실행 스크립트는 `.env`의 값을 그대로 읽어 전달합니다. 이후에도 같은 명령으로 컨테이너를 시작하고, `docker compose stop`으로 중지할 수 있습니다. 데이터는 `askteacher-postgres-data` 볼륨에 유지됩니다.
+
+이전에 `docker run`으로 만든 `askteacher-postgres` 컨테이너가 실행 중이라면 먼저 중지하세요. Compose는 같은 볼륨을 사용하므로 두 컨테이너가 동시에 사용해서는 안 됩니다. 기존 컨테이너가 없더라도 5432 포트가 사용 중이면 충돌이 발생합니다.
 
 `dev` 프로필의 `ddl-auto: update`는 애플리케이션 시작 시 연결된 DB 스키마를 변경할 수 있으므로 로컬 개발 DB에만 사용합니다. 운영 DB나 보존해야 할 DB에 연결하지 마세요. 기본 프로필은 H2를 사용하며 테스트는 별도의 H2 메모리 DB를 사용합니다.
 
-연결이 실패하면 Docker Desktop의 컨테이너 상태와 로그, 포트 5432 사용 여부, DB URL·사용자명·비밀번호를 확인하세요. PostgreSQL 초기 사용자와 비밀번호는 빈 데이터 볼륨을 처음 생성할 때 설정되므로 기존 볼륨의 계정 정보는 환경변수를 바꿔도 바뀌지 않습니다.
+연결이 실패하면 Docker Desktop의 컨테이너 상태와 로그, 포트 5432 사용 여부, `.env`의 DB URL·사용자명·비밀번호를 확인하세요. PostgreSQL 초기 사용자와 비밀번호는 빈 데이터 볼륨을 처음 생성할 때 설정되므로 기존 볼륨의 계정 정보는 `.env`를 바꿔도 바뀌지 않습니다. 포트나 DB 이름을 변경하면 `DB_URL`도 일치시켜야 합니다.
 
 ### 테스트 실행
 

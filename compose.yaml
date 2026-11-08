@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    env_file:
+      - path: .env
+        format: raw
+    entrypoint:
+      - /bin/sh
+      - -c
+      - 'export POSTGRES_DB="$$DB_NAME" POSTGRES_USER="$$DB_USERNAME" POSTGRES_PASSWORD="$$DB_PASSWORD"; exec docker-entrypoint.sh postgres'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
+    name: ${POSTGRES_VOLUME:-askteacher-postgres-data}
