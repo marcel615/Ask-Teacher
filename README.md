@@ -16,7 +16,7 @@ AskTeacher는 사용자가 질문 게시글을 작성하고 조회할 수 있는
 | ORM | Spring Data JPA |
 | Security | Spring Security, BCrypt |
 | Validation | Jakarta Validation |
-| Database | H2, MySQL Connector |
+| Database | H2, PostgreSQL, MySQL Connector |
 | Test | JUnit 5, Spring Boot Test, AssertJ |
 | Build Tool | Gradle |
 | 기타 | Lombok |
@@ -201,12 +201,36 @@ http://localhost:8080
 
 ### H2 Console
 
+기본 H2 프로필에서만 사용합니다. `dev` 프로필에서는 비활성화됩니다.
+
 ```text
 URL: http://localhost:8080/h2-console
 JDBC URL: jdbc:h2:mem:askteacher
 Username: sa
 Password:
 ```
+
+### Docker Desktop PostgreSQL 개발 DB
+
+Docker Desktop을 실행한 후 PowerShell에서 다음을 수행합니다. 예시는 로컬 전용 컨테이너와 Docker 볼륨을 사용합니다. 비밀번호는 프롬프트에 입력하고 저장소나 명령 기록에 적지 않습니다.
+
+```powershell
+$env:DB_PASSWORD = [System.Net.NetworkCredential]::new('', (Read-Host '개발 DB 비밀번호' -AsSecureString)).Password
+$env:POSTGRES_PASSWORD = $env:DB_PASSWORD
+docker volume create askteacher-postgres-data
+docker run --name askteacher-postgres -d -p 127.0.0.1:5432:5432 `
+  -e POSTGRES_DB=askteacher -e POSTGRES_USER=askteacher_user -e POSTGRES_PASSWORD `
+  -v askteacher-postgres-data:/var/lib/postgresql/data postgres:17
+$env:DB_URL = 'jdbc:postgresql://localhost:5432/askteacher'
+$env:DB_USERNAME = 'askteacher_user'
+.\gradlew.bat bootRun --args='--spring.profiles.active=dev'
+```
+
+기존 컨테이너는 Docker Desktop에서 시작하거나 `docker start askteacher-postgres`로 다시 시작합니다. 볼륨은 컨테이너를 중지하거나 삭제해도 남으며, 삭제하면 저장된 데이터도 삭제됩니다. 비밀번호 환경변수는 작업이 끝나면 `Remove-Item Env:DB_PASSWORD, Env:POSTGRES_PASSWORD`로 지울 수 있습니다.
+
+`dev` 프로필의 `ddl-auto: update`는 애플리케이션 시작 시 연결된 DB 스키마를 변경할 수 있으므로 로컬 개발 DB에만 사용합니다. 운영 DB나 보존해야 할 DB에 연결하지 마세요. 기본 프로필은 H2를 사용하며 테스트는 별도의 H2 메모리 DB를 사용합니다.
+
+연결이 실패하면 Docker Desktop의 컨테이너 상태와 로그, 포트 5432 사용 여부, DB URL·사용자명·비밀번호를 확인하세요. PostgreSQL 초기 사용자와 비밀번호는 빈 데이터 볼륨을 처음 생성할 때 설정되므로 기존 볼륨의 계정 정보는 환경변수를 바꿔도 바뀌지 않습니다.
 
 ### 테스트 실행
 
