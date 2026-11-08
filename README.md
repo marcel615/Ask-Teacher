@@ -237,9 +237,12 @@ H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 
 - 다음 Issue 선정부터 시작: `작업 시작해. 다음 Issue를 확인해줘.`
 - 특정 Issue 시작: `Issue #번호 작업 시작해.`
+- 기능 아이디어 제안: `기능 아이디어 제안해.`
+- 승인된 후보 정제: `백로그 정제해.`
 - 머지 후 정리: `PR 머지했어. 확인 후 develop 최신화와 브랜치 정리를 진행해.`
 
 이 문구는 고정된 CLI 명령이 아닌 예시입니다. 더 많은 예시는 [빠른 지시문](docs/prompts/quick.md)을 참고하세요.
+기능 제안은 Project에 Pending Draft로 등록되며, 사용자가 승인한 후보만 백로그 정제에서 정식 Issue화를 검토합니다. 정제 후 개발은 자동 시작하지 않습니다.
 
 ### 역할과 진행 순서
 
@@ -263,11 +266,12 @@ H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 
 - [AGENTS.md](AGENTS.md): 권한, 브랜치, 테스트와 기록 규칙
 - [Issue 기반 개발 절차](.agents/skills/issue-driven-dev/SKILL.md): 선정 기준, 품질 게이트, 리뷰와 재개 절차
+- [기능 아이디어 제안](.agents/skills/feature-discovery/SKILL.md), [백로그 정제](.agents/skills/backlog-refinement/SKILL.md): 후보 제안과 승인된 후보의 Issue화 절차
 - [역할 설정](.codex/agents/): Architect, Builder, Reporter 설정
 - [현재 작업 설계](docs/current-task.md), [임시 작업 기록](docs/current-work-log.md), [devlog](docs/devlog/): 작업 범위와 검증 기록
-- [기능 아이디어](docs/feature-ideas.md): 사용자 승인 여부와 후속 후보 관리
+- [기능 아이디어 이전 형식](docs/feature-ideas.md): 기존 후보 기록 참고
 
-위 내용은 저장소에 설정된 절차를 설명합니다. 각 실행의 테스트·CI·리뷰 성공 여부는 해당 작업에서 별도로 확인해야 합니다. GitHub Projects와 Jira 연동은 이 워크플로우에 구현되어 있지 않습니다.
+위 내용은 저장소에 설정된 절차를 설명합니다. 각 실행의 테스트·CI·리뷰 성공 여부는 해당 작업에서 별도로 확인해야 합니다. [GitHub Projects](https://github.com/users/marcel615/projects/1) 기반 운영을 도입 중이며 자동 상태 전환의 실제 동작과 전체 연동은 통합 검증 전입니다. Jira 연동은 구현되어 있지 않습니다.
 
 ## 트러블슈팅
 
