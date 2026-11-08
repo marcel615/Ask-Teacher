@@ -1,14 +1,21 @@
 # Current Work Log
 
-## Issue #53 — README에 최신 AI-DLC 사용법 반영
+## Issue #40 — Docker Desktop PostgreSQL 개발 DB 연결
 
-- 이전 Issue #45의 PR #46 머지와 `docs/devlog/2026-11.md` 반영을 Main이 확인했다.
-- `develop`과 `origin/develop`의 일치를 확인하고 `feature/issue-53-readme-ai-dlc`를 생성했다. Main이 README 문서 범위의 설계 게이트를 승인했다.
-- README에 실제 지침에 따른 역할, 자연어 시작 예시, 품질 게이트와 사용자 머지까지의 흐름, 중단 조건 및 참조 경로를 추가했다. 설정과 실행 결과를 구분했다.
+- 이전 Issue #53의 PR #54 머지와 `docs/devlog/2026-11.md` 반영을 Main이 확인했다.
+- `feature/issue-40-local-postgresql`에서 승인된 설계를 적용했다. `dev` 프로필만 환경변수 기반 PostgreSQL 및 `ddl-auto: update`를 사용하고 H2 콘솔을 끈다. 사용자 결정은 `docs/current-task.md`에 기록했다.
+- README에 로컬 Docker Desktop 실행·재사용·연결 실패 확인과 스키마 변경 주의사항을 추가했다.
+- 사용자 후속 요청에 따라 Compose 실행과 `.env` 기반 로컬 DB 설정을 추가했다. 기존 `.env`가 없음을 확인하고 Git에서 제외되는 로컬 파일을 생성했으며, 비밀값 없는 `.env.example`을 제공한다. 기존 개발 볼륨은 변경하지 않았다.
 
 ## 검증 및 미확인 사항
 
-- README 변경을 `AGENTS.md`, Issue 기반 개발 스킬, 빠른 지시문과 역할 설정에 대조하고 추가한 로컬 링크 대상이 존재함을 확인했다. 기존 소개와 실행 방법은 변경하지 않았다.
-- `git diff --check` 통과. Main이 GitHub README Preview에서 추가 구간의 제목, 표, 목록 및 링크 표시를 시각적으로 확인했다.
-- Corretto 17을 프로세스에 지정해 `.\gradlew.bat test` 실행: 성공 (모든 작업 UP-TO-DATE). 이어 `.\gradlew.bat test --rerun-tasks` 실행: 성공 (6개 작업 실행).
-- PR #54를 생성했고 Architect 독립 리뷰에서 필수 코드 수정 사항이 없었다. 최종 head의 CI·보호 조건 확인은 대기 중이다.
+- Corretto 17을 사용해 `.\gradlew.bat test` 실행: 성공 (6개 작업 중 3개 실행). 테스트 프로필은 별도 H2 메모리 DB를 사용한다.
+- `.\gradlew.bat bootJar` 성공. 새 격리 PostgreSQL 17 컨테이너에서 `dev` 애플리케이션 기동과 DB 연결을 확인하고, 데이터를 변경한 후 재기동해 유지됨을 확인했다. 잘못된 포트에서 기동 실패도 확인했다. 임시 컨테이너와 데이터·로그를 정리했다.
+- 기본 설정은 기존 H2 `create`, 테스트 설정은 H2 `create-drop`으로 유지했다. 실제 사용자 DB는 사용하지 않았다.
+- Compose 변경 후 `.\gradlew.bat test bootJar` 성공 (8개 작업 중 5개 실행). 격리된 Compose 프로젝트·포트·볼륨과 별도 `.env`에서 PostgreSQL 연결과 컨테이너 및 앱 재시작 후 데이터 유지를 확인했다. 검증용 리소스를 정리했다.
+- 새 임시 볼륨을 Docker로 미리 생성한 뒤 Compose가 기존 이름의 볼륨을 사용하는 것도 확인하고 해당 임시 리소스를 정리했다. `.env`가 Git에서 제외되고 `.env.example`은 추적 가능함을 확인했다.
+- 독립 리뷰 후 Compose raw env_file과 PowerShell 실행 스크립트가 `.env` 값을 그대로 전달하도록 변경했다. `$`, 백슬래시와 `=`가 포함된 임시 비밀번호로 격리 PostgreSQL의 실제 앱 인증을 확인했고, 기존 환경변수 복원·빈 비밀번호와 파일 누락 실패·README의 준비 상태 확인 명령을 검증했다. `.\gradlew.bat test bootJar`를 다시 실행해 성공했다 (8개 작업 중 5개 실행). 임시 리소스는 정리했다.
+- 사용자 PR 리뷰에 따라 실행 스크립트와 Compose raw 설정을 제거하고 일반 Compose 환경변수 보간 및 Spring dev의 `.env` import로 간소화했다. 해석 차이를 피하기 위해 문서에 비밀번호를 영문 대소문자·숫자 16자 이상으로 제한한다고 명시했으며, 이 제한은 자동 강제하지 않는다. 기존 로컬 비밀번호의 호환 여부는 값 출력 없이 확인했다.
+- 간소화 후 `.\gradlew.bat test bootJar` 성공 (8개 작업 중 5개 실행). 격리 Compose DB에서 문서 형식 비밀번호로 실제 앱 인증에 성공했다. 당시 `.env` 누락 및 비밀번호 공란의 Compose 거부를 확인했다. 임시 컨테이너와 볼륨을 정리했으며 기존 개발 데이터는 사용하지 않았다.
+- 이후 사용자 요청으로 DB 이름·사용자명·비밀번호의 필수값 오류 문구를 제거했다. 수정 후 `docker compose config --quiet` 성공; 공란 동작은 재검증하지 않았다.
+- PR #63 생성 및 Project In Review 확인. Architect 독립 리뷰에서 필수 수정 없음. 최종 head CI와 보호 조건은 확인 대기 중이다.

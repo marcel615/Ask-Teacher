@@ -16,7 +16,7 @@ AskTeacher는 사용자가 질문 게시글을 작성하고 조회할 수 있는
 | ORM | Spring Data JPA |
 | Security | Spring Security, BCrypt |
 | Validation | Jakarta Validation |
-| Database | H2, MySQL Connector |
+| Database | H2, PostgreSQL, MySQL Connector |
 | Test | JUnit 5, Spring Boot Test, AssertJ |
 | Build Tool | Gradle |
 | 기타 | Lombok |
@@ -201,12 +201,30 @@ http://localhost:8080
 
 ### H2 Console
 
+기본 H2 프로필에서만 사용합니다. `dev` 프로필에서는 비활성화됩니다.
+
 ```text
 URL: http://localhost:8080/h2-console
 JDBC URL: jdbc:h2:mem:askteacher
 Username: sa
 Password:
 ```
+
+### Docker Desktop PostgreSQL 개발 DB
+
+Docker Desktop을 실행하고 저장소 루트에 `.env.example`을 복사해 `.env`를 만듭니다. 기존 `.env`는 덮어쓰지 마세요. `DB_PASSWORD`는 따옴표 없이 영문 대소문자와 숫자만 사용해 16자 이상으로 설정합니다. 이 형식은 Compose와 Spring이 값을 동일하게 읽도록 합니다. 나머지 항목도 예제처럼 한 줄에 `KEY=value` 형식으로 작성하세요. 실제 `.env`는 Git에서 제외되므로 커밋하거나 공유하지 마세요.
+
+```powershell
+docker compose up -d
+```
+
+앱은 `.\gradlew.bat bootRun --args='--spring.profiles.active=dev'`로 실행합니다. Compose와 `dev` 프로필은 저장소 루트의 `.env`에서 설정을 읽습니다. 같은 이름의 환경변수가 이미 있으면 `.env`보다 우선합니다. `docker compose stop`으로 컨테이너를 중지할 수 있으며, 데이터는 `askteacher-postgres-data` 볼륨에 유지됩니다.
+
+이전에 `docker run`으로 만든 `askteacher-postgres` 컨테이너가 실행 중이라면 먼저 중지하세요. Compose는 같은 볼륨을 사용하므로 두 컨테이너가 동시에 사용해서는 안 됩니다. 기존 컨테이너가 없더라도 5432 포트가 사용 중이면 충돌이 발생합니다.
+
+`dev` 프로필의 `ddl-auto: update`는 애플리케이션 시작 시 연결된 DB 스키마를 변경할 수 있으므로 로컬 개발 DB에만 사용합니다. 운영 DB나 보존해야 할 DB에 연결하지 마세요. 기본 프로필은 H2를 사용하며 테스트는 별도의 H2 메모리 DB를 사용합니다.
+
+연결이 실패하면 Docker Desktop의 컨테이너 상태와 로그, 포트 5432 사용 여부, `.env`의 DB URL·사용자명·비밀번호를 확인하세요. PostgreSQL 초기 사용자와 비밀번호는 빈 데이터 볼륨을 처음 생성할 때 설정되므로 기존 볼륨의 계정 정보는 `.env`를 바꿔도 바뀌지 않습니다. 포트나 DB 이름을 변경하면 `DB_URL`도 일치시켜야 합니다.
 
 ### 테스트 실행
 

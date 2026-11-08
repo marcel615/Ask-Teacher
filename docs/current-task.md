@@ -2,71 +2,49 @@
 
 ## Issue
 
-- Issue: #53
-- Title: [Feature] README에 최신 AI-DLC 사용법 반영
-- URL: https://github.com/marcel615/Ask-Teacher/issues/53
-- 관련 사용자 결정 코멘트: 없음 (Main 확인)
+- Issue: [#40 Docker Desktop PostgreSQL 개발 DB 연결](https://github.com/marcel615/Ask-Teacher/issues/40)
+- 우선순위: medium; 확인된 열린 선행 Issue 없음.
 
-## 목표
+## 목표와 사용자 결정
 
-README에 현재 설정과 지침에 맞는 AI-DLC 사용법을 안내한다. 설정의 존재와
-실행 검증 여부를 구분하고 확인되지 않은 기능을 확정적으로 기술하지 않는다.
+- Docker Desktop의 로컬 PostgreSQL에 애플리케이션을 연결하고 실행 방법을 문서화한다.
+- 별도 `application-dev` 설정을 사용한다. 출처: marcel615의 [Issue 코멘트](https://github.com/marcel615/Ask-Teacher/issues/40#issuecomment-6723037052).
+- 개발 DB의 `ddl-auto`는 `update`로 한다. 출처: 이번 대화에서 사용자가 직접 선택했다. 이 설정은 시작 시 대상 DB의 스키마를 변경할 수 있으므로 로컬 개발에 한정한다.
+- DB 비밀번호와 다른 연결 환경변수는 Git에서 제외된 로컬 `.env`에 보관하고 예시 파일을 제공한다. 출처: 이번 대화에서 사용자가 직접 결정했다.
+- 사용자 후속 리뷰에 따라 별도 실행 스크립트와 Compose 특수 진입점 없이 기본 `.env` 보간을 사용하고 실행 안내를 간결하게 유지한다.
 
 ## 범위
 
-- Main, Architect, Builder, Reporter의 역할과 책임 설명
-- 자연어 작업 시작 예시와 Issue 선정부터 설계 게이트, 구현·검증, PR,
-  독립 리뷰, devlog, 최종 head 검증, 사용자 머지 및 정리까지의 흐름 설명
-- 사용자 판단과 승인, 사용자 직접 머지 및 중단이 필요한 상황 안내
-- 확인된 주요 지침 문서 및 역할 설정 경로 안내
-- 현재 설정된 절차와 미구현·미검증 기능 구분
-- 기존 프로젝트 소개와 실행 방법 유지
+- PostgreSQL JDBC 드라이버와 로컬 `dev` 프로필의 DB 연결 설정을 추가한다.
+- DB 연결 정보는 로컬 `.env`와 환경변수로 전달하고 저장소와 문서에 실제 비밀값을 기록하지 않는다. Git 제외와 예시 파일을 확인하고 Compose와 애플리케이션의 설정 해석이 일치하도록 한다.
+- `dev`에서 H2 콘솔을 비활성화하고 기존 기본 및 테스트 설정의 격리를 유지한다.
+- 사용자 요청에 따라 Docker Compose 파일과 짧은 실행 명령으로 로컬 PostgreSQL 컨테이너를 관리한다.
+- Docker Desktop에서의 PostgreSQL 실행·연결·문제 확인 방법과 `update`의 적용 범위를 README에 설명한다.
+- 테스트는 기존 사용자 DB가 아닌 격리된 임시 PostgreSQL DB를 사용하고 정리한다.
 
 ## 제외 범위
 
-- Java 소스 및 테스트 코드, API, Entity, DB, 인증·인가 변경
-- AI-DLC 워크플로우 자체 변경 및 새 Subagent·Skill 구현
-- GitHub Projects 및 Jira 연동 구현
-- Issue와 무관한 README 정비 또는 전체 재작성
-
-## 설계 근거
-
-- `AGENTS.md`와 `.agents/skills/issue-driven-dev/SKILL.md`가 역할,
-  품질 게이트, 사용자 개입 지점과 중단 조건을 정의한다.
-- `docs/prompts/quick.md`의 작업 시작 문구는 자연어 예시이며 고정 CLI
-  명령이 아니다. 설계·구현 승인은 Main의 품질 게이트 판단이다.
-- `.codex/agents/architect.toml`, `.codex/agents/builder.toml`,
-  `.codex/agents/reporter.toml`이 존재한다. AI 리뷰는 필수 사람 리뷰를
-  대신하지 않으며 PR merge는 사용자가 직접 수행한다.
-- CI 설정의 존재만으로 이번 PR의 성공을 보장하지 않는다.
+- 운영 PostgreSQL 배포·설정, 인증·인가 및 API 동작 변경.
+- 별도로 승인되지 않은 Entity 및 DB 구조 변경. 단, 격리된 임시 DB에서 기존 Entity에 따른 스키마 생성은 연결 검증에 포함한다.
+- 이번 Issue와 관련 없는 문서·코드 정비.
 
 ## 요구사항·API·ERD
 
-- `docs/requirements.md`: 변경 없음. 사용자 기능을 변경하지 않는다.
-- `docs/api-spec.md`: 변경 없음. API 동작을 변경하지 않는다.
-- `docs/erd.md`: 변경 없음. Entity와 DB 구조를 변경하지 않는다.
+- `docs/requirements.md`: 사용자 기능의 변경이 없어 변경하지 않는다.
+- `docs/api-spec.md`: API 계약의 변경이 없어 변경하지 않는다.
+- `docs/erd.md`: Entity와 승인된 DB 구조의 변경이 없어 변경하지 않는다.
 
 ## 검증 계획
 
-- README의 각 주장과 문서 경로를 실제 설정 및 지침과 대조하고 링크 대상의
-  존재를 확인한다.
-- Markdown 문법과 렌더링, 기존 소개와 실행 방법의 보존을 확인한다.
-- `git diff --check`와 기본 검증 `.\gradlew.bat test`를 실행한다.
-- 테스트 범위, 결과와 미검증 사항을 작업 기록과 PR 또는 devlog에 기록한다.
-- 최종 push의 정확한 head를 기준으로 CI와 필수 리뷰·보호 조건을 확인한다.
+- 격리된 새 PostgreSQL 컨테이너에서 애플리케이션 기동과 연결을 확인하고, 재기동 시 데이터 유지와 잘못된 연결 설정의 실패를 확인한다.
+- 테스트 프로필이 개발 DB와 격리되는지 확인하고 `.\gradlew.bat test`를 실행한다.
+- 설정과 문서의 일치, 민감값 미포함 및 `git diff --check`를 확인한다.
+- 검증에 사용한 임시 데이터와 리소스를 정리하고 결과와 미검증 사항을 기록한다.
+- Docker 엔진은 설계 시점에 연결되지 않았다. 실제 연결 검증은 엔진 실행 후 수행하며, 수행할 수 없으면 미검증으로 보고한다.
 
-## 예상 변경 파일
+## 예상 변경 파일과 완료 조건
 
-- `docs/current-task.md`: 승인된 목표, 범위 및 검증 계획
-- `README.md`: AI-DLC 사용 안내
-- `docs/current-work-log.md`: 이전 Issue의 devlog 반영 확인 후 초기화하고 작업 기록
-- `docs/devlog/2026-11.md`: Issue 작업과 검증 결과 기록
-- 필요 시 승인된 후속 후보 기록
-
-## 완료 조건
-
-- [ ] README의 역할, 작업 흐름, 사용자 개입과 예외 안내가 실제 지침과 일치한다.
-- [ ] 현재 설정과 향후 또는 미검증 기능을 구분하고 유효한 경로를 안내한다.
-- [ ] 기존 소개와 실행 방법을 유지하고 제외 범위를 변경하지 않았다.
-- [ ] 문서 검증과 기본 테스트 결과 및 미검증 사항을 기록했다.
-- [ ] PR 리뷰와 devlog를 반영하고 최종 head의 머지 준비 조건을 확인한다.
+- `build.gradle`, `src/main/resources/application-dev.yaml`, `compose.yaml`, `.env.example`, `.gitignore`, `README.md`: 드라이버·프로필·Compose 실행 설정과 안내.
+- `docs/current-work-log.md`, 월별 devlog: 작업 및 검증 기록.
+- 로컬 PostgreSQL 연결과 실패 조건, 테스트 격리 및 전체 테스트를 검증하고 PR 리뷰와 devlog를 반영한다.
+- 최종 push의 정확한 head에 대해 CI·리뷰·보호 조건과 충돌 여부를 확인한다.
