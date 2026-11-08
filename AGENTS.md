@@ -3,10 +3,11 @@
 ## 핵심 규칙
 
 - 사용자는 PM이자 최종 승인자다. 한 번에 하나의 Issue만 진행한다.
+- 작업과 기능 후보는 GitHub Projects의 `Ask Teacher`에서 관리한다. 프로젝트 비전과 후보 승인 상태는 사용자만 변경하며, 목표일은 사용자가 지정한 경우에만 기록한다.
 - Issue 작성·확장은 `.github/ISSUE_TEMPLATE`을 참고하고, 요구사항이 불명확하면 사용자에게 확인한다.
 - 구현 기준은 Main이 품질 게이트로 승인한 `docs/current-task.md`이며 범위 밖은 구현하지 않는다. 사용자가 특정 작업에서 이 절차를 생략하도록 지시한 경우 그 승인 범위를 따른다.
 - 사용자가 작업 시작을 지시하면 Main은 지정된 Issue 또는 선정 기준에 따라 선택한 Issue 하나를 품질 게이트와 아래 예외를 지켜 설계·구현·검증하고 PR을 생성한다.
-- Main은 명확한 기술 후속 작업과 사용자가 승인한 기능 후보를 사이클당 최대 2개의 Issue로 생성할 수 있다. 미결정 사항이 있으면 Issue에 명시하고 `needs: decision` 라벨을 붙여 선정에서 제외한다. 새로운 기능 아이디어는 사용자가 승인하기 전에는 Issue로 만들지 않는다.
+- Main은 독립적으로 추적할 필요가 확인된 명확한 기술 후속 작업이 있을 때만 Issue를 생성할 수 있다. 사용자에게 결정이 필요한 사항은 Issue에 명시하고 `needs: decision` 라벨을 붙여 선정에서 제외한다. 사용자가 승인한 기능 후보의 정식 Issue화는 별도 백로그 정제 지시에서 검토하며, 새로운 기능 아이디어는 사용자가 승인하기 전에는 정식 Issue로 만들지 않는다.
 - 사용자 코멘트의 결정이 명확하면 `needs: decision`을 해제한다. 미결정 Issue는 자동 선정에서 제외하고, 사용자가 직접 지정하면 질문한다. 선정된 Issue의 결정 내용과 출처를 Architect에게 전달해 설계에 반영한다. 그 외 Issue 생성·수정은 사용자 승인 후 진행한다. PR merge는 사용자가 직접 한다.
 - 요구사항이 불명확하거나 Issue 범위 확장, DB 구조·인증·인가 변경, 비밀값·API 키·중요 환경 설정 변경, 위험 작업 또는 사용자·팀의 필수 승인이 필요하면 해당 작업을 중단하고 사용자에게 확인한다. 비밀값은 출력하거나 기록하지 않는다.
 - 테스트·CI·리뷰 실패가 수정 한도 내에 해결되지 않거나 근거·권한을 확인할 수 없으면 중단하고 보고한다. 실행 환경의 승인 및 GitHub 보호 규칙은 그대로 따른다.
@@ -28,7 +29,7 @@
 - 요구사항·API·ERD: `docs/requirements.md`, `docs/api-spec.md`, `docs/erd.md`
 - 리뷰 기준: `docs/review-checklist.md`
 - 임시 작업 기록: `docs/current-work-log.md`
-- 기능 아이디어와 승인: `docs/feature-ideas.md`
+- 기능 후보와 승인: GitHub Projects `Ask Teacher`의 Draft Issue (`docs/feature-ideas.md`는 이전 기록 안내)
 - 영구 작업 기록: `docs/devlog/YYYY-MM.md`
 - PR 템플릿: `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
 
