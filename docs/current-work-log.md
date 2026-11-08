@@ -9,6 +9,6 @@
 ## 검증 및 미확인 사항
 
 - README 변경을 `AGENTS.md`, Issue 기반 개발 스킬, 빠른 지시문과 역할 설정에 대조하고 추가한 로컬 링크 대상이 존재함을 확인했다. 기존 소개와 실행 방법은 변경하지 않았다.
-- `git diff --check` 통과. 추가된 Markdown의 구조를 확인했으나 렌더러를 통한 시각적 확인은 수행하지 못했다.
+- `git diff --check` 통과. Main이 GitHub README Preview에서 추가 구간의 제목, 표, 목록 및 링크 표시를 시각적으로 확인했다.
 - Corretto 17을 프로세스에 지정해 `.\gradlew.bat test` 실행: 성공 (모든 작업 UP-TO-DATE). 이어 `.\gradlew.bat test --rerun-tasks` 실행: 성공 (6개 작업 실행).
-- PR, 독립 리뷰 및 최종 head의 CI·보호 조건은 아직 확인 전이다.
+- PR #54를 생성했고 Architect 독립 리뷰에서 필수 코드 수정 사항이 없었다. 최종 head의 CI·보호 조건 확인은 대기 중이다.
