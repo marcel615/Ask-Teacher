@@ -17,11 +17,11 @@ description: 사용자가 백로그 정제를 요청하면 승인된 GitHub Proj
 
 - GitHub Projects를 지원하는 연결 도구 또는 기존 인증된 GitHub CLI를 사용한다. `gh`가 PATH에 없으면 설치 위치를 확인하고 실행 가능한 전체 경로를 사용한다. 이 환경에서 확인된 Windows WinGet 경로는 `C:\Users\alswo\AppData\Local\Microsoft\WinGet\Packages\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\bin\gh.exe`다. 경로가 달라졌다면 다른 설치 위치를 확인한다.
 - 기존 인증을 우선 사용하고 Project 조회와 필요한 권한을 확인한다. 샌드박스에서 인증 또는 네트워크 접근에 실패하면 이를 계정의 인증·권한 부족으로 단정하지 말고, 실행 환경이 허용하는 승인 절차에 따라 샌드박스 밖에서 기존 인증을 확인한다. 인증 정보와 토큰은 출력하거나 기록하지 않는다.
-- 연결 도구가 저장소 Issue를 지원해도 Projects의 Draft와 필드 조회·변경까지 지원하는지는 별도로 확인한다. 사용할 수 있는 경로를 확인한 뒤 실제 접근이 거절되거나 필수 기능을 검증할 수 없으면 우회하지 않고 중단·보고한다.
+- 연결 도구가 저장소 Issue를 지원해도 Projects의 Draft와 필드 조회·변경까지 지원하는지는 별도로 확인한다. 한 도구의 실패나 거절만으로 중단하지 말고 별도로 허용된 다른 접근 방법과 기존 인증을 확인한다. 명시적인 승인·접근 거절은 우회하지 않으며, 허용된 방법을 확인한 뒤에도 필요한 접근이나 필수 기능을 검증할 수 없으면 해당 작업을 중단·보고한다.
 
 ## 진행
 
-1. Project 비전·필드와 Approved Draft, `docs/requirements.md`, `.github/ISSUE_TEMPLATE/feature_request.yml`, 필요한 구현을 확인한다. 열린·닫힌 Issue와 Project 후보·전환 이력을 페이지별로 조회해 후보 ID, 관련 Issue, 중복과 충돌을 검사한다. 상태·접근 권한·조회 결과를 확인할 수 없으면 중단하고 보고한다.
+1. Project 비전·필드와 Approved Draft, `docs/requirements.md`, `.github/ISSUE_TEMPLATE/feature_request.yml`, 필요한 구현을 확인한다. 열린·닫힌 Issue와 Project 후보·전환 이력을 페이지별로 조회해 후보 ID, 관련 Issue, 중복과 충돌을 검사한다. 상태·접근 권한·조회 확인에 실패하면 접근 방법에 따라 허용된 대안과 기존 인증을 확인한다. 그래도 필수 정보를 확보하지 못하면 외부 변경을 중단하고 확인한 내용과 남은 장애를 보고한다.
 2. Architect에게 후보와 확인된 맥락을 전달해 목표, 범위·제외 범위, 완료 조건과 미결정 사항을 구체화한다. 목표 자체가 불명확하면 Draft로 유지하고 필요한 사용자 결정을 보고한다. Architect를 사용할 수 없거나 결과를 확인할 수 없으면 중단한다.
 3. Main은 Issue 템플릿의 필드에 맞춰 본문을 작성한다. API·DB 등 해당 없는 항목은 해당 없음을, 결정되지 않은 항목은 확인 필요를 명시한다. 배경과 목표, Candidate ID, 완료 조건, 제외 범위와 중복 검사 근거를 보존한다. 세부 결정이 필요하면 질문을 본문에 적고 `needs: decision` 라벨을 사용한다. 라벨, 우선순위 및 필요한 권한을 확인할 수 없으면 외부 변경 전에 중단한다.
 4. 실제 필요와 근거를 바탕으로 `priority: high`, `priority: medium`, `priority: low` 중 하나를 정한다. GitHub Blocked by는 실제 선행 관계가 확인된 경우에만 설정한다. 불확실하면 추측하지 않고 사용자에게 확인한다. 목표가 명확한 후보의 세부 사항만 미결정이라면 Issue로 전환하되 Backlog에 두고 `needs: decision`으로 자동 선정을 막는다.
