@@ -11,4 +11,4 @@
 - Corretto 17을 사용해 `.\gradlew.bat test` 실행: 성공 (6개 작업 중 3개 실행). 테스트 프로필은 별도 H2 메모리 DB를 사용한다.
 - `.\gradlew.bat bootJar` 성공. 새 격리 PostgreSQL 17 컨테이너에서 `dev` 애플리케이션 기동과 DB 연결을 확인하고, 데이터를 변경한 후 재기동해 유지됨을 확인했다. 잘못된 포트에서 기동 실패도 확인했다. 임시 컨테이너와 데이터·로그를 정리했다.
 - 기본 설정은 기존 H2 `create`, 테스트 설정은 H2 `create-drop`으로 유지했다. 실제 사용자 DB는 사용하지 않았다.
-- PR·CI·독립 리뷰와 최종 head 검증은 대기 중이다.
+- PR #63 생성 및 Project In Review 확인. Architect 독립 리뷰에서 필수 수정 없음. 최종 head CI와 보호 조건은 확인 대기 중이다.
