@@ -231,6 +231,44 @@ macOS/Linux:
 테스트 범위·실행 결과·미검증 사항은 `docs/current-work-log.md`와 PR 요약 또는 devlog에 기록합니다.
 H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 
+## AI-DLC 작업 방법
+
+이 저장소는 Issue 하나를 기준으로 Main Codex와 역할별 Subagent가 개발을 진행하는 절차를 설정해 두었습니다. 사용자는 PM이자 최종 승인자입니다. Codex에게 다음과 같이 자연어로 요청할 수 있습니다.
+
+- 다음 Issue 선정부터 시작: `작업 시작해. 다음 Issue를 확인해줘.`
+- 특정 Issue 시작: `Issue #번호 작업 시작해.`
+- 머지 후 정리: `PR 머지했어. 확인 후 develop 최신화와 브랜치 정리를 진행해.`
+
+이 문구는 고정된 CLI 명령이 아닌 예시입니다. 더 많은 예시는 [빠른 지시문](docs/prompts/quick.md)을 참고하세요.
+
+### 역할과 진행 순서
+
+| 역할 | 책임 |
+|---|---|
+| Main | Issue 선정과 단계 조율, 품질 게이트 판단, GitHub 상태 확인과 사용자 보고 |
+| Architect | Issue 분석과 설계 문서 작성, 구현 변경의 독립 리뷰 |
+| Builder | 승인된 범위의 구현·테스트·수정과 임시 작업 기록 |
+| Reporter | Issue와 PR, 작업 기록 및 검증 근거를 확인해 devlog 작성 |
+
+1. Main이 진행 중인 작업과 Issue의 우선순위·선행 관계·사용자 결정을 확인하고 한 Issue를 선정합니다.
+2. Architect가 범위와 검증 계획을 설계하고, Main이 품질 게이트를 판단해 승인된 내용을 `docs/current-task.md`에 반영합니다.
+3. Builder가 작업 브랜치에서 승인된 범위를 구현하고 테스트합니다. Main이 구현 게이트를 확인한 뒤 PR을 생성합니다.
+4. Architect가 독립 리뷰하고 필요한 수정과 재검증을 거칩니다. Reporter가 devlog를 작성합니다. AI 리뷰는 팀의 필수 사람 리뷰를 대신하지 않습니다.
+5. Main이 최종 push의 head 기준으로 CI, 필수 리뷰·브랜치 보호 조건, 충돌과 devlog를 확인합니다. 조건이 충족되면 **사용자가 직접 PR을 머지**합니다.
+6. 사용자가 머지를 알리면 Main이 실제 머지와 미반영 변경을 확인하고 `develop` 최신화 및 안전한 브랜치 정리를 진행합니다.
+
+요구사항이 불명확하거나 범위 확대, DB 구조·인증·인가 또는 중요 설정 변경, 위험 작업이나 필수 승인이 필요한 경우에는 작업을 중단하고 사용자에게 확인합니다. 테스트·CI·리뷰 문제를 정해진 한도 안에 해결하지 못하거나 상태를 확인할 수 없는 경우에도 중단해 보고합니다.
+
+### 지침과 현재 상태
+
+- [AGENTS.md](AGENTS.md): 권한, 브랜치, 테스트와 기록 규칙
+- [Issue 기반 개발 절차](.agents/skills/issue-driven-dev/SKILL.md): 선정 기준, 품질 게이트, 리뷰와 재개 절차
+- [역할 설정](.codex/agents/): Architect, Builder, Reporter 설정
+- [현재 작업 설계](docs/current-task.md), [임시 작업 기록](docs/current-work-log.md), [devlog](docs/devlog/): 작업 범위와 검증 기록
+- [기능 아이디어](docs/feature-ideas.md): 사용자 승인 여부와 후속 후보 관리
+
+위 내용은 저장소에 설정된 절차를 설명합니다. 각 실행의 테스트·CI·리뷰 성공 여부는 해당 작업에서 별도로 확인해야 합니다. GitHub Projects와 Jira 연동은 이 워크플로우에 구현되어 있지 않습니다.
+
 ## 트러블슈팅
 
 ### 로그인 사용자 조회 로직 개선
