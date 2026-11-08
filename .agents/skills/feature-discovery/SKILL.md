@@ -15,8 +15,9 @@ description: 사용자가 기능 아이디어 제안을 요청하면 프로젝�
 
 ## 접근 방법
 
-- GitHub Projects를 지원하는 연결 도구 또는 인증된 GitHub CLI를 사용한다. `gh`가 PATH에 없으면 설치 위치를 확인하고 실행 가능한 경로를 사용한다. Windows WinGet 설치의 예는 `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\bin\gh.exe`다. 환경에 따라 경로가 다를 수 있다.
-- 프로젝트 접근과 필요한 권한을 확인한다. 한 도구나 경로가 없거나 실패해도 곧바로 중단하지 말고 Projects를 지원하는 다른 연결 도구와 GitHub CLI의 설치 위치 및 기존 인증을 확인한다. 오류 원인을 확인하고 허용된 범위에서 대안을 시도하며, 새 인증이나 권한 부여가 실제로 필요할 때만 사용자에게 안내한다. 인증 정보와 토큰은 출력하거나 기록하지 않는다. 실행 환경의 승인 또는 특정 접근이 명시적으로 거절되면 그 거절을 우회하지 않는다. 별도로 허용된 다른 접근 방법은 확인하고, 필요한 접근을 확보하지 못하면 해당 작업을 중단·보고한다.
+- 이 Windows 환경에서는 기존 인증된 GitHub CLI를 기본으로 사용한다. 경로는 `C:\Users\alswo\AppData\Local\Microsoft\WinGet\Packages\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\bin\gh.exe`이며, PowerShell에서는 `&`와 전체 경로로 실행한다. Projects 요청은 실행 환경의 승인 절차를 거쳐 샌드박스 밖에서 실행한다. 경로가 바뀌면 설치 위치를 다시 확인한다.
+- Project 조회와 필요한 권한을 확인한다. 샌드박스의 PATH·환경 변수나 접근 실패만으로 설치·인증·권한이 없다고 단정하지 않는다. 연결 도구를 사용할 때는 Projects의 Draft와 필드에 필요한 기능을 지원하는지 확인한다.
+- 한 방법이 실패하면 허용된 다른 방법과 기존 인증을 확인한다. 명시적인 승인·접근 거절은 우회하지 않는다. 허용된 방법으로도 필수 접근이나 기능을 확인할 수 없으면 중단하고 보고한다. 새 인증이나 권한 부여가 실제로 필요할 때만 사용자에게 안내하며, 인증 정보와 토큰은 출력하거나 기록하지 않는다.
 
 ## 진행
 
