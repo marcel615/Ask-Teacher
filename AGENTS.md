@@ -29,7 +29,7 @@
 - 요구사항·API·ERD: `docs/requirements.md`, `docs/api-spec.md`, `docs/erd.md`
 - 리뷰 기준: `docs/review-checklist.md`
 - 임시 작업 기록: `docs/current-work-log.md`
-- 기능 후보와 승인: GitHub Projects `Ask Teacher`의 Draft Issue (`docs/feature-ideas.md`는 이전 기록 안내)
+- 기능 후보와 승인: GitHub Projects `Ask Teacher`의 Draft Issue
 - 영구 작업 기록: `docs/devlog/YYYY-MM.md`
 - PR 템플릿: `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
 

@@ -269,7 +269,6 @@ H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 - [기능 아이디어 제안](.agents/skills/feature-discovery/SKILL.md), [백로그 정제](.agents/skills/backlog-refinement/SKILL.md): 후보 제안과 승인된 후보의 Issue화 절차
 - [역할 설정](.codex/agents/): Architect, Builder, Reporter 설정
 - [현재 작업 설계](docs/current-task.md), [임시 작업 기록](docs/current-work-log.md), [devlog](docs/devlog/): 작업 범위와 검증 기록
-- [기능 아이디어 이전 형식](docs/feature-ideas.md): 기존 후보 기록 참고
 
 위 내용은 저장소에 설정된 절차를 설명합니다. 각 실행의 테스트·CI·리뷰 성공 여부는 해당 작업에서 별도로 확인해야 합니다. [GitHub Projects](https://github.com/users/marcel615/projects/1) 기반 운영을 도입 중이며 자동 상태 전환의 실제 동작과 전체 연동은 통합 검증 전입니다. Jira 연동은 구현되어 있지 않습니다.
 
