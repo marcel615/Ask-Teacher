@@ -212,17 +212,13 @@ Password:
 
 ### Docker Desktop PostgreSQL 개발 DB
 
-Docker Desktop과 Docker Compose 2.30 이상을 준비하고 저장소 루트에 `.env.example`을 복사해 `.env`를 만듭니다. 기존 `.env`는 덮어쓰지 마세요. `.env`의 `DB_PASSWORD`에 로컬 개발 전용 비밀번호를 따옴표 없이 설정합니다. 각 값은 한 줄에 작성하며 값의 앞뒤 공백은 피하세요. 실제 `.env`는 Git에서 제외되므로 커밋하거나 공유하지 마세요.
+Docker Desktop을 실행하고 저장소 루트에 `.env.example`을 복사해 `.env`를 만듭니다. 기존 `.env`는 덮어쓰지 마세요. `DB_PASSWORD`는 따옴표 없이 영문 대소문자와 숫자만 사용해 16자 이상으로 설정합니다. 이 형식은 Compose와 Spring이 값을 동일하게 읽도록 합니다. 나머지 항목도 예제처럼 한 줄에 `KEY=value` 형식으로 작성하세요. 실제 `.env`는 Git에서 제외되므로 커밋하거나 공유하지 마세요.
 
 ```powershell
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-# .env 파일에 DB_PASSWORD 설정 후 실행
 docker compose up -d
-docker compose exec postgres sh -c 'pg_isready -U "$DB_USERNAME" -d "$DB_NAME"'
-.\run-dev.ps1
 ```
 
-`pg_isready`가 연결 가능 상태를 표시한 뒤 애플리케이션을 시작하세요. Compose와 실행 스크립트는 `.env`의 값을 그대로 읽어 전달합니다. 이후에도 같은 명령으로 컨테이너를 시작하고, `docker compose stop`으로 중지할 수 있습니다. 데이터는 `askteacher-postgres-data` 볼륨에 유지됩니다.
+앱은 `.\gradlew.bat bootRun --args='--spring.profiles.active=dev'`로 실행합니다. Compose와 `dev` 프로필은 저장소 루트의 `.env`에서 설정을 읽습니다. 같은 이름의 환경변수가 이미 있으면 `.env`보다 우선합니다. `docker compose stop`으로 컨테이너를 중지할 수 있으며, 데이터는 `askteacher-postgres-data` 볼륨에 유지됩니다.
 
 이전에 `docker run`으로 만든 `askteacher-postgres` 컨테이너가 실행 중이라면 먼저 중지하세요. Compose는 같은 볼륨을 사용하므로 두 컨테이너가 동시에 사용해서는 안 됩니다. 기존 컨테이너가 없더라도 5432 포트가 사용 중이면 충돌이 발생합니다.
 
