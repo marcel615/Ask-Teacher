@@ -11,53 +11,59 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JpaAuditingRepositoryTest extends RepositoryTestSupport {
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("엔티티 감사 정보")
+    class Scenarios {
 
-    @Test
-    void baseEntityAutomaticallySetsIdAndCreatedAt() {
-        var user = user("base-entity-user");
-        var post = post(user, category("base-entity-category"), "title", "content");
-        var postLike = PostLike.create(post, user);
+        @org.junit.jupiter.api.DisplayName("기본 엔티티의 ID와 생성일을 자동 설정한다")
+        @Test
+        void baseEntityAutomaticallySetsIdAndCreatedAt() {
+            var user = user("base-entity-user");
+            var post = post(user, category("base-entity-category"), "title", "content");
+            var postLike = PostLike.create(post, user);
 
-        em.persist(postLike);
-        flushAndClear();
+            em.persist(postLike);
+            flushAndClear();
 
-        var saved = em.find(PostLike.class, postLike.getId());
-        assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getCreatedAt()).isNotNull();
-        assertThat(saved.getPost().getId()).isEqualTo(post.getId());
-        assertThat(saved.getUser().getId()).isEqualTo(user.getId());
-    }
+            var saved = em.find(PostLike.class, postLike.getId());
+            assertThat(saved.getId()).isNotNull();
+            assertThat(saved.getCreatedAt()).isNotNull();
+            assertThat(saved.getPost().getId()).isEqualTo(post.getId());
+            assertThat(saved.getUser().getId()).isEqualTo(user.getId());
+        }
 
-    @Test
-    void baseUpdatableEntityAutomaticallySetsAndUpdatesAuditDates() {
-        var post = post(
-                user("base-updatable-user"),
-                category("base-updatable-category"),
-                "title",
-                "content"
-        );
-        flushAndClear();
+        @org.junit.jupiter.api.DisplayName("수정 가능한 엔티티의 감사 날짜를 자동 설정하고 갱신한다")
+        @Test
+        void baseUpdatableEntityAutomaticallySetsAndUpdatesAuditDates() {
+            var post = post(
+                    user("base-updatable-user"),
+                    category("base-updatable-category"),
+                    "title",
+                    "content"
+            );
+            flushAndClear();
 
-        var saved = em.find(Post.class, post.getId());
-        LocalDateTime createdAt = saved.getCreatedAt();
+            var saved = em.find(Post.class, post.getId());
+            LocalDateTime createdAt = saved.getCreatedAt();
 
-        assertThat(saved.getId()).isNotNull();
-        assertThat(createdAt).isNotNull();
-        assertThat(saved.getUpdatedAt()).isNotNull();
+            assertThat(saved.getId()).isNotNull();
+            assertThat(createdAt).isNotNull();
+            assertThat(saved.getUpdatedAt()).isNotNull();
 
-        LocalDateTime previousUpdatedAt = LocalDateTime.now().minusDays(1);
-        ReflectionTestUtils.setField(saved, "updatedAt", previousUpdatedAt);
+            LocalDateTime previousUpdatedAt = LocalDateTime.now().minusDays(1);
+            ReflectionTestUtils.setField(saved, "updatedAt", previousUpdatedAt);
 
-        saved.update(saved.getCategory(), "changed title", "changed content");
-        em.flush();
+            saved.update(saved.getCategory(), "changed title", "changed content");
+            em.flush();
 
-        assertThat(saved.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(saved.getUpdatedAt()).isAfter(previousUpdatedAt);
+            assertThat(saved.getCreatedAt()).isEqualTo(createdAt);
+            assertThat(saved.getUpdatedAt()).isAfter(previousUpdatedAt);
 
-        Long postId = saved.getId();
-        flushAndClear();
-        var reloaded = em.find(Post.class, postId);
-        assertThat(reloaded.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(reloaded.getUpdatedAt()).isAfter(previousUpdatedAt);
+            Long postId = saved.getId();
+            flushAndClear();
+            var reloaded = em.find(Post.class, postId);
+            assertThat(reloaded.getCreatedAt()).isEqualTo(createdAt);
+            assertThat(reloaded.getUpdatedAt()).isAfter(previousUpdatedAt);
+        }
     }
 }

@@ -19,72 +19,80 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CommentController.class)
 class CommentControllerTest extends WebTestSupport {
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("댓글 API")
+    class Scenarios {
 
-    @MockitoBean CommentService service;
+        @MockitoBean CommentService service;
 
-    @Test void createUpdateAndDeleteBindPrincipalAndBody() throws Exception {
-        var response = response("content", false);
-        when(service.createComment(eq(3L), eq(7L), any())).thenReturn(response);
-        when(service.updateComment(eq(5L), eq(7L), any())).thenReturn(response("changed", true));
+        @org.junit.jupiter.api.DisplayName("댓글 생성 수정 삭제에 인증 사용자와 본문을 전달한다")
+        @Test void createUpdateAndDeleteBindPrincipalAndBody() throws Exception {
+            var response = response("content", false);
+            when(service.createComment(eq(3L), eq(7L), any())).thenReturn(response);
+            when(service.updateComment(eq(5L), eq(7L), any())).thenReturn(response("changed", true));
 
-        mvc.perform(post("/api/posts/3/comments").with(authenticated()).contentType("application/json")
-                        .content("{\"content\":\" content \"}"))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.commentId").value(5))
-                .andExpect(jsonPath("$.likedByMe").value(false));
-        mvc.perform(patch("/api/comments/5").with(authenticated()).contentType("application/json")
-                        .content("{\"content\":\"changed\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.content").value("changed"));
-        mvc.perform(delete("/api/comments/5").with(authenticated()))
-                .andExpect(status().isNoContent()).andExpect(content().string(""));
-
-        verify(service).createComment(eq(3L), eq(7L), argThat(request -> request.content().equals(" content ")));
-        verify(service).updateComment(eq(5L), eq(7L), argThat(request -> request.content().equals("changed")));
-        verify(service).deleteComment(5L, 7L);
-    }
-
-    @Test void publicListUsesDefaultsAndOptionalPrincipal() throws Exception {
-        when(service.getComments(3L, null, 0, 20, "latest"))
-                .thenReturn(new CommentPageResponse(List.of(), 0, 20, 0, 0, false, "latest"));
-        mvc.perform(get("/api/posts/3/comments"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.comments").isEmpty())
-                .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(20))
-                .andExpect(jsonPath("$.sort").value("latest"));
-        mvc.perform(get("/api/posts/3/comments").with(authenticated())
-                        .param("page", "1").param("size", "5").param("sort", "likeCount"))
-                .andExpect(status().isOk());
-        verify(service).getComments(3L, 7L, 1, 5, "likeCount");
-    }
-
-    @Test void validationAndBusinessErrorsUseErrorContract() throws Exception {
-        for (String content : List.of("", " ", "x".repeat(1001))) {
             mvc.perform(post("/api/posts/3/comments").with(authenticated()).contentType("application/json")
-                            .content("{\"content\":\"" + content + "\"}"))
-                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
-        }
-        when(service.getComments(3L, null, 0, 20, "bad"))
-                .thenThrow(new CustomException(ErrorCode.INVALID_INPUT_VALUE));
-        mvc.perform(get("/api/posts/3/comments").param("sort", "bad"))
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
-        verify(service, never()).createComment(any(), any(), any());
-    }
+                            .content("{\"content\":\" content \"}"))
+                    .andExpect(status().isCreated()).andExpect(jsonPath("$.commentId").value(5))
+                    .andExpect(jsonPath("$.likedByMe").value(false));
+            mvc.perform(patch("/api/comments/5").with(authenticated()).contentType("application/json")
+                            .content("{\"content\":\"changed\"}"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").value("changed"));
+            mvc.perform(delete("/api/comments/5").with(authenticated()))
+                    .andExpect(status().isNoContent()).andExpect(content().string(""));
 
-    @Test void createAndUpdateRejectEmptyOrMalformedJsonWithCommonErrorResponse() throws Exception {
-        for (var request : List.of(
-                post("/api/posts/3/comments").with(authenticated()),
-                patch("/api/comments/5").with(authenticated())
-        )) {
-            for (String body : List.of("", "{\"content\":")) {
-                mvc.perform(request.contentType("application/json").content(body))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.status").value(ErrorCode.INVALID_INPUT_VALUE.getStatus()))
-                        .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
+            verify(service).createComment(eq(3L), eq(7L), argThat(request -> request.content().equals(" content ")));
+            verify(service).updateComment(eq(5L), eq(7L), argThat(request -> request.content().equals("changed")));
+            verify(service).deleteComment(5L, 7L);
+        }
+
+        @org.junit.jupiter.api.DisplayName("공개 댓글 목록에 기본값과 선택적 인증 사용자를 적용한다")
+        @Test void publicListUsesDefaultsAndOptionalPrincipal() throws Exception {
+            when(service.getComments(3L, null, 0, 20, "latest"))
+                    .thenReturn(new CommentPageResponse(List.of(), 0, 20, 0, 0, false, "latest"));
+            mvc.perform(get("/api/posts/3/comments"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.comments").isEmpty())
+                    .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(20))
+                    .andExpect(jsonPath("$.sort").value("latest"));
+            mvc.perform(get("/api/posts/3/comments").with(authenticated())
+                            .param("page", "1").param("size", "5").param("sort", "likeCount"))
+                    .andExpect(status().isOk());
+            verify(service).getComments(3L, 7L, 1, 5, "likeCount");
+        }
+
+        @org.junit.jupiter.api.DisplayName("입력 검증과 비즈니스 오류에 공통 오류 응답을 반환한다")
+        @Test void validationAndBusinessErrorsUseErrorContract() throws Exception {
+            for (String content : List.of("", " ", "x".repeat(1001))) {
+                mvc.perform(post("/api/posts/3/comments").with(authenticated()).contentType("application/json")
+                                .content("{\"content\":\"" + content + "\"}"))
+                        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
             }
+            when(service.getComments(3L, null, 0, 20, "bad"))
+                    .thenThrow(new CustomException(ErrorCode.INVALID_INPUT_VALUE));
+            mvc.perform(get("/api/posts/3/comments").param("sort", "bad"))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+            verify(service, never()).createComment(any(), any(), any());
         }
-        verifyNoInteractions(service);
-    }
 
-    private CommentResponse response(String content, boolean likedByMe) {
-        LocalDateTime now = LocalDateTime.of(2026, 9, 16, 12, 0);
-        return new CommentResponse(5L, 3L, 7L, "writer", content, likedByMe ? 1 : 0, likedByMe, now, now);
+        @org.junit.jupiter.api.DisplayName("댓글 생성과 수정에서 빈 JSON과 잘못된 JSON을 공통 오류로 거부한다")
+        @Test void createAndUpdateRejectEmptyOrMalformedJsonWithCommonErrorResponse() throws Exception {
+            for (var request : List.of(
+                    post("/api/posts/3/comments").with(authenticated()),
+                    patch("/api/comments/5").with(authenticated())
+            )) {
+                for (String body : List.of("", "{\"content\":")) {
+                    mvc.perform(request.contentType("application/json").content(body))
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.status").value(ErrorCode.INVALID_INPUT_VALUE.getStatus()))
+                            .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
+                }
+            }
+            verifyNoInteractions(service);
+        }
+
+        private CommentResponse response(String content, boolean likedByMe) {
+            LocalDateTime now = LocalDateTime.of(2026, 9, 16, 12, 0);
+            return new CommentResponse(5L, 3L, 7L, "writer", content, likedByMe ? 1 : 0, likedByMe, now, now);
+        }
     }
 }

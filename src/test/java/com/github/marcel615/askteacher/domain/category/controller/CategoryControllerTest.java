@@ -13,12 +13,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CategoryController.class)
 class CategoryControllerTest extends WebTestSupport {
-    @MockitoBean CategoryService service;
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("카테고리 조회 API")
+    class Scenarios {
+        @MockitoBean CategoryService service;
 
-    @Test void publicListReturnsArrayAndEmptyArray() throws Exception {
-        when(service.getCategories()).thenReturn(List.of(new CategoryResponse(2L, "Java")), List.of());
-        mvc.perform(get("/api/categories")).andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(2)).andExpect(jsonPath("$[0].name").value("Java"));
-        mvc.perform(get("/api/categories")).andExpect(status().isOk()).andExpect(content().json("[]"));
+        @org.junit.jupiter.api.DisplayName("공개 목록은 카테고리 배열과 빈 배열을 반환한다")
+        @Test void publicListReturnsArrayAndEmptyArray() throws Exception {
+            when(service.getCategories()).thenReturn(List.of(new CategoryResponse(2L, "Java")), List.of());
+            mvc.perform(get("/api/categories")).andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(2)).andExpect(jsonPath("$[0].name").value("Java"));
+            mvc.perform(get("/api/categories")).andExpect(status().isOk()).andExpect(content().json("[]"));
+        }
     }
 }

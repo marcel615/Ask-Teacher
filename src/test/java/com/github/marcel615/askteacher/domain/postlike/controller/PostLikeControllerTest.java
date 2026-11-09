@@ -12,20 +12,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PostLikeController.class)
 class PostLikeControllerTest extends WebTestSupport {
-    @MockitoBean PostLikeService service;
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("게시글 좋아요 API")
+    class Scenarios {
+        @MockitoBean PostLikeService service;
 
-    @Test void passesAuthenticatedUserAndReturnsEmptyBodies() throws Exception {
-        mvc.perform(post("/api/posts/3/likes").with(authenticated())).andExpect(status().isOk()).andExpect(content().string(""));
-        mvc.perform(delete("/api/posts/3/likes").with(authenticated())).andExpect(status().isNoContent()).andExpect(content().string(""));
-        verify(service).likePost(3L, 7L);
-        verify(service).unlikePost(3L, 7L);
-    }
+        @org.junit.jupiter.api.DisplayName("인증 사용자를 전달하고 빈 응답 본문을 반환한다")
+        @Test void passesAuthenticatedUserAndReturnsEmptyBodies() throws Exception {
+            mvc.perform(post("/api/posts/3/likes").with(authenticated())).andExpect(status().isOk()).andExpect(content().string(""));
+            mvc.perform(delete("/api/posts/3/likes").with(authenticated())).andExpect(status().isNoContent()).andExpect(content().string(""));
+            verify(service).likePost(3L, 7L);
+            verify(service).unlikePost(3L, 7L);
+        }
 
-    @Test void mapsBusinessErrorsAndInvalidPath() throws Exception {
-        doThrow(new CustomException(ErrorCode.INVALID_INPUT_VALUE)).when(service).likePost(3L, 7L);
-        doThrow(new CustomException(ErrorCode.POST_NOT_FOUND)).when(service).unlikePost(3L, 7L);
-        mvc.perform(post("/api/posts/3/likes").with(authenticated())).andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
-        mvc.perform(delete("/api/posts/3/likes").with(authenticated())).andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404));
-        mvc.perform(post("/api/posts/not-a-number/likes").with(authenticated())).andExpect(status().isBadRequest());
+        @org.junit.jupiter.api.DisplayName("비즈니스 오류와 잘못된 경로를 응답으로 변환한다")
+        @Test void mapsBusinessErrorsAndInvalidPath() throws Exception {
+            doThrow(new CustomException(ErrorCode.INVALID_INPUT_VALUE)).when(service).likePost(3L, 7L);
+            doThrow(new CustomException(ErrorCode.POST_NOT_FOUND)).when(service).unlikePost(3L, 7L);
+            mvc.perform(post("/api/posts/3/likes").with(authenticated())).andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+            mvc.perform(delete("/api/posts/3/likes").with(authenticated())).andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404));
+            mvc.perform(post("/api/posts/not-a-number/likes").with(authenticated())).andExpect(status().isBadRequest());
+        }
     }
 }

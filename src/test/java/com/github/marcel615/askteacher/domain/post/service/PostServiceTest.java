@@ -24,158 +24,174 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
-    @Mock PostRepository posts;
-    @Mock PostFileRepository files;
-    @Mock UserRepository users;
-    @Mock CategoryRepository categories;
-    @Mock PostLikeRepository likes;
-    @Mock PostFileStorage storage;
-    @InjectMocks PostService service;
-    User user;
-    Category category;
-    Post post;
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("게시글 처리")
+    class Scenarios {
+        @Mock PostRepository posts;
+        @Mock PostFileRepository files;
+        @Mock UserRepository users;
+        @Mock CategoryRepository categories;
+        @Mock PostLikeRepository likes;
+        @Mock PostFileStorage storage;
+        @InjectMocks PostService service;
+        User user;
+        Category category;
+        Post post;
 
-    @BeforeEach void setUp() {
-        user = User.createUser("a@example.com", "encoded", "nick");
-        category = Category.createCategory("Java");
-        ReflectionTestUtils.setField(user, "id", 1L);
-        ReflectionTestUtils.setField(category, "id", 2L);
-        post = Post.createPost(user, category, "title", "content");
-        ReflectionTestUtils.setField(post, "id", 3L);
-        LocalDateTime auditDate = LocalDateTime.now().minusDays(1);
-        ReflectionTestUtils.setField(post, "createdAt", auditDate);
-        ReflectionTestUtils.setField(post, "updatedAt", auditDate);
-    }
+        @BeforeEach void setUp() {
+            user = User.createUser("a@example.com", "encoded", "nick");
+            category = Category.createCategory("Java");
+            ReflectionTestUtils.setField(user, "id", 1L);
+            ReflectionTestUtils.setField(category, "id", 2L);
+            post = Post.createPost(user, category, "title", "content");
+            ReflectionTestUtils.setField(post, "id", 3L);
+            LocalDateTime auditDate = LocalDateTime.now().minusDays(1);
+            ReflectionTestUtils.setField(post, "createdAt", auditDate);
+            ReflectionTestUtils.setField(post, "updatedAt", auditDate);
+        }
 
-    @Test void createSavesInitialStateAndAttachments() {
-        when(users.findById(1L)).thenReturn(Optional.of(user));
-        when(categories.findById(2L)).thenReturn(Optional.of(category));
-        when(posts.save(any())).thenAnswer(call -> {
-            Post saved = call.getArgument(0);
-            assertThat(saved.getUser()).isSameAs(user);
-            assertThat(saved.getCategory()).isSameAs(category);
-            assertThat(saved.getContent()).isEqualTo("content");
-            assertThat(saved.isDeleted()).isFalse();
-            assertThat(saved.getLikeCount()).isZero();
-            ReflectionTestUtils.setField(saved, "id", 3L);
-            LocalDateTime auditDate = LocalDateTime.now();
-            ReflectionTestUtils.setField(saved, "createdAt", auditDate);
-            ReflectionTestUtils.setField(saved, "updatedAt", auditDate);
-            return saved;
-        });
-        var upload = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
-        var stored = PostFile.create(post, "a.png", "stored.png", "path", "image/png", 1);
-        when(storage.store(any(), eq(List.of(upload)))).thenReturn(List.of(stored));
-        var result = service.createPost(1L, new PostCreateRequest(2L, "title", "content"), List.of(upload));
-        assertThat(result.postId()).isEqualTo(3L);
-        assertThat(result.newPost()).isTrue();
-        assertThat(result.createdAt()).isNotNull();
-        verify(files).saveAll(List.of(stored));
-    }
+        @org.junit.jupiter.api.DisplayName("게시글 생성 시 초기 상태와 첨부파일을 저장한다")
+        @Test void createSavesInitialStateAndAttachments() {
+            when(users.findById(1L)).thenReturn(Optional.of(user));
+            when(categories.findById(2L)).thenReturn(Optional.of(category));
+            when(posts.save(any())).thenAnswer(call -> {
+                Post saved = call.getArgument(0);
+                assertThat(saved.getUser()).isSameAs(user);
+                assertThat(saved.getCategory()).isSameAs(category);
+                assertThat(saved.getContent()).isEqualTo("content");
+                assertThat(saved.isDeleted()).isFalse();
+                assertThat(saved.getLikeCount()).isZero();
+                ReflectionTestUtils.setField(saved, "id", 3L);
+                LocalDateTime auditDate = LocalDateTime.now();
+                ReflectionTestUtils.setField(saved, "createdAt", auditDate);
+                ReflectionTestUtils.setField(saved, "updatedAt", auditDate);
+                return saved;
+            });
+            var upload = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
+            var stored = PostFile.create(post, "a.png", "stored.png", "path", "image/png", 1);
+            when(storage.store(any(), eq(List.of(upload)))).thenReturn(List.of(stored));
+            var result = service.createPost(1L, new PostCreateRequest(2L, "title", "content"), List.of(upload));
+            assertThat(result.postId()).isEqualTo(3L);
+            assertThat(result.newPost()).isTrue();
+            assertThat(result.createdAt()).isNotNull();
+            verify(files).saveAll(List.of(stored));
+        }
 
-    @Test void createRejectsMissingUserAndCategory() {
-        var request = new PostCreateRequest(2L, "title", "content");
-        assertThatThrownBy(() -> service.createPost(1L, request)).extracting("errorCode").isEqualTo(ErrorCode.USER_NOT_FOUND);
-        when(users.findById(1L)).thenReturn(Optional.of(user));
-        assertThatThrownBy(() -> service.createPost(1L, request)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
-        verifyNoInteractions(storage, files);
-        verify(posts, never()).save(any());
-    }
+        @org.junit.jupiter.api.DisplayName("사용자나 카테고리가 없으면 게시글 생성을 거부한다")
+        @Test void createRejectsMissingUserAndCategory() {
+            var request = new PostCreateRequest(2L, "title", "content");
+            assertThatThrownBy(() -> service.createPost(1L, request)).extracting("errorCode").isEqualTo(ErrorCode.USER_NOT_FOUND);
+            when(users.findById(1L)).thenReturn(Optional.of(user));
+            assertThatThrownBy(() -> service.createPost(1L, request)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
+            verifyNoInteractions(storage, files);
+            verify(posts, never()).save(any());
+        }
 
-    @Test void searchNormalizesKeywordAndBuildsPage() {
-        when(categories.existsById(2L)).thenReturn(true);
-        when(posts.searchPosts(eq("Spring"), eq(2L), any())).thenReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 1), 2));
-        var result = service.getPosts("  Spring  ", 2L, 0, 1);
-        assertThat(result.totalElements()).isEqualTo(2);
-        assertThat(result.totalPages()).isEqualTo(2);
-        assertThat(result.hasNext()).isTrue();
-        assertThat(result.content().get(0).postId()).isEqualTo(3L);
-        verify(posts).searchPosts("Spring", 2L, PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt")));
-    }
+        @org.junit.jupiter.api.DisplayName("검색어를 정규화하고 페이지를 반환한다")
+        @Test void searchNormalizesKeywordAndBuildsPage() {
+            when(categories.existsById(2L)).thenReturn(true);
+            when(posts.searchPosts(eq("Spring"), eq(2L), any())).thenReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 1), 2));
+            var result = service.getPosts("  Spring  ", 2L, 0, 1);
+            assertThat(result.totalElements()).isEqualTo(2);
+            assertThat(result.totalPages()).isEqualTo(2);
+            assertThat(result.hasNext()).isTrue();
+            assertThat(result.content().get(0).postId()).isEqualTo(3L);
+            verify(posts).searchPosts("Spring", 2L, PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt")));
+        }
 
-    @Test void blankSearchIsUnfiltered() {
-        when(posts.searchPosts(isNull(), isNull(), any())).thenReturn(Page.empty());
-        assertThat(service.getPosts("  ", null, 0, 10).content()).isEmpty();
-        assertThat(service.getPosts(null, null, 0, 10).content()).isEmpty();
-    }
+        @org.junit.jupiter.api.DisplayName("빈 검색어는 검색 필터를 적용하지 않는다")
+        @Test void blankSearchIsUnfiltered() {
+            when(posts.searchPosts(isNull(), isNull(), any())).thenReturn(Page.empty());
+            assertThat(service.getPosts("  ", null, 0, 10).content()).isEmpty();
+            assertThat(service.getPosts(null, null, 0, 10).content()).isEmpty();
+        }
 
-    @Test void invalidPagingAndCategoryStopSearch() {
-        assertThatThrownBy(() -> service.getPosts(null, null, -1, 10)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
-        assertThatThrownBy(() -> service.getPosts(null, null, 0, 0)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
-        assertThatThrownBy(() -> service.getPosts(null, 2L, 0, 10)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
-        verifyNoInteractions(posts);
-    }
+        @org.junit.jupiter.api.DisplayName("잘못된 페이지나 카테고리는 검색을 중단한다")
+        @Test void invalidPagingAndCategoryStopSearch() {
+            assertThatThrownBy(() -> service.getPosts(null, null, -1, 10)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+            assertThatThrownBy(() -> service.getPosts(null, null, 0, 0)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+            assertThatThrownBy(() -> service.getPosts(null, 2L, 0, 10)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
+            verifyNoInteractions(posts);
+        }
 
-    @Test void detailMapsFilesAndCurrentUsersLike() {
-        when(posts.findWithUserAndCategoryByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
-        when(likes.existsByPostIdAndUserId(3L, 1L)).thenReturn(true);
-        when(files.findByPostIdOrderByCreatedAtAsc(3L)).thenReturn(List.of(PostFile.create(post, "a.png", "stored.png", "path", "image/png", 1)));
-        assertThat(service.getPost(3L).likedByMe()).isFalse();
-        var result = service.getPost(3L, 1L);
-        assertThat(result.likedByMe()).isTrue();
-        assertThat(result.files().get(0).fileUrl()).isEqualTo("/files/stored.png");
-        assertThat(result.userName()).isEqualTo("nick");
-    }
+        @org.junit.jupiter.api.DisplayName("게시글 상세에 파일과 현재 사용자의 좋아요를 포함한다")
+        @Test void detailMapsFilesAndCurrentUsersLike() {
+            when(posts.findWithUserAndCategoryByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
+            when(likes.existsByPostIdAndUserId(3L, 1L)).thenReturn(true);
+            when(files.findByPostIdOrderByCreatedAtAsc(3L)).thenReturn(List.of(PostFile.create(post, "a.png", "stored.png", "path", "image/png", 1)));
+            assertThat(service.getPost(3L).likedByMe()).isFalse();
+            var result = service.getPost(3L, 1L);
+            assertThat(result.likedByMe()).isTrue();
+            assertThat(result.files().get(0).fileUrl()).isEqualTo("/files/stored.png");
+            assertThat(result.userName()).isEqualTo("nick");
+        }
 
-    @Test void missingDetailIsNotFound() {
-        assertThatThrownBy(() -> service.getPost(3L)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
-    }
+        @org.junit.jupiter.api.DisplayName("없는 게시글 상세 조회는 게시글 없음 오류를 반환한다")
+        @Test void missingDetailIsNotFound() {
+            assertThatThrownBy(() -> service.getPost(3L)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
+        }
 
-    @Test void updateChangesEditableFieldsAndPreservesOthers() {
-        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
-        when(categories.findById(2L)).thenReturn(Optional.of(category));
-        LocalDateTime created = post.getCreatedAt();
-        ReflectionTestUtils.setField(post, "updatedAt", created.minusDays(1));
-        doAnswer(invocation -> {
-            ReflectionTestUtils.setField(post, "updatedAt", created.plusSeconds(1));
-            return null;
-        }).when(posts).flush();
-        var result = service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body"));
-        assertThat(result.title()).isEqualTo("new");
-        assertThat(result.content()).isEqualTo("body");
-        assertThat(result.updatedAt()).isAfter(created.minusDays(1));
-        assertThat(post.getCreatedAt()).isEqualTo(created);
-        assertThat(post.getUser()).isSameAs(user);
-        assertThat(post.isNewPost()).isTrue();
-        assertThat(post.isDeleted()).isFalse();
-        verify(storage).store(post, List.of());
-        verify(posts).flush();
-    }
+        @org.junit.jupiter.api.DisplayName("게시글 수정은 수정 가능한 필드만 변경한다")
+        @Test void updateChangesEditableFieldsAndPreservesOthers() {
+            when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
+            when(categories.findById(2L)).thenReturn(Optional.of(category));
+            LocalDateTime created = post.getCreatedAt();
+            ReflectionTestUtils.setField(post, "updatedAt", created.minusDays(1));
+            doAnswer(invocation -> {
+                ReflectionTestUtils.setField(post, "updatedAt", created.plusSeconds(1));
+                return null;
+            }).when(posts).flush();
+            var result = service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body"));
+            assertThat(result.title()).isEqualTo("new");
+            assertThat(result.content()).isEqualTo("body");
+            assertThat(result.updatedAt()).isAfter(created.minusDays(1));
+            assertThat(post.getCreatedAt()).isEqualTo(created);
+            assertThat(post.getUser()).isSameAs(user);
+            assertThat(post.isNewPost()).isTrue();
+            assertThat(post.isDeleted()).isFalse();
+            verify(storage).store(post, List.of());
+            verify(posts).flush();
+        }
 
-    @Test void updateRejectsMissingPostWrongAuthorAndMissingCategory() {
-        var request = new PostUpdateRequest(2L, "new", "body");
-        assertThatThrownBy(() -> service.updatePost(3L, 1L, request)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
-        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
-        assertThatThrownBy(() -> service.updatePost(3L, 9L, request)).extracting("errorCode").isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
-        assertThatThrownBy(() -> service.updatePost(3L, 1L, request)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
-        assertThat(post.getTitle()).isEqualTo("title");
-        verifyNoInteractions(storage);
-    }
+        @org.junit.jupiter.api.DisplayName("게시글이나 카테고리가 없거나 작성자가 다르면 수정을 거부한다")
+        @Test void updateRejectsMissingPostWrongAuthorAndMissingCategory() {
+            var request = new PostUpdateRequest(2L, "new", "body");
+            assertThatThrownBy(() -> service.updatePost(3L, 1L, request)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
+            when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
+            assertThatThrownBy(() -> service.updatePost(3L, 9L, request)).extracting("errorCode").isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
+            assertThatThrownBy(() -> service.updatePost(3L, 1L, request)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
+            assertThat(post.getTitle()).isEqualTo("title");
+            verifyNoInteractions(storage);
+        }
 
-    @Test void updateStopsBeforeFileStorageWhenPostIsNotVisible() {
-        var upload = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
-        assertThatThrownBy(() -> service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body"), List.of(upload)))
-                .extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
-        verify(posts).findByIdAndDeletedFalse(3L);
-        verifyNoInteractions(categories, storage, files);
-        verify(posts, never()).flush();
-    }
+        @org.junit.jupiter.api.DisplayName("조회할 수 없는 게시글은 파일 저장 전에 수정을 중단한다")
+        @Test void updateStopsBeforeFileStorageWhenPostIsNotVisible() {
+            var upload = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
+            assertThatThrownBy(() -> service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body"), List.of(upload)))
+                    .extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
+            verify(posts).findByIdAndDeletedFalse(3L);
+            verifyNoInteractions(categories, storage, files);
+            verify(posts, never()).flush();
+        }
 
-    @Test void storageFailurePropagates() {
-        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
-        when(categories.findById(2L)).thenReturn(Optional.of(category));
-        when(storage.store(post, List.of())).thenThrow(new CustomException(ErrorCode.FILE_STORAGE_FAILED));
-        assertThatThrownBy(() -> service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body")))
-                .extracting("errorCode").isEqualTo(ErrorCode.FILE_STORAGE_FAILED);
-        verifyNoInteractions(files);
-    }
+        @org.junit.jupiter.api.DisplayName("파일 저장 실패를 전달한다")
+        @Test void storageFailurePropagates() {
+            when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
+            when(categories.findById(2L)).thenReturn(Optional.of(category));
+            when(storage.store(post, List.of())).thenThrow(new CustomException(ErrorCode.FILE_STORAGE_FAILED));
+            assertThatThrownBy(() -> service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body")))
+                    .extracting("errorCode").isEqualTo(ErrorCode.FILE_STORAGE_FAILED);
+            verifyNoInteractions(files);
+        }
 
-    @Test void deleteChecksAuthorAndSoftDeletes() {
-        assertThatThrownBy(() -> service.deletePost(3L, 1L)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
-        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
-        assertThatThrownBy(() -> service.deletePost(3L, 9L)).extracting("errorCode").isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
-        service.deletePost(3L, 1L);
-        assertThat(post.isDeleted()).isTrue();
-        verify(posts, never()).delete(any());
+        @org.junit.jupiter.api.DisplayName("게시글 삭제는 작성자를 확인하고 논리 삭제한다")
+        @Test void deleteChecksAuthorAndSoftDeletes() {
+            assertThatThrownBy(() -> service.deletePost(3L, 1L)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
+            when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
+            assertThatThrownBy(() -> service.deletePost(3L, 9L)).extracting("errorCode").isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
+            service.deletePost(3L, 1L);
+            assertThat(post.isDeleted()).isTrue();
+            verify(posts, never()).delete(any());
+        }
     }
 }
