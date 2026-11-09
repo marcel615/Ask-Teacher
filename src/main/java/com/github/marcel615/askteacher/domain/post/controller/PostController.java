@@ -34,7 +34,7 @@ public class PostController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostCreateResponse> createPost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @Valid @ModelAttribute PostCreateRequest postCreateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
@@ -55,7 +55,7 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId
     ) {
         PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
@@ -64,7 +64,7 @@ public class PostController {
 
     @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostUpdateResponse> updatePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId,
             @Valid @ModelAttribute PostUpdateRequest postUpdateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
@@ -75,7 +75,7 @@ public class PostController {
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId
     ) {
         postService.deletePost(postId, userId);

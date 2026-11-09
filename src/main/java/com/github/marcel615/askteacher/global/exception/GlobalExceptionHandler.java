@@ -83,6 +83,11 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleStorageException(com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException exception) {
+        return ResponseEntity.status(503).body(ErrorResponse.of(503, "Authentication service unavailable"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception exception) {
         ErrorResponse errorResponse = ErrorResponse.of(

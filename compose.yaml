@@ -1,4 +1,9 @@
 services:
+  redis:
+    image: redis:7
+    command: [redis-server, --save, '', --appendonly, 'no', --maxmemory-policy, noeviction]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
   postgres:
     image: postgres:17
     ports:

@@ -27,7 +27,7 @@ public class CommentController {
 
     @PostMapping("/api/posts/{postId}/comments")
     public ResponseEntity<CommentResponse> createComment(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest request
     ) {
@@ -37,7 +37,7 @@ public class CommentController {
 
     @GetMapping("/api/posts/{postId}/comments")
     public ResponseEntity<CommentPageResponse> getComments(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -48,7 +48,7 @@ public class CommentController {
 
     @PatchMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long commentId,
             @Valid @RequestBody CommentUpdateRequest request
     ) {
@@ -57,7 +57,7 @@ public class CommentController {
 
     @DeleteMapping("/api/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long commentId
     ) {
         commentService.deleteComment(commentId, userId);

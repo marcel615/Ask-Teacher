@@ -11,13 +11,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetailsService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test")
 @Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class})
 public abstract class WebTestSupport {
     @Autowired protected MockMvc mvc;
+    @MockitoBean protected RedisSessionStore sessions;
+    @MockitoBean protected AskTeacherUserDetailsService details;
 
     protected RequestPostProcessor authenticated() {
-        return authentication(new UsernamePasswordAuthenticationToken(7L, null, List.of(new SimpleGrantedAuthority("USER"))));
+        return authentication(new UsernamePasswordAuthenticationToken(new AskTeacherUserDetails(7L, "", "", "USER"), null, List.of(new SimpleGrantedAuthority("USER"))));
     }
 }

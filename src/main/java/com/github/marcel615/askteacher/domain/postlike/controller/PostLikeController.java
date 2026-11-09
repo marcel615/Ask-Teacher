@@ -20,7 +20,7 @@ public class PostLikeController {
 
     @PostMapping
     public ResponseEntity<Void> likePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId
     ) {
         postLikeService.likePost(postId, userId);
@@ -29,7 +29,7 @@ public class PostLikeController {
 
     @DeleteMapping
     public ResponseEntity<Void> unlikePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long postId
     ) {
         postLikeService.unlikePost(postId, userId);

@@ -66,6 +66,30 @@ class SecurityConfigTest {
                     .isEqualTo(objectMapper.readTree("{\"status\":401,\"message\":\"인증이 필요합니다.\"}"));
         }
 
+        @DisplayName("허용된 Origin의 자격 증명 요청만 CORS 사전 요청을 통과한다")
+        @Test void corsAllowsConfiguredOriginOnly() throws Exception {
+            HttpRequest allowed = HttpRequest.newBuilder(uri("/api/auth/refresh"))
+                    .header("Origin", "http://localhost:5173")
+                    .header("Access-Control-Request-Method", "POST")
+                    .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+            var allowedResponse = httpClient.send(allowed, HttpResponse.BodyHandlers.ofString());
+            assertThat(allowedResponse.statusCode()).isEqualTo(200);
+            assertThat(allowedResponse.headers().firstValue("Access-Control-Allow-Credentials")).hasValue("true");
+            HttpRequest denied = HttpRequest.newBuilder(uri("/api/auth/refresh"))
+                    .header("Origin", "https://untrusted.example")
+                    .header("Access-Control-Request-Method", "POST")
+                    .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+            assertThat(httpClient.send(denied, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(403);
+        }
+
+        @DisplayName("실제 HTTP 응답은 CSRF 쿠키의 SameSite와 HttpOnly 속성을 포함한다")
+        @Test void csrfCookieAttributesAreSentOverHttp() throws Exception {
+            var response = httpClient.send(HttpRequest.newBuilder(uri("/api/auth/csrf")).GET().build(), HttpResponse.BodyHandlers.ofString());
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.headers().firstValue("Set-Cookie")).hasValueSatisfying(cookie ->
+                    assertThat(cookie).contains("XSRF-TOKEN=", "HttpOnly", "SameSite=Strict"));
+        }
+
         private int statusOfGet(String path) throws IOException, InterruptedException {
             HttpRequest request = HttpRequest.newBuilder(uri(path)).GET().build();
 

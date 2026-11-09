@@ -1,0 +1,14 @@
+package com.github.marcel615.askteacher.global.security;
+
+import java.util.Collection;
+import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+public record AskTeacherUserDetails(Long id, String username, String password, String role) implements UserDetails {
+    @Override public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(new SimpleGrantedAuthority(role)); }
+    @Override public String getPassword() { return password; }
+    @Override public String getUsername() { return username; }
+    @Override public String toString() { return "AskTeacherUserDetails[id=" + id + ", username=" + username + ", role=" + role + "]"; }
+}

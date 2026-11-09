@@ -21,7 +21,7 @@ public class CommentLikeController {
 
     @PostMapping
     public ResponseEntity<CommentLikeResponse> likeComment(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long commentId
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -30,7 +30,7 @@ public class CommentLikeController {
 
     @DeleteMapping
     public ResponseEntity<CommentLikeResponse> unlikeComment(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
             @PathVariable Long commentId
     ) {
         return ResponseEntity.ok(commentLikeService.unlikeComment(commentId, userId));

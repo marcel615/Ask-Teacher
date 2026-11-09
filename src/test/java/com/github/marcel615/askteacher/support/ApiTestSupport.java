@@ -19,6 +19,7 @@ import java.nio.file.*;
 import java.util.Map;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -33,6 +34,8 @@ public abstract class ApiTestSupport {
     @Autowired protected PostRepository posts;
     @Autowired protected PostFileRepository files;
     @Autowired protected PostLikeRepository likes;
+    @Autowired protected org.springframework.data.redis.core.StringRedisTemplate redis;
+    @Autowired protected com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore sessionStore;
     protected Long categoryId;
 
     @DynamicPropertySource
@@ -47,6 +50,7 @@ public abstract class ApiTestSupport {
 
     @AfterEach void clean() throws Exception {
         // Real HTTP requests commit outside the test thread; rollback cannot clean them.
+        for (var user : users.findAll()) redis.delete(sessionStore.keyForUser(user.getId()));
         likes.deleteAllInBatch();
         files.deleteAllInBatch();
         posts.deleteAllInBatch();
@@ -61,7 +65,7 @@ public abstract class ApiTestSupport {
         mvc.perform(post("/api/auth/signup").contentType("application/json").content(json.writeValueAsString(
                 Map.of("email", name + "@example.com", "password", "password123", "nickname", name))))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.userId").isNumber());
-        return body(mvc.perform(post("/api/auth/login").contentType("application/json").content(json.writeValueAsString(
+        return body(mvc.perform(post("/api/auth/login").with(csrf()).contentType("application/json").content(json.writeValueAsString(
                 Map.of("email", name + "@example.com", "password", "password123"))))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.tokenType").value("Bearer")))
                 .get("accessToken").asText();

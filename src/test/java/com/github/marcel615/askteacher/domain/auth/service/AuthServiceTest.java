@@ -16,6 +16,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -25,6 +30,8 @@ class AuthServiceTest {
         @Mock UserRepository users;
         @Mock PasswordEncoder passwords;
         @Mock JwtTokenProvider tokens;
+        @Mock AuthenticationManager authenticationManager;
+        @Mock RedisSessionStore sessions;
         @InjectMocks AuthService service;
 
         @DisplayName("회원가입 시 비밀번호를 암호화하고 저장된 사용자를 반환한다")
@@ -61,20 +68,37 @@ class AuthServiceTest {
         @Test void loginIssuesTokenForMatchedUser() {
             User user = User.createUser("a@example.com", "encoded", "nick");
             ReflectionTestUtils.setField(user, "id", 12L);
-            when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-            when(passwords.matches("password123", "encoded")).thenReturn(true);
-            when(tokens.createAccessToken(12L, user.getRole())).thenReturn("token");
+            var principal = new AskTeacherUserDetails(12L, user.getEmail(), "encoded", "USER");
+            when(authenticationManager.authenticate(any())).thenReturn(UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
+            when(sessions.login(12L)).thenReturn(new RedisSessionStore.Token(12L, "session", "refresh"));
+            when(users.findById(12L)).thenReturn(Optional.of(user));
+            when(tokens.createAccessToken(12L, user.getRole(), "session")).thenReturn("token");
             assertThat(service.login(new LoginRequest(user.getEmail(), "password123")))
-                    .isEqualTo(new LoginResponse("token", "Bearer"));
+                    .isEqualTo(new AuthService.Issued(new LoginResponse("token", "Bearer", 900), "refresh"));
         }
 
         @DisplayName("이메일이 없거나 비밀번호가 틀리면 로그인을 거부한다")
         @Test void missingEmailAndWrongPasswordRejectLogin() {
             LoginRequest request = new LoginRequest("a@example.com", "wrong");
+            when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("bad"));
             assertThatThrownBy(() -> service.login(request)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_LOGIN_INFO);
-            when(users.findByEmail(request.email())).thenReturn(Optional.of(User.createUser(request.email(), "encoded", "nick")));
             assertThatThrownBy(() -> service.login(request)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_LOGIN_INFO);
             verifyNoInteractions(tokens);
+        }
+
+        @DisplayName("Redis 연결 실패를 인증 만료와 구별한다")
+        @Test void refreshMapsRedisFailure() {
+            when(sessions.rotate("refresh")).thenThrow(new org.springframework.data.redis.RedisConnectionFailureException("unavailable"));
+            assertThatThrownBy(() -> service.refresh("refresh")).isInstanceOf(RedisUnavailableException.class);
+        }
+
+        @DisplayName("로그아웃은 검증 결과를 재사용하여 만료 경계에서 재파싱하지 않는다")
+        @Test void logoutUsesOneVerification() {
+            var principal = new AskTeacherUserDetails(12L, "", "", "USER");
+            var auth = UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities());
+            service.logout(null, new JwtTokenProvider.Verified(auth, "sid"));
+            verifyNoInteractions(tokens);
+            verify(sessions).logoutAccess(12L, "sid");
         }
     }
 }

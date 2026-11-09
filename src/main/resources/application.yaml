@@ -27,10 +27,15 @@ spring:
       max-request-size: 100MB
 
 jwt:
-  secret: my-secret-key-my-secret-key-my-secret-key
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: 900000
 
 app:
+  auth:
+    csrf-secret: ${AUTH_CSRF_SECRET}
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}
+    cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Strict}
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173}
   file-storage:
     post-upload-dir: uploads/posts
     max-file-size: 10485760
