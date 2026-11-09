@@ -36,7 +36,8 @@ class AuthServiceTest {
         @InjectMocks AuthService service;
 
         @DisplayName("회원가입 시 비밀번호를 암호화하고 저장된 사용자를 반환한다")
-        @Test void signupEncodesPasswordAndMapsSavedUser() {
+        @Test
+        void signupEncodesPasswordAndMapsSavedUser() {
             when(passwords.encode("password123")).thenReturn("encoded");
             when(users.save(any())).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
@@ -49,7 +50,8 @@ class AuthServiceTest {
         }
 
         @DisplayName("이메일이 중복되면 저장하지 않는다")
-        @Test void duplicateEmailStopsBeforeSaving() {
+        @Test
+        void duplicateEmailStopsBeforeSaving() {
             when(users.existsByEmail("a@example.com")).thenReturn(true);
             assertThatThrownBy(() -> service.signup(new SignupRequest("a@example.com", "password123", "nick")))
                     .isInstanceOf(CustomException.class).extracting("errorCode").isEqualTo(ErrorCode.DUPLICATE_EMAIL);
@@ -58,7 +60,8 @@ class AuthServiceTest {
         }
 
         @DisplayName("닉네임이 중복되면 저장하지 않는다")
-        @Test void duplicateNicknameStopsBeforeSaving() {
+        @Test
+        void duplicateNicknameStopsBeforeSaving() {
             when(users.existsByNickname("nick")).thenReturn(true);
             assertThatThrownBy(() -> service.signup(new SignupRequest("a@example.com", "password123", "nick")))
                     .isInstanceOf(CustomException.class).extracting("errorCode").isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
@@ -66,10 +69,11 @@ class AuthServiceTest {
         }
 
         @DisplayName("일치하는 사용자의 로그인에 토큰을 발급한다")
-        @Test void loginIssuesTokenForMatchedUser() {
+        @Test
+        void loginIssuesTokenForMatchedUser() {
             User user = User.createUser("a@example.com", "encoded", "nick");
             ReflectionTestUtils.setField(user, "id", 12L);
-            var principal = new AskTeacherUserDetails(12L, user.getEmail(), "encoded", "USER");
+            AskTeacherUserDetails principal = new AskTeacherUserDetails(12L, user.getEmail(), "encoded", "USER");
             when(authenticationManager.authenticate(any())).thenReturn(UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
             when(sessions.login(12L)).thenReturn(new RedisSessionStore.Token(12L, "session", "refresh"));
             when(users.findById(12L)).thenReturn(Optional.of(user));
@@ -79,7 +83,8 @@ class AuthServiceTest {
         }
 
         @DisplayName("이메일이 없거나 비밀번호가 틀리면 로그인을 거부한다")
-        @Test void missingEmailAndWrongPasswordRejectLogin() {
+        @Test
+        void missingEmailAndWrongPasswordRejectLogin() {
             LoginRequest request = new LoginRequest("a@example.com", "wrong");
             when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("bad"));
             assertThatThrownBy(() -> service.login(request)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_LOGIN_INFO);
@@ -88,15 +93,17 @@ class AuthServiceTest {
         }
 
         @DisplayName("Redis 연결 실패를 인증 만료와 구별한다")
-        @Test void refreshMapsRedisFailure() {
+        @Test
+        void refreshMapsRedisFailure() {
             when(sessions.rotate("refresh")).thenThrow(new RedisConnectionFailureException("unavailable"));
             assertThatThrownBy(() -> service.refresh("refresh")).isInstanceOf(RedisUnavailableException.class);
         }
 
         @DisplayName("로그아웃은 검증 결과를 재사용하여 만료 경계에서 재파싱하지 않는다")
-        @Test void logoutUsesOneVerification() {
-            var principal = new AskTeacherUserDetails(12L, "", "", "USER");
-            var auth = UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities());
+        @Test
+        void logoutUsesOneVerification() {
+            AskTeacherUserDetails principal = new AskTeacherUserDetails(12L, "", "", "USER");
+            UsernamePasswordAuthenticationToken auth = UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities());
             service.logout(null, new JwtTokenProvider.Verified(auth, "sid"));
             verifyNoInteractions(tokens);
             verify(sessions).logoutAccess(12L, "sid");

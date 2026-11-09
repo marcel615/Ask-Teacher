@@ -40,58 +40,93 @@ public class SecurityConfig {
     private final String sameSite;
     private final String origins;
     private final String csrfSecret;
-    public SecurityConfig(JwtAuthenticationFilter filter, @Value("${app.auth.cookie-secure:true}") boolean secure,
-                          @Value("${app.auth.cookie-same-site:Strict}") String sameSite,
-                          @Value("${app.auth.allowed-origins:http://localhost:5173}") String origins,
-                          @Value("${app.auth.csrf-secret}") String csrfSecret,
-                          Environment environment) {
-        var profiles = List.of(environment.getActiveProfiles());
-        if (!secure && (profiles.contains("prod") || (!profiles.contains("dev") && !profiles.contains("test")) || "None".equalsIgnoreCase(sameSite)))
+    public SecurityConfig(
+            JwtAuthenticationFilter filter,
+            @Value("${app.auth.cookie-secure:true}") boolean secure,
+            @Value("${app.auth.cookie-same-site:Strict}") String sameSite,
+            @Value("${app.auth.allowed-origins:http://localhost:5173}") String origins,
+            @Value("${app.auth.csrf-secret}") String csrfSecret,
+            Environment environment
+    ) {
+        List<String> profiles = List.of(environment.getActiveProfiles());
+        boolean productionProfile = profiles.contains("prod");
+        boolean developmentOrTestProfile = profiles.contains("dev") || profiles.contains("test");
+        boolean sameSiteNone = "None".equalsIgnoreCase(sameSite);
+        if (!secure && (productionProfile || !developmentOrTestProfile || sameSiteNone)) {
             throw new IllegalStateException("Secure cookies are required in production or with SameSite=None");
-        if (!List.of("Strict", "Lax", "None").contains(sameSite)) throw new IllegalStateException("Invalid SameSite setting");
-        this.jwtAuthenticationFilter = filter; this.secure = secure; this.sameSite = sameSite; this.origins = origins; this.csrfSecret = csrfSecret;
+        }
+        if (!List.of("Strict", "Lax", "None").contains(sameSite)) {
+            throw new IllegalStateException("Invalid SameSite setting");
+        }
+        this.jwtAuthenticationFilter = filter;
+        this.secure = secure;
+        this.sameSite = sameSite;
+        this.origins = origins;
+        this.csrfSecret = csrfSecret;
     }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper mapper) throws Exception {
         SignedCsrfTokenRepository csrfRepo = new SignedCsrfTokenRepository(csrfSecret, secure, sameSite);
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
-        var paths = PathPatternRequestMatcher.withDefaults();
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.csrfTokenRepository(csrfRepo).csrfTokenRequestHandler(csrfHandler)
-                .requireCsrfProtectionMatcher(new OrRequestMatcher(paths.matcher(HttpMethod.POST, "/api/auth/login"),
-                        paths.matcher(HttpMethod.POST, "/api/auth/refresh"), paths.matcher(HttpMethod.POST, "/api/auth/logout"))))
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            .formLogin(form -> form.disable()).httpBasic(basic -> basic.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(exceptions -> exceptions
+        PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http.csrf(csrf -> csrf
+                .csrfTokenRepository(csrfRepo)
+                .csrfTokenRequestHandler(csrfHandler)
+                .requireCsrfProtectionMatcher(new OrRequestMatcher(
+                        paths.matcher(HttpMethod.POST, "/api/auth/login"),
+                        paths.matcher(HttpMethod.POST, "/api/auth/refresh"),
+                        paths.matcher(HttpMethod.POST, "/api/auth/logout")
+                )));
+        http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
+        http.formLogin(form -> form.disable());
+        http.httpBasic(basic -> basic.disable());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, error) -> writeError(response, mapper, ErrorCode.UNAUTHORIZED))
                 .accessDeniedHandler((request, response, error) -> {
-                    response.setStatus(403); response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.setStatus(403);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
                     mapper.writeValue(response.getWriter(), ErrorResponse.of(403, "접근이 거부되었습니다."));
-                }))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/refresh", "/api/auth/logout", "/api/auth/csrf").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/categories", "/api/posts", "/api/posts/{postId}", "/api/posts/{postId}/comments", "/files/**").permitAll()
-                .anyRequest().authenticated())
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                }));
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/refresh", "/api/auth/logout", "/api/auth/csrf")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/categories", "/api/posts", "/api/posts/{postId}",
+                        "/api/posts/{postId}/comments", "/files/**")
+                .permitAll()
+                .anyRequest().authenticated());
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
     private static void writeError(HttpServletResponse response, ObjectMapper mapper, ErrorCode code) throws IOException {
-        response.setStatus(code.getStatus()); response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setStatus(code.getStatus());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         mapper.writeValue(response.getWriter(), ErrorResponse.of(code.getStatus(), code.getMessage()));
     }
-    @Bean public CorsConfigurationSource corsConfigurationSource() {
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).toList());
         config.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-XSRF-TOKEN"));
         config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(); source.registerCorsConfiguration("/**", config); return source;
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
-    @Bean public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
-    @Bean public AuthenticationManager authenticationManager(AskTeacherUserDetailsService details, PasswordEncoder encoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(details); provider.setPasswordEncoder(encoder); return new ProviderManager(provider);
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AskTeacherUserDetailsService details, PasswordEncoder encoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(details);
+        provider.setPasswordEncoder(encoder);
+        return new ProviderManager(provider);
     }
 }

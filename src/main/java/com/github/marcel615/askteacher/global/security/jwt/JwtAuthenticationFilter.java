@@ -12,7 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
+import org.springframework.security.core.Authentication;
 
 @Component
 @RequiredArgsConstructor
@@ -30,30 +32,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            var verified = jwtTokenProvider.verifyToken(token);
+            Optional<JwtTokenProvider.Verified> verified = jwtTokenProvider.verifyToken(token);
             if (verified.isPresent()) {
-                var authentication = verified.get().authentication();
-                var principal = (AskTeacherUserDetails) authentication.getPrincipal();
+                Authentication authentication = verified.get().authentication();
+                AskTeacherUserDetails principal = (AskTeacherUserDetails) authentication.getPrincipal();
                 try {
                     if (sessions.active(principal.id(), verified.get().sessionId())) {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                         request.setAttribute(VERIFIED_ATTRIBUTE, verified.get());
                     } else if (!request.getRequestURI().substring(request.getContextPath().length()).equals("/api/auth/logout")) {
-                        unauthorized(response); return;
+                        unauthorized(response);
+                        return;
                     }
                 } catch (DataAccessException e) {
-                    response.setStatus(503); response.setContentType("application/json");
+                    response.setStatus(503);
+                    response.setContentType("application/json");
                     response.getWriter().write("{\"status\":503,\"message\":\"Authentication service unavailable\"}");
                     return;
                 }
             } else if (!request.getRequestURI().substring(request.getContextPath().length()).equals("/api/auth/logout")) {
-                unauthorized(response); return;
+                unauthorized(response);
+                return;
             }
         }
         chain.doFilter(request, response);
     }
     private static void unauthorized(HttpServletResponse response) throws IOException {
-        response.setStatus(401); response.setContentType("application/json"); response.setCharacterEncoding("UTF-8");
+        response.setStatus(401);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().write("{\"status\":401,\"message\":\"인증이 필요합니다.\"}");
     }
 }

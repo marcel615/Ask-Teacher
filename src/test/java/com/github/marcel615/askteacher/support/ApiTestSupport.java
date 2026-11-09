@@ -5,6 +5,7 @@ import com.github.marcel615.askteacher.domain.category.repository.CategoryReposi
 import com.github.marcel615.askteacher.domain.post.repository.*;
 import com.github.marcel615.askteacher.domain.postlike.repository.PostLikeRepository;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
+import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.junit.jupiter.api.*;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import tools.jackson.databind.*;
 import java.nio.file.*;
 import java.util.Map;
+import java.util.stream.Stream;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -45,21 +47,27 @@ public abstract class ApiTestSupport {
         registry.add("app.file-storage.post-upload-dir", () -> uploadDirectory.toString());
     }
 
-    @BeforeEach void prepareDatabase() throws Exception {
+    @BeforeEach
+    void prepareDatabase() throws Exception {
         clean();
         categoryId = categories.saveAndFlush(Category.createCategory("Test Java")).getId();
     }
 
-    @AfterEach void clean() throws Exception {
+    @AfterEach
+    void clean() throws Exception {
         // Real HTTP requests commit outside the test thread; rollback cannot clean them.
-        for (var user : users.findAll()) redis.delete(sessionStore.keyForUser(user.getId()));
+        for (User user : users.findAll()) {
+            redis.delete(sessionStore.keyForUser(user.getId()));
+        }
         likes.deleteAllInBatch();
         files.deleteAllInBatch();
         posts.deleteAllInBatch();
         users.deleteAllInBatch();
         categories.deleteAllInBatch();
-        try (var paths = Files.list(uploadDirectory)) {
-            for (Path path : paths.toList()) { Files.delete(path); }
+        try (Stream<Path> paths = Files.list(uploadDirectory)) {
+            for (Path path : paths.toList()) {
+                Files.delete(path);
+            }
         }
     }
 

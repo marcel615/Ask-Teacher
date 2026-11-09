@@ -27,15 +27,16 @@ class AuthControllerTest extends WebTestSupport {
         @MockitoBean AuthService service;
 
         @DisplayName("회원가입과 로그인 요청을 바인딩하고 응답을 반환한다")
-        @Test void signupAndLoginBindJsonAndReturnDirectDtos() throws Exception {
-            var signup = new SignupRequest("a@example.com", "12345678", "ab");
+        @Test
+        void signupAndLoginBindJsonAndReturnDirectDtos() throws Exception {
+            SignupRequest signup = new SignupRequest("a@example.com", "12345678", "ab");
             when(service.signup(signup)).thenReturn(new SignupResponse(1L, signup.email(), signup.nickname()));
             mvc.perform(post("/api/auth/signup").contentType("application/json").content("""
                     {"email":"a@example.com","password":"12345678","nickname":"ab"}
                     """)).andExpect(status().isCreated()).andExpect(jsonPath("$.userId").value(1))
                     .andExpect(jsonPath("$.email").value(signup.email())).andExpect(jsonPath("$.nickname").value("ab"))
                     .andExpect(jsonPath("$.data").doesNotExist());
-            var login = new LoginRequest("a@example.com", "12345678");
+            LoginRequest login = new LoginRequest("a@example.com", "12345678");
             when(service.login(login)).thenReturn(new AuthService.Issued(new LoginResponse("token", "Bearer", 900), "refresh"));
             mvc.perform(post("/api/auth/login").with(csrf()).contentType("application/json").content("""
                     {"email":"a@example.com","password":"12345678"}
@@ -74,7 +75,8 @@ class AuthControllerTest extends WebTestSupport {
         }
 
         @DisplayName("비즈니스 오류의 상태와 응답 본문을 유지한다")
-        @Test void businessErrorsKeepStatusAndErrorBody() throws Exception {
+        @Test
+        void businessErrorsKeepStatusAndErrorBody() throws Exception {
             when(service.signup(any())).thenThrow(new CustomException(ErrorCode.DUPLICATE_EMAIL));
             mvc.perform(post("/api/auth/signup").contentType("application/json").content("""
                     {"email":"a@example.com","password":"12345678","nickname":"ab"}
@@ -87,7 +89,8 @@ class AuthControllerTest extends WebTestSupport {
         }
 
         @DisplayName("최대 길이의 닉네임을 허용한다")
-        @Test void nicknameMaximumLengthIsAccepted() throws Exception {
+        @Test
+        void nicknameMaximumLengthIsAccepted() throws Exception {
             String nickname = "a".repeat(20);
             mvc.perform(post("/api/auth/signup").contentType("application/json")
                     .content("{\"email\":\"a@example.com\",\"password\":\"12345678\",\"nickname\":\"" + nickname + "\"}"))
@@ -96,7 +99,8 @@ class AuthControllerTest extends WebTestSupport {
         }
 
         @DisplayName("로그아웃 중 Redis 장애는 503으로 구분한다")
-        @Test void logoutStorageFailureReturnsServiceUnavailable() throws Exception {
+        @Test
+        void logoutStorageFailureReturnsServiceUnavailable() throws Exception {
             doThrow(new RedisUnavailableException(new RuntimeException()))
                     .when(service).logout(any(), isNull());
             mvc.perform(post("/api/auth/logout").with(csrf()).cookie(new Cookie("refreshToken", "token")))

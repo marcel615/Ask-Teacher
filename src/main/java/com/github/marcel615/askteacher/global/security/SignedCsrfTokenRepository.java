@@ -2,6 +2,7 @@ package com.github.marcel615.askteacher.global.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
@@ -20,35 +21,62 @@ public class SignedCsrfTokenRepository implements CsrfTokenRepository {
     private final byte[] key;
     private final SecureRandom random = new SecureRandom();
     public SignedCsrfTokenRepository(String secret, boolean secure, String sameSite) {
-        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) throw new IllegalStateException("CSRF secret must contain at least 32 bytes");
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("CSRF secret must contain at least 32 bytes");
+        }
         key = secret.getBytes(StandardCharsets.UTF_8);
-        if (secure) cookies.setCookieName("__Host-XSRF-TOKEN");
+        if (secure) {
+            cookies.setCookieName("__Host-XSRF-TOKEN");
+        }
         cookies.setCookieCustomizer(cookie -> cookie.httpOnly(true).secure(secure).sameSite(sameSite).path("/"));
     }
-    @Override public CsrfToken generateToken(HttpServletRequest request) {
-        byte[] nonce = new byte[32]; random.nextBytes(nonce);
+    @Override
+    public CsrfToken generateToken(HttpServletRequest request) {
+        byte[] nonce = new byte[32];
+        random.nextBytes(nonce);
         String value = Base64.getUrlEncoder().withoutPadding().encodeToString(nonce);
         return new DefaultCsrfToken("X-XSRF-TOKEN", "_csrf", value + "." + sign(value, request));
     }
-    @Override public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) { cookies.saveToken(token, request, response); }
-    @Override public CsrfToken loadToken(HttpServletRequest request) {
+    @Override
+    public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+        cookies.saveToken(token, request, response);
+    }
+
+    @Override
+    public CsrfToken loadToken(HttpServletRequest request) {
         CsrfToken token = cookies.loadToken(request);
-        if (token == null) return null;
+        if (token == null) {
+            return null;
+        }
         String[] parts = token.getToken().split("\\.", -1);
-        if (parts.length != 2 || !parts[0].matches("[A-Za-z0-9_-]{43}") || !parts[1].matches("[A-Za-z0-9_-]{43}")) return null;
-        if (!MessageDigest.isEqual(sign(parts[0], request).getBytes(StandardCharsets.US_ASCII), parts[1].getBytes(StandardCharsets.US_ASCII))) return null;
+        if (parts.length != 2 || !parts[0].matches("[A-Za-z0-9_-]{43}") || !parts[1].matches("[A-Za-z0-9_-]{43}")) {
+            return null;
+        }
+        byte[] expectedSignature = sign(parts[0], request).getBytes(StandardCharsets.US_ASCII);
+        byte[] submittedSignature = parts[1].getBytes(StandardCharsets.US_ASCII);
+        if (!MessageDigest.isEqual(expectedSignature, submittedSignature)) {
+            return null;
+        }
         return token;
     }
     private String sign(String value, HttpServletRequest request) {
         try {
-            Mac mac = Mac.getInstance("HmacSHA256"); mac.init(new SecretKeySpec(key, "HmacSHA256"));
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
             String refresh = "";
-            if (request.getCookies() != null) for (var cookie : request.getCookies()) {
-                if ("refreshToken".equals(cookie.getName())) { refresh = cookie.getValue(); break; }
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("refreshToken".equals(cookie.getName())) {
+                        refresh = cookie.getValue();
+                        break;
+                    }
+                }
             }
             byte[] refreshHash = MessageDigest.getInstance("SHA-256").digest(refresh.getBytes(StandardCharsets.UTF_8));
             mac.update(value.getBytes(StandardCharsets.US_ASCII));
             return Base64.getUrlEncoder().withoutPadding().encodeToString(mac.doFinal(refreshHash));
-        } catch (GeneralSecurityException e) { throw new IllegalStateException(e); }
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

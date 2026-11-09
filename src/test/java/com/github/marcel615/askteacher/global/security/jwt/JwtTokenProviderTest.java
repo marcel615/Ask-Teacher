@@ -25,7 +25,7 @@ class JwtTokenProviderTest {
         void getAuthenticationUsesLongUserIdPrincipal() {
             String token = jwtTokenProvider.createAccessToken(1L, UserRole.USER, "session");
 
-            var verified = jwtTokenProvider.verifyToken(token).orElseThrow();
+            JwtTokenProvider.Verified verified = jwtTokenProvider.verifyToken(token).orElseThrow();
             Authentication authentication = verified.authentication();
 
             assertThat(((AskTeacherUserDetails) authentication.getPrincipal()).id()).isEqualTo(1L);
@@ -47,7 +47,8 @@ class JwtTokenProviderTest {
         }
 
         @DisplayName("비어 있거나 충분히 강하지 않은 서명 키로 시작하지 않는다")
-        @Test void rejectsMissingOrWeakSigningKey() {
+        @Test
+        void rejectsMissingOrWeakSigningKey() {
             assertThatThrownBy(() -> new JwtTokenProvider("", 900000)).isInstanceOf(IllegalStateException.class);
             assertThatThrownBy(() -> new JwtTokenProvider("a".repeat(40), 900000)).isInstanceOf(IllegalStateException.class);
             assertThatThrownBy(() -> new JwtTokenProvider("abcdefghij".repeat(4), 900000)).isInstanceOf(IllegalStateException.class);

@@ -13,3 +13,6 @@
 - 리뷰 수정 후 Corretto 17 `./gradlew.bat test --rerun-tasks` 성공: 164건, 실패·오류·건너뜀 0건. Architect 재검토 및 최종 head CI 검증은 남았다.
 - PR #72 생성과 Project In Review, 독립 재검토 필수 지적 없음 및 일반 리뷰 등록을 확인했다. devlog 반영 후 최종 head CI·필수 리뷰·보호 조건을 확인한다.
 - PR #72 사용자 수정 요청: 네 Controller에서 SpEL 대신 인증 주체를 직접 받아 사용자 ID 또는 익명 null을 서비스에 전달하고, Java 본문의 정규화된 클래스 경로를 import로 정리했다. JPQL 생성자 경로는 유지했다. MockMvc 및 실제 JWT의 인증자·익명·보호 API 회귀와 Corretto 17 `./gradlew.bat test --rerun-tasks` 통과(164건, 실패·오류·건너뜀 0).
+- PR #72 가독성 재검토: 최신 develop의 기준을 반영하고 인증·세션·보안 설정의 처리 흐름, DTO와 테스트 구조를 정리했다. Redis Lua의 단일 원자 연산·명령 순서·TTL과 결과는 유지했다. 격리 Redis/H2에서 관련 인증 테스트와 Corretto 17 전체 `./gradlew.bat test --rerun-tasks`가 성공했다(164건, 실패·오류·건너뜀 0). 동작 또는 보장 변경은 하지 않았다. Architect 리뷰와 최종 head CI가 남았다.
+- 가독성 독립 리뷰 1회: CSRF·Redis 장애·Access/Refresh 로그아웃 검증을 개별 사례로 분리하고 보안 설정 조건, Redis 호출 및 테스트의 축약 표현을 정리했다. 관련 인증 테스트와 Corretto 17 전체 `./gradlew.bat test --rerun-tasks` 재실행 성공(170건, 실패·오류·건너뜀 0); 증가분 6건은 기존 복합 사례 분리다.
+- 가독성 독립 리뷰 2회: Redis 장애 테스트를 토큰 발급 및 인증·로그아웃 상황으로, 로그인 CSRF 테스트를 별도 소주제로 묶었다. 관련 통합 테스트와 Corretto 17 전체 `./gradlew.bat test --rerun-tasks` 성공(170건, 실패·오류·건너뜀 0).
