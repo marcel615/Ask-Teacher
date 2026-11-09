@@ -7,6 +7,7 @@ import com.github.marcel615.askteacher.domain.post.dto.PostPageResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
 import com.github.marcel615.askteacher.domain.post.service.PostService;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,11 +35,11 @@ public class PostController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostCreateResponse> createPost(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @Valid @ModelAttribute PostCreateRequest postCreateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
-        PostCreateResponse postCreateResponse = postService.createPost(userId, postCreateRequest, files);
+        PostCreateResponse postCreateResponse = postService.createPost(principal == null ? null : principal.id(), postCreateRequest, files);
         return ResponseEntity.status(HttpStatus.CREATED).body(postCreateResponse);
     }
 
@@ -55,30 +56,30 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPost(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
-        PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
+        PostDetailResponse postDetailResponse = postService.getPost(postId, principal == null ? null : principal.id());
         return ResponseEntity.ok(postDetailResponse);
     }
 
     @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostUpdateResponse> updatePost(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId,
             @Valid @ModelAttribute PostUpdateRequest postUpdateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
-        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userId, postUpdateRequest, files);
+        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, principal == null ? null : principal.id(), postUpdateRequest, files);
         return ResponseEntity.ok(postUpdateResponse);
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
-        postService.deletePost(postId, userId);
+        postService.deletePost(postId, principal == null ? null : principal.id());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

@@ -6,6 +6,7 @@ import com.github.marcel615.askteacher.domain.post.service.PostService;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import java.sql.SQLException;
 import com.github.marcel615.askteacher.support.ApiTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -84,7 +85,7 @@ class ApiIntegrationTest extends ApiTestSupport {
                     var category = categories.findById(categoryId).orElseThrow();
                     ReflectionTestUtils.setField(category, "name", null);
                     entityManager.flush();
-                })).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(java.sql.SQLException.class);
+                })).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(SQLException.class);
                 assertThat(posts.count()).isEqualTo(1);
                 assertThat(posts.findById(id).orElseThrow().getTitle()).isEqualTo("Spring question");
                 assertThat(files.count()).isEqualTo(1);

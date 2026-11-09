@@ -7,8 +7,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 import java.util.Map;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+import java.time.Duration;
 import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -64,7 +73,7 @@ class AuthSessionIntegrationTest extends ApiTestSupport {
                 try {
                     Callable<RedisSessionStore.Token> rotate = () -> { start.await(); return sessions.rotate(token.value()); };
                     var a = pool.submit(rotate); var b = pool.submit(rotate); start.countDown();
-                    assertThat(java.util.stream.Stream.of(a.get(), b.get()).filter(java.util.Objects::nonNull).count()).isEqualTo(1);
+                    assertThat(Stream.of(a.get(), b.get()).filter(Objects::nonNull).count()).isEqualTo(1);
                     assertThat(sessions.active(token.userId(), token.sessionId())).isFalse();
                 } finally { pool.shutdownNow(); }
             } finally { redis.delete(sessions.keyForUser(910000001L)); }
@@ -117,7 +126,7 @@ class AuthSessionIntegrationTest extends ApiTestSupport {
 
         @DisplayName("Access 또는 Refresh 인증으로 로그아웃하면 두 토큰을 모두 거부한다")
         @Test void authenticatedLogoutRevokesBothTokens() throws Exception {
-            for (String name : java.util.List.of("logoutaccess", "logoutrefresh")) {
+            for (String name : List.of("logoutaccess", "logoutrefresh")) {
                 mvc.perform(post("/api/auth/signup").contentType("application/json").content(json.writeValueAsString(
                         Map.of("email", name + "@example.com", "password", "password123", "nickname", name))))
                         .andExpect(status().isCreated());
@@ -176,16 +185,16 @@ class AuthSessionIntegrationTest extends ApiTestSupport {
 
         @DisplayName("연결할 수 없는 Redis는 세션을 인증하지 않고 오류를 반환한다")
         @Test void unavailableRedisFailsClosed() {
-            var config = new org.springframework.data.redis.connection.RedisStandaloneConfiguration("127.0.0.1", 1);
-            var client = org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.builder()
-                    .commandTimeout(java.time.Duration.ofSeconds(1)).build();
-            var factory = new org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory(config, client);
+            var config = new RedisStandaloneConfiguration("127.0.0.1", 1);
+            var client = LettuceClientConfiguration.builder()
+                    .commandTimeout(Duration.ofSeconds(1)).build();
+            var factory = new LettuceConnectionFactory(config, client);
             factory.afterPropertiesSet(); factory.start();
             try {
-                var template = new org.springframework.data.redis.core.StringRedisTemplate(factory);
+                var template = new StringRedisTemplate(factory);
                 template.afterPropertiesSet();
                 assertThatThrownBy(() -> new RedisSessionStore(template, "test-only-q8MzV3RaL5NcH2PtJ7XyK4UwZ9Gf").active(1L, "session"))
-                        .isInstanceOf(org.springframework.dao.DataAccessException.class);
+                        .isInstanceOf(DataAccessException.class);
             } finally { factory.destroy(); }
         }
     }

@@ -10,6 +10,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -48,6 +49,6 @@ public class SignedCsrfTokenRepository implements CsrfTokenRepository {
             byte[] refreshHash = MessageDigest.getInstance("SHA-256").digest(refresh.getBytes(StandardCharsets.UTF_8));
             mac.update(value.getBytes(StandardCharsets.US_ASCII));
             return Base64.getUrlEncoder().withoutPadding().encodeToString(mac.doFinal(refreshHash));
-        } catch (java.security.GeneralSecurityException e) { throw new IllegalStateException(e); }
+        } catch (GeneralSecurityException e) { throw new IllegalStateException(e); }
     }
 }

@@ -39,11 +39,13 @@ class CommentApiIntegrationTest extends ApiTestSupport {
             String alice = signupAndLogin("alice");
             String bob = signupAndLogin("bob");
             Long postId = createPost(alice);
+            Long aliceId = users.findByEmail("alice@example.com").orElseThrow().getId();
 
             var created = body(mvc.perform(post("/api/posts/{postId}/comments", postId)
                             .header("Authorization", "Bearer " + alice).contentType("application/json")
                             .content(json.writeValueAsString(Map.of("content", "  first comment  "))))
-                    .andExpect(status().isCreated()).andExpect(jsonPath("$.content").value("first comment"))
+                    .andExpect(status().isCreated()).andExpect(jsonPath("$.writerId").value(aliceId))
+                    .andExpect(jsonPath("$.content").value("first comment"))
                     .andExpect(jsonPath("$.likeCount").value(0)).andExpect(jsonPath("$.likedByMe").value(false)));
             long commentId = created.get("commentId").asLong();
             assertThat(comments.findById(commentId).orElseThrow().isDeleted()).isFalse();

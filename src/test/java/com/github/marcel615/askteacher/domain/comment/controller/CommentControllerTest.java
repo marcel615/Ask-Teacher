@@ -56,6 +56,7 @@ class CommentControllerTest extends WebTestSupport {
                     .andExpect(status().isOk()).andExpect(jsonPath("$.comments").isEmpty())
                     .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(20))
                     .andExpect(jsonPath("$.sort").value("latest"));
+            verify(service).getComments(3L, null, 0, 20, "latest");
             mvc.perform(get("/api/posts/3/comments").with(authenticated())
                             .param("page", "1").param("size", "5").param("sort", "likeCount"))
                     .andExpect(status().isOk());

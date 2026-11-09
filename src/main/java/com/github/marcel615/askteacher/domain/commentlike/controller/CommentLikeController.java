@@ -2,6 +2,7 @@ package com.github.marcel615.askteacher.domain.commentlike.controller;
 
 import com.github.marcel615.askteacher.domain.commentlike.dto.CommentLikeResponse;
 import com.github.marcel615.askteacher.domain.commentlike.service.CommentLikeService;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +22,18 @@ public class CommentLikeController {
 
     @PostMapping
     public ResponseEntity<CommentLikeResponse> likeComment(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(commentLikeService.likeComment(commentId, userId));
+                .body(commentLikeService.likeComment(commentId, principal == null ? null : principal.id()));
     }
 
     @DeleteMapping
     public ResponseEntity<CommentLikeResponse> unlikeComment(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId
     ) {
-        return ResponseEntity.ok(commentLikeService.unlikeComment(commentId, userId));
+        return ResponseEntity.ok(commentLikeService.unlikeComment(commentId, principal == null ? null : principal.id()));
     }
 }

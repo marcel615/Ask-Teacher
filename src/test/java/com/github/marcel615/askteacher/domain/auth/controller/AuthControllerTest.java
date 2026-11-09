@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.domain.auth.controller;
 
 import com.github.marcel615.askteacher.domain.auth.dto.*;
 import com.github.marcel615.askteacher.domain.auth.service.AuthService;
+import com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException;
+import jakarta.servlet.http.Cookie;
 import com.github.marcel615.askteacher.global.exception.*;
 import com.github.marcel615.askteacher.support.WebTestSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -95,9 +97,9 @@ class AuthControllerTest extends WebTestSupport {
 
         @DisplayName("로그아웃 중 Redis 장애는 503으로 구분한다")
         @Test void logoutStorageFailureReturnsServiceUnavailable() throws Exception {
-            doThrow(new com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException(new RuntimeException()))
+            doThrow(new RedisUnavailableException(new RuntimeException()))
                     .when(service).logout(any(), isNull());
-            mvc.perform(post("/api/auth/logout").with(csrf()).cookie(new jakarta.servlet.http.Cookie("refreshToken", "token")))
+            mvc.perform(post("/api/auth/logout").with(csrf()).cookie(new Cookie("refreshToken", "token")))
                     .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.status").value(503));
         }
     }

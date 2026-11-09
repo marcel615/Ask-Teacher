@@ -21,6 +21,7 @@ import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.data.redis.RedisConnectionFailureException;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -88,7 +89,7 @@ class AuthServiceTest {
 
         @DisplayName("Redis 연결 실패를 인증 만료와 구별한다")
         @Test void refreshMapsRedisFailure() {
-            when(sessions.rotate("refresh")).thenThrow(new org.springframework.data.redis.RedisConnectionFailureException("unavailable"));
+            when(sessions.rotate("refresh")).thenThrow(new RedisConnectionFailureException("unavailable"));
             assertThatThrownBy(() -> service.refresh("refresh")).isInstanceOf(RedisUnavailableException.class);
         }
 

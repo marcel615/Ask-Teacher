@@ -6,6 +6,9 @@ import com.github.marcel615.askteacher.global.security.jwt.JwtAuthenticationFilt
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.global.response.ErrorResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -41,7 +44,7 @@ public class SecurityConfig {
                           @Value("${app.auth.cookie-same-site:Strict}") String sameSite,
                           @Value("${app.auth.allowed-origins:http://localhost:5173}") String origins,
                           @Value("${app.auth.csrf-secret}") String csrfSecret,
-                          org.springframework.core.env.Environment environment) {
+                          Environment environment) {
         var profiles = List.of(environment.getActiveProfiles());
         if (!secure && (profiles.contains("prod") || (!profiles.contains("dev") && !profiles.contains("test")) || "None".equalsIgnoreCase(sameSite)))
             throw new IllegalStateException("Secure cookies are required in production or with SameSite=None");
@@ -74,7 +77,7 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-    private static void writeError(jakarta.servlet.http.HttpServletResponse response, ObjectMapper mapper, ErrorCode code) throws java.io.IOException {
+    private static void writeError(HttpServletResponse response, ObjectMapper mapper, ErrorCode code) throws IOException {
         response.setStatus(code.getStatus()); response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         mapper.writeValue(response.getWriter(), ErrorResponse.of(code.getStatus(), code.getMessage()));

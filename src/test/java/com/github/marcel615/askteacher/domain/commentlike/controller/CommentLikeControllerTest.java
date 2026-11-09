@@ -33,6 +33,8 @@ class CommentLikeControllerTest extends WebTestSupport {
             mvc.perform(delete("/api/comments/5/likes").with(authenticated()))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.likeCount").value(1))
                     .andExpect(jsonPath("$.likedByMe").value(false));
+            verify(service).likeComment(5L, 7L);
+            verify(service).unlikeComment(5L, 7L);
         }
 
         @DisplayName("정의된 비즈니스 오류를 응답으로 변환한다")

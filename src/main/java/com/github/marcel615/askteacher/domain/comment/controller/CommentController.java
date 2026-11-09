@@ -5,6 +5,7 @@ import com.github.marcel615.askteacher.domain.comment.dto.CommentPageResponse;
 import com.github.marcel615.askteacher.domain.comment.dto.CommentResponse;
 import com.github.marcel615.askteacher.domain.comment.dto.CommentUpdateRequest;
 import com.github.marcel615.askteacher.domain.comment.service.CommentService;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,40 +28,40 @@ public class CommentController {
 
     @PostMapping("/api/posts/{postId}/comments")
     public ResponseEntity<CommentResponse> createComment(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(commentService.createComment(postId, userId, request));
+                .body(commentService.createComment(postId, principal == null ? null : principal.id(), request));
     }
 
     @GetMapping("/api/posts/{postId}/comments")
     public ResponseEntity<CommentPageResponse> getComments(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "latest") String sort
     ) {
-        return ResponseEntity.ok(commentService.getComments(postId, userId, page, size, sort));
+        return ResponseEntity.ok(commentService.getComments(postId, principal == null ? null : principal.id(), page, size, sort));
     }
 
     @PatchMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId,
             @Valid @RequestBody CommentUpdateRequest request
     ) {
-        return ResponseEntity.ok(commentService.updateComment(commentId, userId, request));
+        return ResponseEntity.ok(commentService.updateComment(commentId, principal == null ? null : principal.id(), request));
     }
 
     @DeleteMapping("/api/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @AuthenticationPrincipal(expression = "#this instanceof T(com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) ? id : null") Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId
     ) {
-        commentService.deleteComment(commentId, userId);
+        commentService.deleteComment(commentId, principal == null ? null : principal.id());
         return ResponseEntity.noContent().build();
     }
 }

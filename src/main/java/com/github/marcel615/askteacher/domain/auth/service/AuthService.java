@@ -15,6 +15,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataAccessException;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 @Service
@@ -63,8 +65,8 @@ public class AuthService {
         }
         redisCall(() -> { sessions.logoutRefresh(refresh); return null; });
     }
-    private static <T> T redisCall(java.util.function.Supplier<T> operation) {
+    private static <T> T redisCall(Supplier<T> operation) {
         try { return operation.get(); }
-        catch (org.springframework.dao.DataAccessException e) { throw new RedisUnavailableException(e); }
+        catch (DataAccessException e) { throw new RedisUnavailableException(e); }
     }
 }

@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.domain.auth.controller;
 
 import com.github.marcel615.askteacher.domain.auth.dto.*;
 import com.github.marcel615.askteacher.domain.auth.service.AuthService;
+import com.github.marcel615.askteacher.global.security.jwt.JwtAuthenticationFilter;
+import com.github.marcel615.askteacher.global.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +39,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> refresh(@CookieValue(name = "refreshToken", required = false) String refresh) { return response(authService.refresh(refresh)); }
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refresh, HttpServletRequest request) {
-        var verified = (com.github.marcel615.askteacher.global.security.jwt.JwtTokenProvider.Verified)
-                request.getAttribute(com.github.marcel615.askteacher.global.security.jwt.JwtAuthenticationFilter.VERIFIED_ATTRIBUTE);
+        var verified = (JwtTokenProvider.Verified) request.getAttribute(JwtAuthenticationFilter.VERIFIED_ATTRIBUTE);
         authService.logout(refresh, verified);
         return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, cookie("", 0)).build();
     }

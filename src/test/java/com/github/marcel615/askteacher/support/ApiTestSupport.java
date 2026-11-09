@@ -5,6 +5,8 @@ import com.github.marcel615.askteacher.domain.category.repository.CategoryReposi
 import com.github.marcel615.askteacher.domain.post.repository.*;
 import com.github.marcel615.askteacher.domain.postlike.repository.PostLikeRepository;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
+import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +36,8 @@ public abstract class ApiTestSupport {
     @Autowired protected PostRepository posts;
     @Autowired protected PostFileRepository files;
     @Autowired protected PostLikeRepository likes;
-    @Autowired protected org.springframework.data.redis.core.StringRedisTemplate redis;
-    @Autowired protected com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore sessionStore;
+    @Autowired protected StringRedisTemplate redis;
+    @Autowired protected RedisSessionStore sessionStore;
     protected Long categoryId;
 
     @DynamicPropertySource

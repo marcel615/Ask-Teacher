@@ -12,3 +12,4 @@
 - 사용자 추가 승인으로 공개 JWT 기본 키를 제거하고 필수 JWT_SECRET과 약한 키 거부를 적용했다. 서명 키 교체 시 기존 Refresh 세션도 거부하며 재로그인이 필요하다. 이전 키로 TTL 내 되돌릴 때의 세션 부활 방지는 운영 복구 정책의 별도 범위로 기록했다.
 - 리뷰 수정 후 Corretto 17 `./gradlew.bat test --rerun-tasks` 성공: 164건, 실패·오류·건너뜀 0건. Architect 재검토 및 최종 head CI 검증은 남았다.
 - PR #72 생성과 Project In Review, 독립 재검토 필수 지적 없음 및 일반 리뷰 등록을 확인했다. devlog 반영 후 최종 head CI·필수 리뷰·보호 조건을 확인한다.
+- PR #72 사용자 수정 요청: 네 Controller에서 SpEL 대신 인증 주체를 직접 받아 사용자 ID 또는 익명 null을 서비스에 전달하고, Java 본문의 정규화된 클래스 경로를 import로 정리했다. JPQL 생성자 경로는 유지했다. MockMvc 및 실제 JWT의 인증자·익명·보호 API 회귀와 Corretto 17 `./gradlew.bat test --rerun-tasks` 통과(164건, 실패·오류·건너뜀 0).

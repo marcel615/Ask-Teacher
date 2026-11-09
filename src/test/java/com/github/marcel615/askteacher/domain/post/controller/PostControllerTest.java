@@ -91,6 +91,7 @@ class PostControllerTest extends WebTestSupport {
             when(service.getPost(3L, null)).thenReturn(new PostDetailResponse(3L, "nick", "Java", "title", "body", 2, false, LocalDateTime.now(), List.of()));
             mvc.perform(get("/api/posts/3")).andExpect(status().isOk()).andExpect(jsonPath("$.likedByMe").value(false))
                     .andExpect(jsonPath("$.likeCount").value(2)).andExpect(jsonPath("$.files").isEmpty());
+            verify(service).getPost(3L, null);
             mvc.perform(get("/api/posts/3").with(authenticated())).andExpect(status().isOk());
             verify(service).getPost(3L, 7L);
             mvc.perform(delete("/api/posts/3").with(authenticated())).andExpect(status().isNoContent()).andExpect(content().string(""));

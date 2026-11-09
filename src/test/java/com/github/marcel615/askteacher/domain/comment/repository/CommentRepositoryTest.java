@@ -1,6 +1,8 @@
 package com.github.marcel615.askteacher.domain.comment.repository;
 
 import com.github.marcel615.askteacher.domain.comment.entity.Comment;
+import com.github.marcel615.askteacher.domain.post.entity.Post;
+import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.commentlike.entity.CommentLike;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -103,8 +105,8 @@ class CommentRepositoryTest extends RepositoryTestSupport {
             }
         }
 
-        private Comment comment(com.github.marcel615.askteacher.domain.post.entity.Post post,
-                                com.github.marcel615.askteacher.domain.user.entity.User user,
+        private Comment comment(Post post,
+                                User user,
                                 String content, LocalDateTime createdAt) {
             Comment comment = Comment.create(post, user, content);
             ReflectionTestUtils.setField(comment, "createdAt", createdAt);

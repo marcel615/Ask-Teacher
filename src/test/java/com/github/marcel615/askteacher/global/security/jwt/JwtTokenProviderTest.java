@@ -1,12 +1,14 @@
 package com.github.marcel615.askteacher.global.security.jwt;
 
 import com.github.marcel615.askteacher.domain.user.type.UserRole;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtTokenProviderTest {
     @Nested
@@ -26,7 +28,7 @@ class JwtTokenProviderTest {
             var verified = jwtTokenProvider.verifyToken(token).orElseThrow();
             Authentication authentication = verified.authentication();
 
-            assertThat(((com.github.marcel615.askteacher.global.security.AskTeacherUserDetails) authentication.getPrincipal()).id()).isEqualTo(1L);
+            assertThat(((AskTeacherUserDetails) authentication.getPrincipal()).id()).isEqualTo(1L);
             assertThat(verified.sessionId()).isEqualTo("session");
             assertThat(jwtTokenProvider.validateToken(token)).isTrue();
             assertThat(authentication.getAuthorities()).extracting("authority").containsExactly("USER");
@@ -46,10 +48,10 @@ class JwtTokenProviderTest {
 
         @DisplayName("비어 있거나 충분히 강하지 않은 서명 키로 시작하지 않는다")
         @Test void rejectsMissingOrWeakSigningKey() {
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> new JwtTokenProvider("", 900000)).isInstanceOf(IllegalStateException.class);
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> new JwtTokenProvider("a".repeat(40), 900000)).isInstanceOf(IllegalStateException.class);
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> new JwtTokenProvider("abcdefghij".repeat(4), 900000)).isInstanceOf(IllegalStateException.class);
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> new JwtTokenProvider("abcdefghijklmnop".repeat(2), 900000)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> new JwtTokenProvider("", 900000)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> new JwtTokenProvider("a".repeat(40), 900000)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> new JwtTokenProvider("abcdefghij".repeat(4), 900000)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> new JwtTokenProvider("abcdefghijklmnop".repeat(2), 900000)).isInstanceOf(IllegalStateException.class);
         }
     }
 }

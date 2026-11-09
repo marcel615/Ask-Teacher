@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,7 +62,7 @@ class SecurityConfigTest {
             assertThat(response.statusCode()).isEqualTo(401);
             MediaType contentType = MediaType.parseMediaType(response.headers().firstValue("Content-Type").orElseThrow());
             assertThat(contentType.isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
-            assertThat(contentType.getCharset()).isEqualTo(java.nio.charset.StandardCharsets.UTF_8);
+            assertThat(contentType.getCharset()).isEqualTo(StandardCharsets.UTF_8);
             assertThat(objectMapper.readTree(response.body()))
                     .isEqualTo(objectMapper.readTree("{\"status\":401,\"message\":\"인증이 필요합니다.\"}"));
         }
