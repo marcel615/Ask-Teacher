@@ -32,10 +32,10 @@ Access Token의 subject에는 사용자 ID가 들어가며, 서버는 인증된 
 | 회원가입 | POST | `/api/auth/signup` | 불필요 | 구현됨 |
 | 로그인 | POST | `/api/auth/login` | 불필요 | 구현됨 |
 | 카테고리 목록 조회 | GET | `/api/categories` | 불필요 | 구현됨 |
-| 게시글 작성 | POST | `/api/posts` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 예정 |
+| 게시글 작성 | POST | `/api/posts` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 |
 | 게시글 목록 조회 | GET | `/api/posts` | 불필요 | 구현됨, 검색/페이징/카테고리 필터 지원 예정 |
-| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨, 첨부파일 정보 반환 예정 |
-| 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 예정 |
+| 게시글 상세 조회 | GET | `/api/posts/{postId}` | 불필요 | 구현됨, 첨부파일 정보 반환 |
+| 게시글 수정 | PATCH | `/api/posts/{postId}` | 필요 | 구현됨, multipart/form-data 첨부파일 지원 |
 | 게시글 삭제 | DELETE | `/api/posts/{postId}` | 필요 | 구현됨 |
 | 게시글 좋아요 등록 | POST | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
 | 게시글 좋아요 취소 | DELETE | `/api/posts/{postId}/likes` | 필요 | 구현 예정 |
@@ -208,6 +208,8 @@ Content-Type: multipart/form-data
 | 카테고리 없음 | 404 Not Found |
 | 파일 저장 실패 | 500 Internal Server Error |
 
+첨부 저장이나 DB 트랜잭션이 롤백되면 이 요청에서 생성한 파일과 부분 파일을 정리한다. 기존 파일은 보존한다. 정리에 실패하거나 트랜잭션 결과를 알 수 없는 경우 파일이 남을 수 있다.
+
 ---
 
 ## 게시글 목록 조회
@@ -378,6 +380,8 @@ Content-Type: multipart/form-data
 | 게시글 없음 | 404 Not Found |
 | 카테고리 없음 | 404 Not Found |
 | 파일 저장 실패 | 500 Internal Server Error |
+
+첨부 저장이나 DB 트랜잭션이 롤백되면 이 요청에서 생성한 파일과 부분 파일을 정리한다. 기존 파일은 보존한다. 정리에 실패하거나 트랜잭션 결과를 알 수 없는 경우 파일이 남을 수 있다.
 
 ### 비고
 

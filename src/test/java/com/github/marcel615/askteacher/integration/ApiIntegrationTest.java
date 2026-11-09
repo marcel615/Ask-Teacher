@@ -2,6 +2,9 @@ package com.github.marcel615.askteacher.integration;
 
 import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.post.storage.PostFileStorage;
+import com.github.marcel615.askteacher.domain.post.service.PostService;
+import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
+import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.support.ApiTestSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +16,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import java.nio.file.Files;
@@ -21,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,6 +38,99 @@ class ApiIntegrationTest extends ApiTestSupport {
     class Scenarios {
         @Autowired PasswordEncoder passwordEncoder;
         @Autowired PostFileStorage storage;
+        @Autowired PostService postService;
+        @Autowired TransactionTemplate transactions;
+        @Autowired EntityManager entityManager;
+
+        @DisplayName("후속 파일 검증 실패 시 생성과 수정의 파일 및 DB 변경을 롤백한다")
+        @Test void subsequentInvalidFileRollsBackBothRequests() throws Exception {
+            String token = signupAndLogin("alice");
+            long id = body(mvc.perform(createRequest().file(new MockMultipartFile("files", "old.png", "image/png", new byte[]{9}))
+                    .header("Authorization", "Bearer " + token)).andExpect(status().isCreated())).get("postId").asLong();
+            Path existing = Path.of(files.findByPostIdOrderByCreatedAtAsc(id).get(0).getFilePath());
+            for (var method : List.of(HttpMethod.POST, HttpMethod.PATCH)) {
+                mvc.perform(multipart(method, method == HttpMethod.POST ? "/api/posts" : "/api/posts/" + id)
+                        .file(new MockMultipartFile("files", "first.png", "image/png", new byte[]{1}))
+                        .file(new MockMultipartFile("files", "bad.txt", "text/plain", new byte[]{2}))
+                        .param("categoryId", categoryId.toString()).param("title", "changed").param("content", "body")
+                        .header("Authorization", "Bearer " + token)).andExpect(status().isBadRequest());
+                assertThat(posts.count()).isEqualTo(1);
+                assertThat(posts.findById(id).orElseThrow().getTitle()).isEqualTo("Spring question");
+                assertThat(files.count()).isEqualTo(1);
+                try (var paths = Files.list(uploadDirectory)) { assertThat(paths.toList()).containsExactly(existing); }
+            }
+        }
+
+        @DisplayName("부분 전송과 파일 저장 후 DB 실패는 생성과 수정의 파일 및 DB를 롤백한다")
+        @Test void partialTransferAndDatabaseFailureRollbackBothOperations() throws Exception {
+            String token = signupAndLogin("alice");
+            long id = body(mvc.perform(createRequest().file(new MockMultipartFile("files", "old.png", "image/png", new byte[]{9}))
+                    .header("Authorization", "Bearer " + token)).andExpect(status().isCreated())).get("postId").asLong();
+            long userId = users.findByEmail("alice@example.com").orElseThrow().getId();
+            Path existing = Path.of(files.findByPostIdOrderByCreatedAtAsc(id).get(0).getFilePath());
+            for (boolean update : List.of(false, true)) {
+                MultipartFile failing = mock(MultipartFile.class);
+                when(failing.getOriginalFilename()).thenReturn("partial.png");
+                when(failing.getContentType()).thenReturn("image/png");
+                when(failing.getSize()).thenReturn(1L);
+                doAnswer(call -> { Files.writeString(call.getArgument(0), "partial"); throw new IOException("failure"); })
+                        .when(failing).transferTo(any(Path.class));
+                var first = new MockMultipartFile("files", "first.png", "image/png", new byte[]{1});
+                assertThatThrownBy(() -> save(update, id, userId, List.of(first, failing))).hasFieldOrPropertyWithValue("errorCode", ErrorCode.FILE_STORAGE_FAILED);
+                assertThatThrownBy(() -> transactions.executeWithoutResult(status -> {
+                    save(update, id, userId, List.of(first));
+                    entityManager.clear();
+                    var category = categories.findById(categoryId).orElseThrow();
+                    ReflectionTestUtils.setField(category, "name", null);
+                    entityManager.flush();
+                })).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(java.sql.SQLException.class);
+                assertThat(posts.count()).isEqualTo(1);
+                assertThat(posts.findById(id).orElseThrow().getTitle()).isEqualTo("Spring question");
+                assertThat(files.count()).isEqualTo(1);
+                assertThat(Files.readAllBytes(existing)).containsExactly((byte) 9);
+                try (var paths = Files.list(uploadDirectory)) { assertThat(paths.toList()).containsExactly(existing); }
+            }
+        }
+
+        private void save(boolean update, long id, long userId, List<MultipartFile> uploads) {
+            if (update) postService.updatePost(id, userId, new PostUpdateRequest(categoryId, "changed", "body"), uploads);
+            else postService.createPost(userId, new PostCreateRequest(categoryId, "changed", "body"), uploads);
+        }
+
+        @DisplayName("트랜잭션 롤백 중 파일 정리가 실패해도 원래 전송 오류를 반환하고 나머지 파일을 정리한다")
+        @Test void cleanupFailureDoesNotMaskTransferErrorAtTransactionBoundary() throws Exception {
+            signupAndLogin("alice");
+            long userId = users.findByEmail("alice@example.com").orElseThrow().getId();
+            MultipartFile failing = mock(MultipartFile.class);
+            when(failing.getOriginalFilename()).thenReturn("partial.png");
+            when(failing.getContentType()).thenReturn("image/png");
+            when(failing.getSize()).thenReturn(1L);
+            Path[] blocked = new Path[1];
+            doAnswer(call -> {
+                Path partial = call.getArgument(0);
+                try (var paths = Files.list(uploadDirectory)) {
+                    blocked[0] = paths.filter(path -> !path.equals(partial)).findFirst().orElseThrow();
+                }
+                Files.delete(blocked[0]);
+                Files.createDirectory(blocked[0]);
+                Files.writeString(blocked[0].resolve("child"), "prevents deletion");
+                Files.writeString(partial, "partial");
+                throw new IOException("original transfer failure");
+            }).when(failing).transferTo(any(Path.class));
+            try {
+                var first = new MockMultipartFile("files", "first.png", "image/png", new byte[]{1});
+                assertThatThrownBy(() -> save(false, 0, userId, List.of(first, failing)))
+                        .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FILE_STORAGE_FAILED);
+                assertThat(posts.count()).isZero();
+                assertThat(files.count()).isZero();
+                try (var paths = Files.list(uploadDirectory)) { assertThat(paths.toList()).containsExactly(blocked[0]); }
+            } finally {
+                if (blocked[0] != null && Files.isDirectory(blocked[0])) {
+                    Files.deleteIfExists(blocked[0].resolve("child"));
+                    Files.deleteIfExists(blocked[0]);
+                }
+            }
+        }
 
         @DisplayName("회원가입과 로그인은 암호화 중복 및 잘못된 인증 정보를 검증한다")
         @Test void signupLoginEncryptsPasswordAndRejectsDuplicatesAndBadCredentials() throws Exception {
