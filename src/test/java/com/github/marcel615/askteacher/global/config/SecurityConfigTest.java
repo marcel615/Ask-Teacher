@@ -21,51 +21,57 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SecurityConfigTest {
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("API 접근 인증")
+    class Scenarios {
 
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+        private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    @LocalServerPort
-    private int port;
+        @LocalServerPort
+        private int port;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Test
-    void publicReadEndpointsDoNotRequireAuthentication() throws Exception {
-        assertThat(statusOfGet("/api/categories")).isEqualTo(200);
-        assertThat(statusOfGet("/api/posts")).isEqualTo(200);
-        assertThat(statusOfGet("/api/posts/999999")).isEqualTo(404);
-        assertThat(statusOfGet("/api/posts/999999/comments")).isEqualTo(404);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"", "Bearer invalid-token"})
-    void postWriteEndpointRequiresAuthentication(String authorization) throws Exception {
-        HttpRequest.Builder builder = HttpRequest.newBuilder(uri("/api/posts"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString("{}"));
-        if (!authorization.isEmpty()) {
-            builder.header("Authorization", authorization);
+        @org.junit.jupiter.api.DisplayName("공개 조회 API는 인증을 요구하지 않는다")
+        @Test
+        void publicReadEndpointsDoNotRequireAuthentication() throws Exception {
+            assertThat(statusOfGet("/api/categories")).isEqualTo(200);
+            assertThat(statusOfGet("/api/posts")).isEqualTo(200);
+            assertThat(statusOfGet("/api/posts/999999")).isEqualTo(404);
+            assertThat(statusOfGet("/api/posts/999999/comments")).isEqualTo(404);
         }
-        HttpRequest request = builder.build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        @org.junit.jupiter.api.DisplayName("게시글 작성 API는 인증을 요구한다")
+        @ParameterizedTest
+        @ValueSource(strings = {"", "Bearer invalid-token"})
+        void postWriteEndpointRequiresAuthentication(String authorization) throws Exception {
+            HttpRequest.Builder builder = HttpRequest.newBuilder(uri("/api/posts"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{}"));
+            if (!authorization.isEmpty()) {
+                builder.header("Authorization", authorization);
+            }
+            HttpRequest request = builder.build();
 
-        assertThat(response.statusCode()).isEqualTo(401);
-        MediaType contentType = MediaType.parseMediaType(response.headers().firstValue("Content-Type").orElseThrow());
-        assertThat(contentType.isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
-        assertThat(contentType.getCharset()).isEqualTo(java.nio.charset.StandardCharsets.UTF_8);
-        assertThat(objectMapper.readTree(response.body()))
-                .isEqualTo(objectMapper.readTree("{\"status\":401,\"message\":\"인증이 필요합니다.\"}"));
-    }
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-    private int statusOfGet(String path) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(uri(path)).GET().build();
+            assertThat(response.statusCode()).isEqualTo(401);
+            MediaType contentType = MediaType.parseMediaType(response.headers().firstValue("Content-Type").orElseThrow());
+            assertThat(contentType.isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
+            assertThat(contentType.getCharset()).isEqualTo(java.nio.charset.StandardCharsets.UTF_8);
+            assertThat(objectMapper.readTree(response.body()))
+                    .isEqualTo(objectMapper.readTree("{\"status\":401,\"message\":\"인증이 필요합니다.\"}"));
+        }
 
-        return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).statusCode();
-    }
+        private int statusOfGet(String path) throws IOException, InterruptedException {
+            HttpRequest request = HttpRequest.newBuilder(uri(path)).GET().build();
 
-    private URI uri(String path) {
-        return URI.create("http://localhost:" + port + path);
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).statusCode();
+        }
+
+        private URI uri(String path) {
+            return URI.create("http://localhost:" + port + path);
+        }
     }
 }
