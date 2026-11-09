@@ -382,6 +382,7 @@ Content-Type: multipart/form-data
 ### 비고
 
 - 작성자 검증은 Authorization 헤더의 Access Token 사용자 ID와 게시글 작성자 ID를 비교한다.
+- 삭제된 게시글은 존재하지 않는 게시글과 동일하게 404 Not Found로 처리하며 게시글과 첨부파일을 변경하지 않는다.
 - 게시글 수정 시 `newPost`, `deleted`, `createdAt`, `user`는 변경하지 않는다.
 
 ---

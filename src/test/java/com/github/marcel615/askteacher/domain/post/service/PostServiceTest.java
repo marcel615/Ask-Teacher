@@ -122,7 +122,7 @@ class PostServiceTest {
     }
 
     @Test void updateChangesEditableFieldsAndPreservesOthers() {
-        when(posts.findById(3L)).thenReturn(Optional.of(post));
+        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
         when(categories.findById(2L)).thenReturn(Optional.of(category));
         LocalDateTime created = post.getCreatedAt();
         ReflectionTestUtils.setField(post, "updatedAt", created.minusDays(1));
@@ -145,15 +145,24 @@ class PostServiceTest {
     @Test void updateRejectsMissingPostWrongAuthorAndMissingCategory() {
         var request = new PostUpdateRequest(2L, "new", "body");
         assertThatThrownBy(() -> service.updatePost(3L, 1L, request)).extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
-        when(posts.findById(3L)).thenReturn(Optional.of(post));
+        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
         assertThatThrownBy(() -> service.updatePost(3L, 9L, request)).extracting("errorCode").isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
         assertThatThrownBy(() -> service.updatePost(3L, 1L, request)).extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
         assertThat(post.getTitle()).isEqualTo("title");
         verifyNoInteractions(storage);
     }
 
+    @Test void updateStopsBeforeFileStorageWhenPostIsNotVisible() {
+        var upload = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
+        assertThatThrownBy(() -> service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body"), List.of(upload)))
+                .extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
+        verify(posts).findByIdAndDeletedFalse(3L);
+        verifyNoInteractions(categories, storage, files);
+        verify(posts, never()).flush();
+    }
+
     @Test void storageFailurePropagates() {
-        when(posts.findById(3L)).thenReturn(Optional.of(post));
+        when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
         when(categories.findById(2L)).thenReturn(Optional.of(category));
         when(storage.store(post, List.of())).thenThrow(new CustomException(ErrorCode.FILE_STORAGE_FAILED));
         assertThatThrownBy(() -> service.updatePost(3L, 1L, new PostUpdateRequest(2L, "new", "body")))

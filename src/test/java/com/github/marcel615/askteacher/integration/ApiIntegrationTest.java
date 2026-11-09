@@ -121,6 +121,51 @@ class ApiIntegrationTest extends ApiTestSupport {
         mvc.perform(delete("/api/posts/{id}/likes", id).header("Authorization", "Bearer " + token)).andExpect(status().isNotFound());
     }
 
+    @Test void deletedPostCannotBeUpdatedOrGainFiles() throws Exception {
+        String token = signupAndLogin("alice");
+        byte[] originalBytes = {1, 2, 3};
+        long id = body(mvc.perform(createRequest().file(new MockMultipartFile("files", "original.png", "image/png", originalBytes))
+                .header("Authorization", "Bearer " + token)).andExpect(status().isCreated())).get("postId").asLong();
+        mvc.perform(delete("/api/posts/{id}", id).header("Authorization", "Bearer " + token)).andExpect(status().isNoContent());
+        var before = posts.findById(id).orElseThrow();
+        var originalFile = files.findByPostIdOrderByCreatedAtAsc(id).get(0);
+        var fileId = originalFile.getId();
+        var fileName = originalFile.getStoredFileName();
+        var filePath = originalFile.getFilePath();
+        var originalName = originalFile.getOriginalFileName();
+        var contentType = originalFile.getContentType();
+        var fileSize = originalFile.getFileSize();
+        var fileCreatedAt = originalFile.getCreatedAt();
+        List<Path> pathsBefore;
+        try (var paths = Files.list(uploadDirectory)) { pathsBefore = paths.sorted().toList(); }
+        Long otherCategory = categories.saveAndFlush(Category.createCategory("Other")).getId();
+
+        mvc.perform(multipart(HttpMethod.PATCH, "/api/posts/{id}", id)
+                        .file(new MockMultipartFile("files", "new.png", "image/png", new byte[]{4, 5}))
+                        .param("categoryId", otherCategory.toString()).param("title", "changed").param("content", "changed body")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value(ErrorCode.POST_NOT_FOUND.getMessage()));
+
+        var after = posts.findById(id).orElseThrow();
+        assertThat(after.isDeleted()).isTrue();
+        assertThat(after.getCategory().getId()).isEqualTo(before.getCategory().getId());
+        assertThat(after.getTitle()).isEqualTo(before.getTitle());
+        assertThat(after.getContent()).isEqualTo(before.getContent());
+        assertThat(after.getUpdatedAt()).isEqualTo(before.getUpdatedAt());
+        var remainingFiles = files.findByPostIdOrderByCreatedAtAsc(id);
+        assertThat(remainingFiles).hasSize(1);
+        assertThat(remainingFiles.get(0).getId()).isEqualTo(fileId);
+        assertThat(remainingFiles.get(0).getStoredFileName()).isEqualTo(fileName);
+        assertThat(remainingFiles.get(0).getFilePath()).isEqualTo(filePath);
+        assertThat(remainingFiles.get(0).getOriginalFileName()).isEqualTo(originalName);
+        assertThat(remainingFiles.get(0).getContentType()).isEqualTo(contentType);
+        assertThat(remainingFiles.get(0).getFileSize()).isEqualTo(fileSize);
+        assertThat(remainingFiles.get(0).getCreatedAt()).isEqualTo(fileCreatedAt);
+        assertThat(Files.readAllBytes(Path.of(filePath))).containsExactly(originalBytes);
+        try (var paths = Files.list(uploadDirectory)) { assertThat(paths.sorted().toList()).isEqualTo(pathsBefore); }
+    }
+
     @Test void searchPagingCategoryCombinationsAndBlankKeyword() throws Exception {
         String token = signupAndLogin("alice");
         Long oldId = createPost(token);
