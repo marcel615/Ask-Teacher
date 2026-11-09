@@ -1,6 +1,7 @@
 package com.github.marcel615.askteacher.domain.postlike.controller;
 
 import com.github.marcel615.askteacher.domain.postlike.service.PostLikeService;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,18 +21,20 @@ public class PostLikeController {
 
     @PostMapping
     public ResponseEntity<Void> likePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
+        Long userId = principal == null ? null : principal.id();
         postLikeService.likePost(postId, userId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping
     public ResponseEntity<Void> unlikePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
+        Long userId = principal == null ? null : principal.id();
         postLikeService.unlikePost(postId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

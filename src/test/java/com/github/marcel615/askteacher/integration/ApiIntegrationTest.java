@@ -6,6 +6,7 @@ import com.github.marcel615.askteacher.domain.post.service.PostService;
 import com.github.marcel615.askteacher.domain.post.dto.PostCreateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import java.sql.SQLException;
 import com.github.marcel615.askteacher.support.ApiTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class ApiIntegrationTest extends ApiTestSupport {
     @Nested
@@ -83,7 +85,7 @@ class ApiIntegrationTest extends ApiTestSupport {
                     var category = categories.findById(categoryId).orElseThrow();
                     ReflectionTestUtils.setField(category, "name", null);
                     entityManager.flush();
-                })).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(java.sql.SQLException.class);
+                })).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(SQLException.class);
                 assertThat(posts.count()).isEqualTo(1);
                 assertThat(posts.findById(id).orElseThrow().getTitle()).isEqualTo("Spring question");
                 assertThat(files.count()).isEqualTo(1);
@@ -146,13 +148,13 @@ class ApiIntegrationTest extends ApiTestSupport {
             }
             for (var entry : List.of(Map.of("email", "missing@example.com", "password", "password123"),
                     Map.of("email", "alice@example.com", "password", "wrong"))) {
-                mvc.perform(post("/api/auth/login").contentType("application/json").content(json.writeValueAsString(entry)))
+                mvc.perform(post("/api/auth/login").with(csrf()).contentType("application/json").content(json.writeValueAsString(entry)))
                         .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.status").value(401))
                         .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_LOGIN_INFO.getMessage()));
             }
             mvc.perform(post("/api/auth/signup").contentType("application/json").content("{}"))
                     .andExpect(status().isBadRequest());
-            mvc.perform(post("/api/auth/login").contentType("application/json").content("{}"))
+            mvc.perform(post("/api/auth/login").with(csrf()).contentType("application/json").content("{}"))
                     .andExpect(status().isBadRequest());
             assertThat(users.count()).isEqualTo(1);
         }

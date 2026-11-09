@@ -1,13 +1,14 @@
 package com.github.marcel615.askteacher.global.exception;
 
+import com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException;
 import com.github.marcel615.askteacher.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -81,6 +82,11 @@ public class GlobalExceptionHandler {
                 .status(ErrorCode.FILE_SIZE_EXCEEDED.getHttpStatus())
                 .body(errorResponse);
 
+    }
+
+    @ExceptionHandler(RedisUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleStorageException(RedisUnavailableException exception) {
+        return ResponseEntity.status(503).body(ErrorResponse.of(503, "Authentication service unavailable"));
     }
 
     @ExceptionHandler(Exception.class)

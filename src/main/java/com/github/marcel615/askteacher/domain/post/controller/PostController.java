@@ -7,6 +7,7 @@ import com.github.marcel615.askteacher.domain.post.dto.PostPageResponse;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateRequest;
 import com.github.marcel615.askteacher.domain.post.dto.PostUpdateResponse;
 import com.github.marcel615.askteacher.domain.post.service.PostService;
+import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,11 @@ public class PostController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostCreateResponse> createPost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @Valid @ModelAttribute PostCreateRequest postCreateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
+        Long userId = principal == null ? null : principal.id();
         PostCreateResponse postCreateResponse = postService.createPost(userId, postCreateRequest, files);
         return ResponseEntity.status(HttpStatus.CREATED).body(postCreateResponse);
     }
@@ -55,29 +57,32 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
+        Long userId = principal == null ? null : principal.id();
         PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
         return ResponseEntity.ok(postDetailResponse);
     }
 
     @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostUpdateResponse> updatePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId,
             @Valid @ModelAttribute PostUpdateRequest postUpdateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
+        Long userId = principal == null ? null : principal.id();
         PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userId, postUpdateRequest, files);
         return ResponseEntity.ok(postUpdateResponse);
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
+        Long userId = principal == null ? null : principal.id();
         postService.deletePost(postId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

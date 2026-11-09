@@ -11,10 +11,20 @@ spring:
   h2:
     console:
       enabled: false
+  data:
+    redis:
+      # 개발용 Redis와 분리된 테스트 인스턴스를 사용한다.
+      host: 127.0.0.1
+      port: ${TEST_REDIS_PORT:16379}
+
 jwt:
-  secret: isolated-test-secret-key-isolated-test-secret-key
-  expiration: 3600000
+  secret: test-only-q8MzV3RaL5NcH2PtJ7XyK4UwZ9Gf
+  expiration: 15m
+
 app:
+  auth:
+    cookie-secure: false
+    csrf-secret: isolated-csrf-test-secret-at-least-32-bytes
   file-storage:
     post-upload-dir: ${java.io.tmpdir}/askteacher-test-${random.uuid}
     max-file-size: 10485760

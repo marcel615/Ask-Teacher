@@ -6,35 +6,35 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import tools.jackson.databind.ObjectMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SecurityConfigTest {
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Nested
     @DisplayName("API 접근 인증")
-    class Scenarios {
-
-        private final HttpClient httpClient = HttpClient.newHttpClient();
-
-        @LocalServerPort
-        private int port;
-
-        @Autowired
-        private ObjectMapper objectMapper;
-
+    class EndpointAuthorization {
         @DisplayName("공개 조회 API는 인증을 요구하지 않는다")
         @Test
         void publicReadEndpointsDoNotRequireAuthentication() throws Exception {
@@ -61,19 +61,58 @@ class SecurityConfigTest {
             assertThat(response.statusCode()).isEqualTo(401);
             MediaType contentType = MediaType.parseMediaType(response.headers().firstValue("Content-Type").orElseThrow());
             assertThat(contentType.isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
-            assertThat(contentType.getCharset()).isEqualTo(java.nio.charset.StandardCharsets.UTF_8);
+            assertThat(contentType.getCharset()).isEqualTo(StandardCharsets.UTF_8);
             assertThat(objectMapper.readTree(response.body()))
                     .isEqualTo(objectMapper.readTree("{\"status\":401,\"message\":\"인증이 필요합니다.\"}"));
         }
+    }
 
-        private int statusOfGet(String path) throws IOException, InterruptedException {
-            HttpRequest request = HttpRequest.newBuilder(uri(path)).GET().build();
-
-            return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).statusCode();
+    @Nested
+    @DisplayName("허용 Origin 검증")
+    class CorsPolicy {
+        @DisplayName("허용된 Origin의 자격 증명 요청만 CORS 사전 요청을 통과한다")
+        @Test
+        void corsAllowsConfiguredOriginOnly() throws Exception {
+            HttpRequest allowed = HttpRequest.newBuilder(uri("/api/auth/refresh"))
+                    .header("Origin", "http://localhost:5173")
+                    .header("Access-Control-Request-Method", "POST")
+                    .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+            HttpResponse<String> allowedResponse = httpClient.send(allowed, HttpResponse.BodyHandlers.ofString());
+            assertThat(allowedResponse.statusCode()).isEqualTo(200);
+            assertThat(allowedResponse.headers().firstValue("Access-Control-Allow-Credentials")).hasValue("true");
+            HttpRequest denied = HttpRequest.newBuilder(uri("/api/auth/refresh"))
+                    .header("Origin", "https://untrusted.example")
+                    .header("Access-Control-Request-Method", "POST")
+                    .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+            HttpResponse<String> deniedResponse = httpClient.send(denied, HttpResponse.BodyHandlers.ofString());
+            assertThat(deniedResponse.statusCode()).isEqualTo(403);
         }
+    }
 
-        private URI uri(String path) {
-            return URI.create("http://localhost:" + port + path);
+    @Nested
+    @DisplayName("HTTP 쿠키 속성")
+    class CookieAttributes {
+        @DisplayName("실제 HTTP 응답은 CSRF 쿠키의 SameSite와 HttpOnly 속성을 포함한다")
+        @Test
+        void csrfCookieAttributesAreSentOverHttp() throws Exception {
+            HttpRequest request = HttpRequest.newBuilder(uri("/api/auth/csrf"))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.headers().firstValue("Set-Cookie")).hasValueSatisfying(cookie ->
+                    assertThat(cookie).contains("XSRF-TOKEN=", "HttpOnly", "SameSite=Strict"));
         }
+    }
+
+    private int statusOfGet(String path) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(uri(path)).GET().build();
+
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).statusCode();
+    }
+
+    private URI uri(String path) {
+        return URI.create("http://localhost:" + port + path);
     }
 }

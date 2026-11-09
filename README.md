@@ -31,9 +31,10 @@ AskTeacher는 사용자가 질문 게시글을 작성하고 조회할 수 있는
   - 비밀번호 BCrypt 암호화 저장
 - 로그인
   - 이메일/비밀번호 검증
-  - 로그인 성공 시 JWT 액세스 토큰과 토큰 타입 `Bearer` 반환
+  - 로그인 성공 시 JWT 액세스 토큰, 토큰 타입 `Bearer`, 만료 시간과 HttpOnly Refresh 쿠키 반환
 - 인증이 필요한 요청은 `Authorization: Bearer <token>` 헤더 사용
 - 회원가입·로그인과 카테고리, 게시글, 게시글 댓글 및 파일 조회는 공개하며 그 외 요청에는 인증 필요
+- 로그인·재발급·로그아웃 전에 `/api/auth/csrf`에서 토큰과 쿠키를 받고 응답 토큰을 `X-XSRF-TOKEN` 헤더로 전달합니다. CSRF 토큰은 Refresh 쿠키에 묶이므로 로그인이나 재발급 후 다시 발급받습니다. 사용된 Refresh Token 재사용 시 세션이 폐기됩니다. React의 자동 재발급 및 탭 간 조정은 별도 작업입니다.
 
 ### 카테고리
 
@@ -210,15 +211,33 @@ Username: sa
 Password:
 ```
 
-### Docker Desktop PostgreSQL 개발 DB
+### Docker Desktop 개발 DB와 Redis
 
 Docker Desktop을 실행하고 저장소 루트에 `.env.example`을 복사해 `.env`를 만듭니다. 기존 `.env`는 덮어쓰지 마세요. `DB_PASSWORD`는 따옴표 없이 영문 대소문자와 숫자만 사용해 16자 이상으로 설정합니다. 이 형식은 Compose와 Spring이 값을 동일하게 읽도록 합니다. 나머지 항목도 예제처럼 한 줄에 `KEY=value` 형식으로 작성하세요. 실제 `.env`는 Git에서 제외되므로 커밋하거나 공유하지 마세요.
+
+#### 인증 설정
+
+`AUTH_CSRF_SECRET`에는 별도로 생성한 예측 불가능한 32바이트 이상의 비밀값을 설정합니다. 비어 있거나 짧으면 앱이 시작되지 않습니다. 개발 프로필이 아닌 경우에도 같은 환경 변수가 필요합니다. 실제 비밀값은 저장소나 로그에 남기지 않습니다.
+
+브라우저 연결은 다음 환경 변수로 설정합니다.
+
+| 환경 변수 | 용도 |
+|---|---|
+| `AUTH_ALLOWED_ORIGINS` | 허용 Origin을 쉼표로 구분하며, 개발 기본값은 `http://localhost:5173`입니다. |
+| `AUTH_COOKIE_SECURE` | 로컬 HTTP 개발에서는 `false`, 운영 HTTPS에서는 `true`를 사용합니다. |
+| `AUTH_COOKIE_SAME_SITE` | `Strict`, `Lax`, `None`을 지원하며 `None`은 Secure 쿠키가 필요합니다. |
+
+`JWT_SECRET`에도 별도의 암호학적으로 무작위인 서명 키를 환경 변수로 제공해야 합니다. 최소 32바이트와 서로 다른 문자 16개를 충족하지 못하거나 단순 반복·긴 연속 문자열이면 앱이 시작되지 않습니다. 이 검사는 무작위성을 보증하지 않으므로 안전한 난수 생성기로 키를 만들고 다른 비밀값과 재사용하지 마세요. 서명 키를 바꾸면 기존 Access Token과 Refresh 세션이 무효가 되어 재로그인이 필요합니다. 이전 세션 데이터는 설정된 TTL에 따라 만료되며 그 전에 이전 키로 되돌리면 세션이 다시 유효해질 수 있습니다. 키 롤백 및 운영 복구 보장은 별도 범위입니다. 테스트는 격리된 테스트 전용 키를 사용합니다.
+
+#### 실행과 저장 데이터
 
 ```powershell
 docker compose up -d
 ```
 
 앱은 `.\gradlew.bat bootRun --args='--spring.profiles.active=dev'`로 실행합니다. Compose와 `dev` 프로필은 저장소 루트의 `.env`에서 설정을 읽습니다. 같은 이름의 환경변수가 이미 있으면 `.env`보다 우선합니다. `docker compose stop`으로 컨테이너를 중지할 수 있으며, 데이터는 `askteacher-postgres-data` 볼륨에 유지됩니다.
+
+Compose의 Redis는 로컬 인터페이스에만 노출하는 메모리 전용 개발 인스턴스입니다. 세션 해시와 사용 이력은 Redis의 사용자별 키에 저장하며 7일 유휴 및 30일 절대 만료와 최대 10,000회 회전 한도를 적용합니다. Redis 데이터가 사라지면 재로그인해야 합니다. 운영 영속화·복제·백업 및 복원 시 세션 부활 방지는 보장하지 않습니다. 기존 Access Token은 변경 적용 후 재로그인이 필요합니다.
 
 이전에 `docker run`으로 만든 `askteacher-postgres` 컨테이너가 실행 중이라면 먼저 중지하세요. Compose는 같은 볼륨을 사용하므로 두 컨테이너가 동시에 사용해서는 안 됩니다. 기존 컨테이너가 없더라도 5432 포트가 사용 중이면 충돌이 발생합니다.
 
@@ -230,8 +249,8 @@ docker compose up -d
 
 Windows:
 
-```bash
-./gradlew.bat test
+```powershell
+.\gradlew.bat test
 ```
 
 macOS/Linux:
@@ -245,6 +264,17 @@ macOS/Linux:
 `src/test/java/com/github/marcel615/askteacher`에서 Controller, Service, Repository 및 API 통합 테스트를 관리합니다.
 새 API 또는 변경된 API에는 관련 계층 테스트와 통합 테스트를 작성하고 위 Gradle 명령으로 실행합니다.
 테스트는 `test` 프로필의 H2 메모리 DB와 테스트 전용 JWT 설정을 사용하며, 실제 첨부파일은 임시 디렉터리에 저장하고 정리합니다.
+
+인증 통합 테스트는 격리된 Redis가 `127.0.0.1:16379`에서 실행되어야 합니다. 별도 Redis 포트를 사용하려면 `TEST_REDIS_PORT`를 설정합니다. CI는 테스트 전용 Redis 서비스를 실행합니다.
+
+로컬에서 테스트용 Redis를 실행하고 테스트가 끝나면 정리합니다. 테스트는 이 인스턴스의 세션 데이터를 생성·삭제하므로 전용 인스턴스를 사용하세요.
+
+```powershell
+docker run --rm -d --name askteacher-test-redis -p 127.0.0.1:16379:6379 redis:7
+.\gradlew.bat test
+docker stop askteacher-test-redis
+```
+
 서블릿 업로드 제한은 테스트가 시작하는 임의 포트 HTTP 서버로 검증하므로 수동 서버 기동이 필요하지 않습니다.
 테스트 범위·실행 결과·미검증 사항은 `docs/current-work-log.md`와 PR 요약 또는 devlog에 기록합니다.
 H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
@@ -304,7 +334,7 @@ H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 
 ### 인증과 작성자 검증
 
-JWT 필터는 유효한 Bearer 토큰의 사용자 ID를 인증 주체로 설정합니다. 게시글 작성은 이 사용자 ID를 사용하고, 수정과 삭제는 인증된 사용자 ID와 게시글 작성자 ID를 비교합니다. 인증이 필요한 요청에 토큰이 없거나 유효하지 않으면 401, 다른 작성자의 게시글을 수정하거나 삭제하면 403을 반환합니다.
+JWT 필터는 유효한 Bearer 토큰의 사용자와 Redis 세션을 확인해 인증 주체를 설정합니다. 게시글 작성은 이 사용자 ID를 사용하고, 수정과 삭제는 인증된 사용자 ID와 게시글 작성자 ID를 비교합니다. 인증이 필요한 요청에 토큰이 없거나 유효하지 않으면 401, 다른 작성자의 게시글을 수정하거나 삭제하면 403을 반환합니다.
 
 ## 배운 점
 
