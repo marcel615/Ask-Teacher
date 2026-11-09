@@ -1,9 +1,9 @@
 package com.github.marcel615.askteacher.domain.comment.repository;
 
 import com.github.marcel615.askteacher.domain.comment.entity.Comment;
+import com.github.marcel615.askteacher.domain.commentlike.entity.CommentLike;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.user.entity.User;
-import com.github.marcel615.askteacher.domain.commentlike.entity.CommentLike;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,10 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -23,8 +23,10 @@ class CommentRepositoryTest extends RepositoryTestSupport {
     @Nested
     @DisplayName("댓글 저장과 조회")
     class Scenarios {
-        @Autowired CommentRepository comments;
-        @Autowired DataSource dataSource;
+        @Autowired
+        CommentRepository comments;
+        @Autowired
+        DataSource dataSource;
 
         @DisplayName("최신 댓글 목록은 삭제된 댓글을 제외하고 좋아요 정보를 반환한다")
         @Test void latestPageExcludesDeletedAndMapsLikeCountAndCurrentUser() {

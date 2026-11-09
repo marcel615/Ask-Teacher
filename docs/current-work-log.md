@@ -16,3 +16,9 @@
 - PR #72 가독성 재검토: 최신 develop의 기준을 반영하고 인증·세션·보안 설정의 처리 흐름, DTO와 테스트 구조를 정리했다. Redis Lua의 단일 원자 연산·명령 순서·TTL과 결과는 유지했다. 격리 Redis/H2에서 관련 인증 테스트와 Corretto 17 전체 `./gradlew.bat test --rerun-tasks`가 성공했다(164건, 실패·오류·건너뜀 0). 동작 또는 보장 변경은 하지 않았다. Architect 리뷰와 최종 head CI가 남았다.
 - 가독성 독립 리뷰 1회: CSRF·Redis 장애·Access/Refresh 로그아웃 검증을 개별 사례로 분리하고 보안 설정 조건, Redis 호출 및 테스트의 축약 표현을 정리했다. 관련 인증 테스트와 Corretto 17 전체 `./gradlew.bat test --rerun-tasks` 재실행 성공(170건, 실패·오류·건너뜀 0); 증가분 6건은 기존 복합 사례 분리다.
 - 가독성 독립 리뷰 2회: Redis 장애 테스트를 토큰 발급 및 인증·로그아웃 상황으로, 로그인 CSRF 테스트를 별도 소주제로 묶었다. 관련 통합 테스트와 Corretto 17 전체 `./gradlew.bat test --rerun-tasks` 성공(170건, 실패·오류·건너뜀 0).
+
+- 2026-11-10 사용자 가독성 재작업: 인증 DTO를 request·response로 나누고 발급 결과·Refresh Token·검증된 Access Token을 별도 타입으로 분리했다. 서비스와 Controller의 검증·조회·생성·응답 단계를 구분하고 JWT 필터의 중첩 분기, CSRF 서명과 쿠키 조회, SecurityConfig 관련 Bean과 인가 경로를 정리했다. Redis Lua 3개의 명령·순서·TTL·반환값과 인증 정책은 유지했다. 기간 주입은 같은 15분을 Duration으로 표현한다.
+- 조기 compileTestJava에서 CRLF 때문에 일부 문자열 교체가 누락된 소스 오류를 두 차례 발견해 정리했으며 이후 컴파일이 통과했다. 테스트 기대값 변경이나 비활성화는 하지 않았다. Controller 성공·오류 및 CSRF 복합 사례를 각각 분리해 테스트가 5건 증가했다.
+- Corretto 17, 격리 Redis/H2에서 관련 인증·JWT·CSRF·Security 테스트 68건과 전체 `.\gradlew.bat test --rerun-tasks` 175건이 통과했다(실패·오류·건너뜀 0). 독립 리뷰와 최종 head CI·필수 리뷰·보호 조건 확인이 남았다.
+- 가독성 독립 리뷰 1차 수정·재검증: 기존 ApiIntegrationTest/CommentApiIntegrationTest의 불필요한 전체 재서식을 제거하고, 인증 테스트 준비 객체·요청·기대 응답과 실제 실행을 분리했다. 보안 설정 테스트·공통 API 지원·난수 생성·CSRF 서명의 단계와 줄바꿈을 보완했으며 재검토의 필수 지적을 모두 해결했다. 관련 68건과 전체 `.\gradlew.bat test --rerun-tasks` 175건 재통과(실패·오류·건너뜀 0), `git diff --check` 통과. 최종 공백 2줄 정리는 실행 의미가 없어 추가 재실행하지 않았다. 최종 head CI 및 필수 리뷰·보호 조건 확인은 Main 단계다.
+- Main 최종 게이트: XML 합계 175건과 실패·오류·건너뜀 0, Lua 3개 본문 동일, 불필요한 대형 통합 테스트 diff 제거 및 독립 리뷰 필수 지적 0을 확인했다. Compose 구문 검증도 통과했다. develop 보호 규칙은 Branch not protected, 적용된 ruleset은 없음을 조회했다. devlog 반영 후 PR #72에 push하고 정확한 최종 head의 CI와 충돌 여부를 확인한다. 새 기능이나 독립 기술 후속 작업은 확인되지 않아 Issue·후보를 추가하지 않는다.

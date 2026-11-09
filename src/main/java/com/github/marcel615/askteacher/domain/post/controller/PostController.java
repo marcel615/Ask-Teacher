@@ -39,7 +39,8 @@ public class PostController {
             @Valid @ModelAttribute PostCreateRequest postCreateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
-        PostCreateResponse postCreateResponse = postService.createPost(principal == null ? null : principal.id(), postCreateRequest, files);
+        Long userId = principal == null ? null : principal.id();
+        PostCreateResponse postCreateResponse = postService.createPost(userId, postCreateRequest, files);
         return ResponseEntity.status(HttpStatus.CREATED).body(postCreateResponse);
     }
 
@@ -59,7 +60,8 @@ public class PostController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
-        PostDetailResponse postDetailResponse = postService.getPost(postId, principal == null ? null : principal.id());
+        Long userId = principal == null ? null : principal.id();
+        PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
         return ResponseEntity.ok(postDetailResponse);
     }
 
@@ -70,7 +72,8 @@ public class PostController {
             @Valid @ModelAttribute PostUpdateRequest postUpdateRequest,
             @RequestParam(value = "files", required = false) List<MultipartFile> files
     ) {
-        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, principal == null ? null : principal.id(), postUpdateRequest, files);
+        Long userId = principal == null ? null : principal.id();
+        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userId, postUpdateRequest, files);
         return ResponseEntity.ok(postUpdateResponse);
     }
 
@@ -79,7 +82,8 @@ public class PostController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
-        postService.deletePost(postId, principal == null ? null : principal.id());
+        Long userId = principal == null ? null : principal.id();
+        postService.deletePost(postId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

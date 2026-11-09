@@ -25,8 +25,9 @@ public class CommentLikeController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(commentLikeService.likeComment(commentId, principal == null ? null : principal.id()));
+        Long userId = principal == null ? null : principal.id();
+        CommentLikeResponse response = commentLikeService.likeComment(commentId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping
@@ -34,6 +35,8 @@ public class CommentLikeController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId
     ) {
-        return ResponseEntity.ok(commentLikeService.unlikeComment(commentId, principal == null ? null : principal.id()));
+        Long userId = principal == null ? null : principal.id();
+        CommentLikeResponse response = commentLikeService.unlikeComment(commentId, userId);
+        return ResponseEntity.ok(response);
     }
 }

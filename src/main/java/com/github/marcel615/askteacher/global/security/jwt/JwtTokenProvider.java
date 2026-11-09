@@ -10,64 +10,80 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import javax.crypto.SecretKey;
+
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Optional;
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final long accessTokenExpirationMillis;
+
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration}") long expiration
+            @Value("${jwt.expiration}") Duration accessTokenLifetime
     ) {
-        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32 || secret.codePoints().distinct().count() < 16
-                || secret.matches("(?s)(.+)\\1+") || hasLongSequence(secret)) {
+        if (secret == null
+                || secret.getBytes(StandardCharsets.UTF_8).length < 32
+                || secret.codePoints().distinct().count() < 16
+                || secret.matches("(?s)(.+)\\1+")
+                || hasLongSequence(secret)) {
             throw new IllegalStateException("JWT secret is missing or too weak");
         }
         secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        accessTokenExpirationMillis = expiration;
+        accessTokenExpirationMillis = accessTokenLifetime.toMillis();
     }
+
     public String createAccessToken(Long userId, UserRole role, String sessionId) {
         Date now = new Date();
+        Date expiration = new Date(now.getTime() + accessTokenExpirationMillis);
+
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("role", role.name())
                 .claim("sid", sessionId)
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + accessTokenExpirationMillis))
+                .expiration(expiration)
                 .signWith(secretKey)
                 .compact();
     }
+
     public boolean validateToken(String token) {
         return verifyToken(token).isPresent();
     }
-    public record Verified(
-            Authentication authentication,
-            String sessionId
-    ) { }
-    public Optional<Verified> verifyToken(String token) {
+
+    public Optional<VerifiedAccessToken> verifyToken(String token) {
         try {
             Claims claims = parseClaims(token);
             Long userId = Long.valueOf(claims.getSubject());
             String role = UserRole.valueOf(claims.get("role", String.class)).name();
-            String sid = claims.get("sid", String.class);
-            if (sid == null || sid.isBlank()) {
+            String sessionId = claims.get("sid", String.class);
+            if (sessionId == null || sessionId.isBlank()) {
                 return Optional.empty();
             }
             AskTeacherUserDetails principal = new AskTeacherUserDetails(userId, "", "", role);
-            Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-            return Optional.of(new Verified(auth, sid));
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    principal,
+                    null,
+                    principal.getAuthorities()
+            );
+            return Optional.of(new VerifiedAccessToken(authentication, sessionId));
         } catch (JwtException | IllegalArgumentException | NullPointerException e) {
             return Optional.empty();
         }
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
+
     private static boolean hasLongSequence(String value) {
         int ascending = 1;
         int descending = 1;

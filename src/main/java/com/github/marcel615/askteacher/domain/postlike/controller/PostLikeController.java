@@ -24,7 +24,8 @@ public class PostLikeController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
-        postLikeService.likePost(postId, principal == null ? null : principal.id());
+        Long userId = principal == null ? null : principal.id();
+        postLikeService.likePost(postId, userId);
         return ResponseEntity.ok().build();
     }
 
@@ -33,7 +34,8 @@ public class PostLikeController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long postId
     ) {
-        postLikeService.unlikePost(postId, principal == null ? null : principal.id());
+        Long userId = principal == null ? null : principal.id();
+        postLikeService.unlikePost(postId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

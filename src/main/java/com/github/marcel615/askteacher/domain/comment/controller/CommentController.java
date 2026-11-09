@@ -32,8 +32,9 @@ public class CommentController {
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(commentService.createComment(postId, principal == null ? null : principal.id(), request));
+        Long userId = principal == null ? null : principal.id();
+        CommentResponse response = commentService.createComment(postId, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/api/posts/{postId}/comments")
@@ -44,7 +45,9 @@ public class CommentController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "latest") String sort
     ) {
-        return ResponseEntity.ok(commentService.getComments(postId, principal == null ? null : principal.id(), page, size, sort));
+        Long userId = principal == null ? null : principal.id();
+        CommentPageResponse response = commentService.getComments(postId, userId, page, size, sort);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/api/comments/{commentId}")
@@ -53,7 +56,9 @@ public class CommentController {
             @PathVariable Long commentId,
             @Valid @RequestBody CommentUpdateRequest request
     ) {
-        return ResponseEntity.ok(commentService.updateComment(commentId, principal == null ? null : principal.id(), request));
+        Long userId = principal == null ? null : principal.id();
+        CommentResponse response = commentService.updateComment(commentId, userId, request);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/api/comments/{commentId}")
@@ -61,7 +66,8 @@ public class CommentController {
             @AuthenticationPrincipal AskTeacherUserDetails principal,
             @PathVariable Long commentId
     ) {
-        commentService.deleteComment(commentId, principal == null ? null : principal.id());
+        Long userId = principal == null ? null : principal.id();
+        commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }
 }

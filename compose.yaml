@@ -1,7 +1,16 @@
 services:
   redis:
     image: redis:7
-    command: [redis-server, --save, '', --appendonly, 'no', --maxmemory-policy, noeviction]
+    # 개발용 메모리 저장소: 재시작하면 세션이 사라져 재로그인해야 한다.
+    # 메모리 부족 시 세션을 임의로 축출하지 않고 쓰기를 실패시킨다.
+    command:
+      - redis-server
+      - --save
+      - ''
+      - --appendonly
+      - 'no'
+      - --maxmemory-policy
+      - noeviction
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
   postgres:

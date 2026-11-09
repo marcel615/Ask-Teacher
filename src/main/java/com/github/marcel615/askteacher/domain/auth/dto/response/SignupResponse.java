@@ -1,4 +1,4 @@
-package com.github.marcel615.askteacher.domain.auth.dto;
+package com.github.marcel615.askteacher.domain.auth.dto.response;
 
 import com.github.marcel615.askteacher.domain.user.entity.User;
 

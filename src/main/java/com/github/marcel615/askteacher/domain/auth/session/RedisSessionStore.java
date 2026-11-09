@@ -1,26 +1,27 @@
 package com.github.marcel615.askteacher.domain.auth.session;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.stereotype.Repository;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 /** Atomic, single-instance Redis session state. Refresh token secrets are never persisted. */
 @Repository
 public class RedisSessionStore {
-    private static final long IDLE_SECONDS = 7 * 24 * 60 * 60;
-    private static final long MAX_SECONDS = 30 * 24 * 60 * 60;
+    private static final long REFRESH_TOKEN_LIFETIME_SECONDS = Duration.ofDays(7).toSeconds();
+    private static final long SESSION_LIFETIME_SECONDS = Duration.ofDays(30).toSeconds();
     private static final int MAX_ROTATIONS = 10000;
     private final SecureRandom random = new SecureRandom();
-    private final StringRedisTemplate redis;
+    private final StringRedisTemplate redisTemplate;
     private final String keyVersion;
 
     private static final DefaultRedisScript<Long> LOGIN = script("""
@@ -71,84 +72,100 @@ public class RedisSessionStore {
             return 0
             """);
 
-    public RedisSessionStore(StringRedisTemplate redis, @Value("${jwt.secret}") String jwtSecret) {
-        this.redis = redis;
+    public RedisSessionStore(
+            StringRedisTemplate redisTemplate,
+            @Value("${jwt.secret}") String jwtSecret
+    ) {
+        this.redisTemplate = redisTemplate;
         this.keyVersion = hash(jwtSecret).substring(0, 16);
     }
-    public record Token(
-            long userId,
-            String sessionId,
-            String value
-    ) {
-        @Override
-        public String toString() {
-            return "Token[userId=" + userId + ", sessionId=" + sessionId + ", value=REDACTED]";
-        }
+
+    public RefreshToken newToken(long userId, String sessionId) {
+        byte[] randomBytes = new byte[32];
+        random.nextBytes(randomBytes);
+        String encodedRandomValue = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+        String tokenValue = userId + "." + sessionId + "." + encodedRandomValue;
+        return new RefreshToken(userId, sessionId, tokenValue);
     }
 
-    public Token newToken(long userId, String sessionId) {
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        String value = userId + "." + sessionId + "." + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        return new Token(userId, sessionId, value);
-    }
-    public Token login(long userId) {
-        Token token = newToken(userId, UUID.randomUUID().toString());
-        long now = System.currentTimeMillis() / 1000;
-        redis.execute(
+    public RefreshToken login(long userId) {
+        RefreshToken token = newToken(userId, UUID.randomUUID().toString());
+        long nowSeconds = System.currentTimeMillis() / 1000;
+        redisTemplate.execute(
                 LOGIN,
                 List.of(keyForUser(userId)),
                 token.sessionId(),
                 hash(token.value()),
-                Long.toString(now + MAX_SECONDS),
-                Long.toString(IDLE_SECONDS)
+                Long.toString(nowSeconds + SESSION_LIFETIME_SECONDS),
+                Long.toString(REFRESH_TOKEN_LIFETIME_SECONDS)
         );
         return token;
     }
-    public Token rotate(String raw) {
-        Token old = parse(raw);
-        if (old == null) {
+
+    public RefreshToken rotate(String refreshTokenValue) {
+        RefreshToken submittedToken = parse(refreshTokenValue);
+        if (submittedToken == null) {
             return null;
         }
-        Token next = newToken(old.userId(), old.sessionId());
-        Long result = redis.execute(
+        RefreshToken nextToken = newToken(submittedToken.userId(), submittedToken.sessionId());
+        Long result = redisTemplate.execute(
                 ROTATE,
-                List.of(keyForUser(old.userId())),
-                old.sessionId(),
-                hash(raw),
-                hash(next.value()),
+                List.of(keyForUser(submittedToken.userId())),
+                submittedToken.sessionId(),
+                hash(refreshTokenValue),
+                hash(nextToken.value()),
                 Long.toString(System.currentTimeMillis() / 1000),
-                Long.toString(IDLE_SECONDS),
+                Long.toString(REFRESH_TOKEN_LIFETIME_SECONDS),
                 Integer.toString(MAX_ROTATIONS)
         );
-        return Long.valueOf(1).equals(result) ? next : null;
+        return Long.valueOf(1).equals(result) ? nextToken : null;
     }
-    public boolean active(long userId, String sid) {
-        return sid != null && sid.equals(redis.opsForHash().get(keyForUser(userId), "sid"));
+
+    public boolean active(long userId, String sessionId) {
+        return sessionId != null && sessionId.equals(redisTemplate.opsForHash().get(keyForUser(userId), "sid"));
     }
+
     public void ensureAvailable() {
-        redis.hasKey("auth:availability");
+        redisTemplate.hasKey("auth:availability");
     }
-    public void logoutAccess(long userId, String sid) {
-        redis.execute(LOGOUT, List.of(keyForUser(userId)), sid, "");
+
+    public void logoutAccess(long userId, String sessionId) {
+        redisTemplate.execute(
+                LOGOUT,
+                List.of(keyForUser(userId)),
+                sessionId,
+                ""
+        );
     }
-    public void logoutRefresh(String raw) {
-        Token token = parse(raw);
+
+    public void logoutRefresh(String refreshTokenValue) {
+        RefreshToken token = parse(refreshTokenValue);
         if (token != null) {
-            redis.execute(LOGOUT, List.of(keyForUser(token.userId())), token.sessionId(), hash(raw));
+            redisTemplate.execute(
+                    LOGOUT,
+                    List.of(keyForUser(token.userId())),
+                    token.sessionId(),
+                    hash(refreshTokenValue)
+            );
         }
     }
-    private static Token parse(String raw) {
-        if (raw == null || raw.length() > 200) {
+
+    private static RefreshToken parse(String refreshTokenValue) {
+        if (refreshTokenValue == null || refreshTokenValue.length() > 200) {
             return null;
         }
-        String[] parts = raw.split("\\.", -1);
-        if (parts.length != 3 || !parts[1].matches("[0-9a-f-]{36}") || !parts[2].matches("[A-Za-z0-9_-]{43}")) {
+        String[] parts = refreshTokenValue.split("\\.", -1);
+        if (parts.length != 3
+                || !parts[1].matches("[0-9a-f-]{36}")
+                || !parts[2].matches("[A-Za-z0-9_-]{43}")) {
             return null;
         }
         try {
-            long user = Long.parseLong(parts[0]);
-            return user > 0 ? new Token(user, parts[1], raw) : null;
+            long userId = Long.parseLong(parts[0]);
+            if (userId <= 0) {
+                return null;
+            }
+            return new RefreshToken(userId, parts[1], refreshTokenValue);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -158,9 +175,9 @@ public class RedisSessionStore {
         return "auth:session:" + keyVersion + ":" + userId;
     }
 
-    private static String hash(String raw) {
+    private static String hash(String sourceValue) {
         try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(sourceValue.getBytes(StandardCharsets.UTF_8));
             return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);

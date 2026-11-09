@@ -1,4 +1,4 @@
-package com.github.marcel615.askteacher.domain.auth.dto;
+package com.github.marcel615.askteacher.domain.auth.dto.response;
 
 public record LoginResponse(
         String accessToken,

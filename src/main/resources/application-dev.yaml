@@ -12,9 +12,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
-spring.data.redis.host: ${REDIS_HOST:localhost}
-spring.data.redis.port: ${REDIS_PORT:6379}
-app.auth.allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173}
-app.auth.cookie-secure: ${AUTH_COOKIE_SECURE:false}
-app.auth.cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Strict}
+app:
+  auth:
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173}
+    # 로컬 HTTP 개발에서만 Secure 쿠키를 해제한다.
+    cookie-secure: ${AUTH_COOKIE_SECURE:false}
+    cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Strict}
