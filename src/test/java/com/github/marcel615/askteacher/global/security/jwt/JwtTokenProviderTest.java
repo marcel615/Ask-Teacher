@@ -1,14 +1,16 @@
 package com.github.marcel615.askteacher.global.security.jwt;
 
 import com.github.marcel615.askteacher.domain.user.type.UserRole;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtTokenProviderTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("JWT 인증과 검증")
+    @Nested
+    @DisplayName("JWT 인증과 검증")
     class Scenarios {
 
         private final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(
@@ -16,7 +18,7 @@ class JwtTokenProviderTest {
                 3600000
         );
 
-        @org.junit.jupiter.api.DisplayName("인증 객체는 Long 사용자 ID를 주체로 사용한다")
+        @DisplayName("인증 객체는 Long 사용자 ID를 주체로 사용한다")
         @Test
         void getAuthenticationUsesLongUserIdPrincipal() {
             String token = jwtTokenProvider.createAccessToken(1L, UserRole.USER);
@@ -29,7 +31,7 @@ class JwtTokenProviderTest {
             assertThat(authentication.getAuthorities()).extracting("authority").containsExactly("USER");
         }
 
-        @org.junit.jupiter.api.DisplayName("잘못된 형식 만료 서명 오류 토큰을 거부한다")
+        @DisplayName("잘못된 형식 만료 서명 오류 토큰을 거부한다")
         @Test
         void rejectsMalformedExpiredAndWrongSignatureTokens() {
             assertThat(jwtTokenProvider.validateToken("invalid")).isFalse();

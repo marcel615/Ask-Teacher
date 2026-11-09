@@ -2,18 +2,20 @@ package com.github.marcel615.askteacher.domain.postlike.repository;
 
 import com.github.marcel615.askteacher.domain.postlike.entity.PostLike;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import static org.assertj.core.api.Assertions.*;
 
 class PostLikeRepositoryTest extends RepositoryTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 좋아요 저장과 조회")
+    @Nested
+    @DisplayName("게시글 좋아요 저장과 조회")
     class Scenarios {
         @Autowired PostLikeRepository repository;
 
-        @org.junit.jupiter.api.DisplayName("일치하는 사용자와 게시글의 좋아요만 조회하고 관계를 삭제한다")
+        @DisplayName("일치하는 사용자와 게시글의 좋아요만 조회하고 관계를 삭제한다")
         @Test void findsOnlyMatchingUserAndPostAndDeletesRelation() {
             var alice = user("alice");
             var bob = user("bob");
@@ -34,7 +36,7 @@ class PostLikeRepositoryTest extends RepositoryTestSupport {
             assertThat(repository.findByPostAndUser(post, alice)).isEmpty();
         }
 
-        @org.junit.jupiter.api.DisplayName("같은 사용자는 같은 게시글에 중복 좋아요를 할 수 없다")
+        @DisplayName("같은 사용자는 같은 게시글에 중복 좋아요를 할 수 없다")
         @Test void sameUserCannotLikeSamePostTwice() {
             var user = user("alice");
             var post = post(user, category("Java"), "title", "body");

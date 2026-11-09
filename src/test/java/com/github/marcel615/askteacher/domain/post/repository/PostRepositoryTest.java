@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.domain.post.repository;
 
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -10,12 +12,12 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.*;
 
 class PostRepositoryTest extends RepositoryTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 저장과 조회")
+    @Nested
+    @DisplayName("게시글 저장과 조회")
     class Scenarios {
         @Autowired PostRepository repository;
 
-        @org.junit.jupiter.api.DisplayName("검색은 제목 내용 카테고리 페이지 정렬과 삭제 필터를 조합한다")
+        @DisplayName("검색은 제목 내용 카테고리 페이지 정렬과 삭제 필터를 조합한다")
         @Test void searchCombinesTitleContentCategoryPagingSortAndDeletedFilter() {
             var user = user("alice");
             var java = category("Java");
@@ -48,7 +50,7 @@ class PostRepositoryTest extends RepositoryTestSupport {
             assertThat(repository.findWithUserAndCategoryByIdAndDeletedFalse(old.getId()).orElseThrow().getCategory().getName()).isEqualTo("Java");
         }
 
-        @org.junit.jupiter.api.DisplayName("좋아요 일괄 변경은 재조회에 반영되고 0 미만이 되지 않는다")
+        @DisplayName("좋아요 일괄 변경은 재조회에 반영되고 0 미만이 되지 않는다")
         @Test void bulkLikeUpdatesAreVisibleAfterReloadAndNeverGoBelowZero() {
             var post = post(user("alice"), category("Java"), "title", "body");
             Long id = post.getId();
@@ -63,7 +65,7 @@ class PostRepositoryTest extends RepositoryTestSupport {
             assertThat(repository.increaseLikeCount(-1L)).isZero();
         }
 
-        @org.junit.jupiter.api.DisplayName("변경 감지로 게시글 수정과 논리 삭제를 저장한다")
+        @DisplayName("변경 감지로 게시글 수정과 논리 삭제를 저장한다")
         @Test void dirtyCheckingPersistsUpdateAndSoftDelete() {
             var post = post(user("alice"), category("Java"), "title", "body");
             var other = category("Spring");

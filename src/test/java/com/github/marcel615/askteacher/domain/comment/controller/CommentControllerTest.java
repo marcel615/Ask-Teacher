@@ -6,6 +6,8 @@ import com.github.marcel615.askteacher.domain.comment.service.CommentService;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.support.WebTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -19,13 +21,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CommentController.class)
 class CommentControllerTest extends WebTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("댓글 API")
+    @Nested
+    @DisplayName("댓글 API")
     class Scenarios {
 
         @MockitoBean CommentService service;
 
-        @org.junit.jupiter.api.DisplayName("댓글 생성 수정 삭제에 인증 사용자와 본문을 전달한다")
+        @DisplayName("댓글 생성 수정 삭제에 인증 사용자와 본문을 전달한다")
         @Test void createUpdateAndDeleteBindPrincipalAndBody() throws Exception {
             var response = response("content", false);
             when(service.createComment(eq(3L), eq(7L), any())).thenReturn(response);
@@ -46,7 +48,7 @@ class CommentControllerTest extends WebTestSupport {
             verify(service).deleteComment(5L, 7L);
         }
 
-        @org.junit.jupiter.api.DisplayName("공개 댓글 목록에 기본값과 선택적 인증 사용자를 적용한다")
+        @DisplayName("공개 댓글 목록에 기본값과 선택적 인증 사용자를 적용한다")
         @Test void publicListUsesDefaultsAndOptionalPrincipal() throws Exception {
             when(service.getComments(3L, null, 0, 20, "latest"))
                     .thenReturn(new CommentPageResponse(List.of(), 0, 20, 0, 0, false, "latest"));
@@ -60,7 +62,7 @@ class CommentControllerTest extends WebTestSupport {
             verify(service).getComments(3L, 7L, 1, 5, "likeCount");
         }
 
-        @org.junit.jupiter.api.DisplayName("입력 검증과 비즈니스 오류에 공통 오류 응답을 반환한다")
+        @DisplayName("입력 검증과 비즈니스 오류에 공통 오류 응답을 반환한다")
         @Test void validationAndBusinessErrorsUseErrorContract() throws Exception {
             for (String content : List.of("", " ", "x".repeat(1001))) {
                 mvc.perform(post("/api/posts/3/comments").with(authenticated()).contentType("application/json")
@@ -74,7 +76,7 @@ class CommentControllerTest extends WebTestSupport {
             verify(service, never()).createComment(any(), any(), any());
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 생성과 수정에서 빈 JSON과 잘못된 JSON을 공통 오류로 거부한다")
+        @DisplayName("댓글 생성과 수정에서 빈 JSON과 잘못된 JSON을 공통 오류로 거부한다")
         @Test void createAndUpdateRejectEmptyOrMalformedJsonWithCommonErrorResponse() throws Exception {
             for (var request : List.of(
                     post("/api/posts/3/comments").with(authenticated()),

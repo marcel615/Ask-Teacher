@@ -3,6 +3,8 @@ package com.github.marcel615.askteacher.global.entity;
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.postlike.entity.PostLike;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -11,11 +13,11 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JpaAuditingRepositoryTest extends RepositoryTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("엔티티 감사 정보")
+    @Nested
+    @DisplayName("엔티티 감사 정보")
     class Scenarios {
 
-        @org.junit.jupiter.api.DisplayName("기본 엔티티의 ID와 생성일을 자동 설정한다")
+        @DisplayName("기본 엔티티의 ID와 생성일을 자동 설정한다")
         @Test
         void baseEntityAutomaticallySetsIdAndCreatedAt() {
             var user = user("base-entity-user");
@@ -32,7 +34,7 @@ class JpaAuditingRepositoryTest extends RepositoryTestSupport {
             assertThat(saved.getUser().getId()).isEqualTo(user.getId());
         }
 
-        @org.junit.jupiter.api.DisplayName("수정 가능한 엔티티의 감사 날짜를 자동 설정하고 갱신한다")
+        @DisplayName("수정 가능한 엔티티의 감사 날짜를 자동 설정하고 갱신한다")
         @Test
         void baseUpdatableEntityAutomaticallySetsAndUpdatesAuditDates() {
             var post = post(

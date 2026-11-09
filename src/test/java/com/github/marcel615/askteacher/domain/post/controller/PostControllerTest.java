@@ -4,6 +4,8 @@ import com.github.marcel615.askteacher.domain.post.dto.*;
 import com.github.marcel615.askteacher.domain.post.service.PostService;
 import com.github.marcel615.askteacher.global.exception.*;
 import com.github.marcel615.askteacher.support.WebTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,12 +22,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PostController.class)
 class PostControllerTest extends WebTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 API")
+    @Nested
+    @DisplayName("게시글 API")
     class Scenarios {
         @MockitoBean PostService service;
 
-        @org.junit.jupiter.api.DisplayName("게시글 생성과 수정의 필드 파일 인증 사용자를 바인딩한다")
+        @DisplayName("게시글 생성과 수정의 필드 파일 인증 사용자를 바인딩한다")
         @Test void multipartCreateAndPatchBindFieldsFilesAndPrincipal() throws Exception {
             var now = LocalDateTime.of(2026, 1, 1, 0, 0);
             var file = new MockMultipartFile("files", "a.png", "image/png", new byte[]{1});
@@ -42,7 +44,7 @@ class PostControllerTest extends WebTestSupport {
             verify(service).updatePost(3L, 7L, new PostUpdateRequest(2L, "changed", "body"), List.of(file));
         }
 
-        @org.junit.jupiter.api.DisplayName("첨부파일이 없거나 필드가 최대 길이여도 허용한다")
+        @DisplayName("첨부파일이 없거나 필드가 최대 길이여도 허용한다")
         @Test void noAttachmentAndMaximumFieldLengthsAreAccepted() throws Exception {
             for (var method : List.of(HttpMethod.POST, HttpMethod.PATCH)) {
                 mvc.perform(multipart(method, method == HttpMethod.POST ? "/api/posts" : "/api/posts/3")
@@ -59,7 +61,7 @@ class PostControllerTest extends WebTestSupport {
                     new String[]{"2", "title", "c".repeat(5001)}, new String[]{"bad", "title", "body"});
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 생성과 수정은 잘못된 필드를 거부한다")
+        @DisplayName("게시글 생성과 수정은 잘못된 필드를 거부한다")
         @ParameterizedTest @MethodSource("invalidFields")
         void createAndUpdateRejectInvalidFields(String category, String title, String content) throws Exception {
             for (var method : List.of(HttpMethod.POST, HttpMethod.PATCH)) {
@@ -70,7 +72,7 @@ class PostControllerTest extends WebTestSupport {
             verifyNoInteractions(service);
         }
 
-        @org.junit.jupiter.api.DisplayName("공개 게시글 목록에 기본값 필터와 페이지 응답을 적용한다")
+        @DisplayName("공개 게시글 목록에 기본값 필터와 페이지 응답을 적용한다")
         @Test void publicListMapsDefaultsFiltersAndPageDto() throws Exception {
             when(service.getPosts(null, null, 0, 10)).thenReturn(new PostPageResponse(List.of(), 0, 10, 0, 0, false, false, true, true));
             mvc.perform(get("/api/posts")).andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty())
@@ -84,7 +86,7 @@ class PostControllerTest extends WebTestSupport {
             mvc.perform(get("/api/posts").param("page", "bad")).andExpect(status().isBadRequest());
         }
 
-        @org.junit.jupiter.api.DisplayName("상세 조회에 선택적 사용자를 전달하고 삭제는 빈 본문을 반환한다")
+        @DisplayName("상세 조회에 선택적 사용자를 전달하고 삭제는 빈 본문을 반환한다")
         @Test void detailPassesOptionalPrincipalAndDeleteReturnsNoBody() throws Exception {
             when(service.getPost(3L, null)).thenReturn(new PostDetailResponse(3L, "nick", "Java", "title", "body", 2, false, LocalDateTime.now(), List.of()));
             mvc.perform(get("/api/posts/3")).andExpect(status().isOk()).andExpect(jsonPath("$.likedByMe").value(false))
@@ -95,7 +97,7 @@ class PostControllerTest extends WebTestSupport {
             verify(service).deletePost(3L, 7L);
         }
 
-        @org.junit.jupiter.api.DisplayName("비즈니스 실패에서 기존 오류 계약을 유지한다")
+        @DisplayName("비즈니스 실패에서 기존 오류 계약을 유지한다")
         @Test void businessFailuresKeepExistingErrorContract() throws Exception {
             for (var error : List.of(ErrorCode.POST_NOT_FOUND, ErrorCode.POST_AUTHOR_MISMATCH, ErrorCode.FILE_STORAGE_FAILED)) {
                 doThrow(new CustomException(error)).when(service).deletePost(3L, 7L);
@@ -104,7 +106,7 @@ class PostControllerTest extends WebTestSupport {
             }
         }
 
-        @org.junit.jupiter.api.DisplayName("없는 게시글 수정은 기존 게시글 없음 응답을 반환한다")
+        @DisplayName("없는 게시글 수정은 기존 게시글 없음 응답을 반환한다")
         @Test void updateMissingPostReturnsExistingNotFoundContract() throws Exception {
             when(service.updatePost(eq(3L), eq(7L), any(), any()))
                     .thenThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
