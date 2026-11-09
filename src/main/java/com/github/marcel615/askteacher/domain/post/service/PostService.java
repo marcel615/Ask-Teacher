@@ -104,7 +104,7 @@ public class PostService {
 
     @Transactional
     public PostUpdateResponse updatePost(Long postId, Long userId, PostUpdateRequest postUpdateRequest, List<MultipartFile> files) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         validateAuthor(post, userId);

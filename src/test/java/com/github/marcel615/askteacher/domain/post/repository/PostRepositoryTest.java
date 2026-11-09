@@ -38,6 +38,8 @@ class PostRepositoryTest extends RepositoryTestSupport {
         assertThat(repository.findByDeletedFalseOrderByCreatedAtDesc()).extracting(Post::getId)
                 .containsExactly(other.getId(), recent.getId(), old.getId());
         assertThat(repository.findByIdAndDeletedFalse(deleted.getId())).isEmpty();
+        assertThat(repository.findByIdAndDeletedFalse(old.getId())).isPresent();
+        assertThat(repository.findByIdAndDeletedFalse(-1L)).isEmpty();
         assertThat(repository.findWithUserAndCategoryByIdAndDeletedFalse(deleted.getId())).isEmpty();
         assertThat(repository.findWithUserAndCategoryByIdAndDeletedFalse(old.getId()).orElseThrow().getCategory().getName()).isEqualTo("Java");
     }

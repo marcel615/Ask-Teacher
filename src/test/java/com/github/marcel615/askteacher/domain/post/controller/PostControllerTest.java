@@ -94,4 +94,14 @@ class PostControllerTest extends WebTestSupport {
                     .andExpect(jsonPath("$.status").value(error.getStatus())).andExpect(jsonPath("$.message").value(error.getMessage()));
         }
     }
+
+    @Test void updateMissingPostReturnsExistingNotFoundContract() throws Exception {
+        when(service.updatePost(eq(3L), eq(7L), any(), any()))
+                .thenThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        mvc.perform(multipart(HttpMethod.PATCH, "/api/posts/3")
+                        .file(new MockMultipartFile("files", "a.png", "image/png", new byte[]{1}))
+                        .param("categoryId", "2").param("title", "title").param("content", "body").with(authenticated()))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value(ErrorCode.POST_NOT_FOUND.getMessage()));
+    }
 }
