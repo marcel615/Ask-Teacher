@@ -3,6 +3,8 @@ package com.github.marcel615.askteacher.domain.category.controller;
 import com.github.marcel615.askteacher.domain.category.dto.CategoryResponse;
 import com.github.marcel615.askteacher.domain.category.service.CategoryService;
 import com.github.marcel615.askteacher.support.WebTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -13,12 +15,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CategoryController.class)
 class CategoryControllerTest extends WebTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("카테고리 조회 API")
+    @Nested
+    @DisplayName("카테고리 조회 API")
     class Scenarios {
         @MockitoBean CategoryService service;
 
-        @org.junit.jupiter.api.DisplayName("공개 목록은 카테고리 배열과 빈 배열을 반환한다")
+        @DisplayName("공개 목록은 카테고리 배열과 빈 배열을 반환한다")
         @Test void publicListReturnsArrayAndEmptyArray() throws Exception {
             when(service.getCategories()).thenReturn(List.of(new CategoryResponse(2L, "Java")), List.of());
             mvc.perform(get("/api/categories")).andExpect(status().isOk())

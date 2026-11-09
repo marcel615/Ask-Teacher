@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.integration;
 
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.support.ApiTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -14,13 +16,13 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UploadLimitIntegrationTest extends ApiTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("실제 파일 업로드 크기 제한")
+    @Nested
+    @DisplayName("실제 파일 업로드 크기 제한")
     class Scenarios {
         @LocalServerPort int port;
         private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
-        @org.junit.jupiter.api.DisplayName("실제 서블릿은 크기 경계 파일을 허용하고 초과 파일의 생성과 수정을 거부한다")
+        @DisplayName("실제 서블릿은 크기 경계 파일을 허용하고 초과 파일의 생성과 수정을 거부한다")
         @Test void realServletAcceptsExactLimitAndRejectsOversizedCreateAndPatch() throws Exception {
             String token = signupAndLogin("uploader");
             var accepted = send("POST", "/api/posts", token, 10485760);

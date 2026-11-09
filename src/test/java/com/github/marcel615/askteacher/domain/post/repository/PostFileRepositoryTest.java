@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.domain.post.repository;
 
 import com.github.marcel615.askteacher.domain.post.entity.PostFile;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,12 +11,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.*;
 
 class PostFileRepositoryTest extends RepositoryTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 파일 저장과 조회")
+    @Nested
+    @DisplayName("게시글 파일 저장과 조회")
     class Scenarios {
         @Autowired PostFileRepository repository;
 
-        @org.junit.jupiter.api.DisplayName("게시글별 파일을 순서대로 조회하고 메타데이터를 저장한다")
+        @DisplayName("게시글별 파일을 순서대로 조회하고 메타데이터를 저장한다")
         @Test void filesAreScopedToPostOrderedAndMetadataIsPersisted() {
             var user = user("alice");
             var category = category("Java");
@@ -36,7 +38,7 @@ class PostFileRepositoryTest extends RepositoryTestSupport {
             assertThat(repository.findByPostIdOrderByCreatedAtAsc(-1L)).isEmpty();
         }
 
-        @org.junit.jupiter.api.DisplayName("저장 파일 이름의 중복을 거부한다")
+        @DisplayName("저장 파일 이름의 중복을 거부한다")
         @Test void storedFileNameMustBeUnique() {
             var post = post(user("alice"), category("Java"), "title", "body");
             repository.saveAndFlush(PostFile.create(post, "a.png", "same.png", "path", "image/png", 1));

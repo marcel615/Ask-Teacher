@@ -3,6 +3,8 @@ package com.github.marcel615.askteacher.domain.comment.repository;
 import com.github.marcel615.askteacher.domain.comment.entity.Comment;
 import com.github.marcel615.askteacher.domain.commentlike.entity.CommentLike;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -16,13 +18,13 @@ import java.util.ArrayList;
 import static org.assertj.core.api.Assertions.*;
 
 class CommentRepositoryTest extends RepositoryTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("댓글 저장과 조회")
+    @Nested
+    @DisplayName("댓글 저장과 조회")
     class Scenarios {
         @Autowired CommentRepository comments;
         @Autowired DataSource dataSource;
 
-        @org.junit.jupiter.api.DisplayName("최신 댓글 목록은 삭제된 댓글을 제외하고 좋아요 정보를 반환한다")
+        @DisplayName("최신 댓글 목록은 삭제된 댓글을 제외하고 좋아요 정보를 반환한다")
         @Test void latestPageExcludesDeletedAndMapsLikeCountAndCurrentUser() {
             var alice = user("alice");
             var bob = user("bob");
@@ -49,7 +51,7 @@ class CommentRepositoryTest extends RepositoryTestSupport {
             assertThat(comments.findByIdAndDeletedFalse(old.getId())).isPresent();
         }
 
-        @org.junit.jupiter.api.DisplayName("좋아요 수가 같으면 생성일과 ID로 정렬한다")
+        @DisplayName("좋아요 수가 같으면 생성일과 ID로 정렬한다")
         @Test void likeCountSortUsesCreatedAtAndIdAsTieBreakers() {
             var user = user("alice");
             var bob = user("bob");
@@ -66,7 +68,7 @@ class CommentRepositoryTest extends RepositoryTestSupport {
                     .containsExactly(popular.getId(), second.getId(), first.getId());
         }
 
-        @org.junit.jupiter.api.DisplayName("생성일이 같으면 댓글 ID 내림차순으로 정렬한다")
+        @DisplayName("생성일이 같으면 댓글 ID 내림차순으로 정렬한다")
         @Test void latestSortUsesIdDescendingWhenCreatedAtIsEqual() {
             var user = user("alice");
             var post = post(user, category("Java"), "title", "body");
@@ -80,7 +82,7 @@ class CommentRepositoryTest extends RepositoryTestSupport {
                     .containsExactly(second.getId(), first.getId());
         }
 
-        @org.junit.jupiter.api.DisplayName("생성된 스키마에 댓글 조회 인덱스와 삭제 기본값이 있다")
+        @DisplayName("생성된 스키마에 댓글 조회 인덱스와 삭제 기본값이 있다")
         @Test void generatedSchemaContainsCommentLookupIndexAndDeletedDefault() throws SQLException {
             try (var connection = dataSource.getConnection()) {
                 var metadata = connection.getMetaData();

@@ -4,6 +4,8 @@ import com.github.marcel615.askteacher.domain.comment.repository.CommentReposito
 import com.github.marcel615.askteacher.domain.commentlike.repository.CommentLikeRepository;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.support.ApiTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class CommentApiIntegrationTest extends ApiTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("댓글 API 통합 흐름")
+    @Nested
+    @DisplayName("댓글 API 통합 흐름")
     class Scenarios {
 
         @Autowired CommentRepository comments;
@@ -32,7 +34,7 @@ class CommentApiIntegrationTest extends ApiTestSupport {
             comments.deleteAllInBatch();
         }
 
-        @org.junit.jupiter.api.DisplayName("인증 댓글의 생성 수정 삭제에서 검증 작성자 논리 삭제를 적용한다")
+        @DisplayName("인증 댓글의 생성 수정 삭제에서 검증 작성자 논리 삭제를 적용한다")
         @Test void authenticatedCommentLifecycleEnforcesValidationAuthorAndSoftDelete() throws Exception {
             String alice = signupAndLogin("alice");
             String bob = signupAndLogin("bob");
@@ -75,7 +77,7 @@ class CommentApiIntegrationTest extends ApiTestSupport {
                     .andExpect(status().isNotFound());
         }
 
-        @org.junit.jupiter.api.DisplayName("공개와 인증 댓글 목록에 페이지 정렬 좋아요 상태를 적용한다")
+        @DisplayName("공개와 인증 댓글 목록에 페이지 정렬 좋아요 상태를 적용한다")
         @Test void publicAndAuthenticatedListsApplyPagingSortingAndLikedByMe() throws Exception {
             String alice = signupAndLogin("alice");
             String bob = signupAndLogin("bob");
@@ -114,7 +116,7 @@ class CommentApiIntegrationTest extends ApiTestSupport {
                     .andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404));
         }
 
-        @org.junit.jupiter.api.DisplayName("보호된 댓글 API는 누락되거나 잘못된 토큰을 거부한다")
+        @DisplayName("보호된 댓글 API는 누락되거나 잘못된 토큰을 거부한다")
         @Test void protectedCommentApisRejectMissingAndInvalidTokens() throws Exception {
             for (String[] endpoint : new String[][]{
                     {"POST", "/api/posts/1/comments"}, {"PATCH", "/api/comments/1"},
@@ -132,7 +134,7 @@ class CommentApiIntegrationTest extends ApiTestSupport {
             }
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 쓰기는 빈 JSON과 잘못된 JSON을 잘못된 요청으로 거부한다")
+        @DisplayName("댓글 쓰기는 빈 JSON과 잘못된 JSON을 잘못된 요청으로 거부한다")
         @Test void commentWritesRejectEmptyOrMalformedJsonWithBadRequest() throws Exception {
             String token = signupAndLogin("alice");
             Long postId = createPost(token);

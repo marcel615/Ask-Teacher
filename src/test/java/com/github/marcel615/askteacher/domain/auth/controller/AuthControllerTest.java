@@ -4,6 +4,8 @@ import com.github.marcel615.askteacher.domain.auth.dto.*;
 import com.github.marcel615.askteacher.domain.auth.service.AuthService;
 import com.github.marcel615.askteacher.global.exception.*;
 import com.github.marcel615.askteacher.support.WebTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -16,12 +18,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AuthController.class)
 class AuthControllerTest extends WebTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("인증 요청과 응답")
+    @Nested
+    @DisplayName("인증 요청과 응답")
     class Scenarios {
         @MockitoBean AuthService service;
 
-        @org.junit.jupiter.api.DisplayName("회원가입과 로그인 요청을 바인딩하고 응답을 반환한다")
+        @DisplayName("회원가입과 로그인 요청을 바인딩하고 응답을 반환한다")
         @Test void signupAndLoginBindJsonAndReturnDirectDtos() throws Exception {
             var signup = new SignupRequest("a@example.com", "12345678", "ab");
             when(service.signup(signup)).thenReturn(new SignupResponse(1L, signup.email(), signup.nickname()));
@@ -48,7 +50,7 @@ class AuthControllerTest extends WebTestSupport {
                     "{\"email\":\" \",\"password\":\"        \",\"nickname\":\"  \"}");
         }
 
-        @org.junit.jupiter.api.DisplayName("잘못된 회원가입 입력을 거부한다")
+        @DisplayName("잘못된 회원가입 입력을 거부한다")
         @ParameterizedTest @MethodSource("invalidSignup")
         void signupRejectsInvalidInput(String body) throws Exception {
             mvc.perform(post("/api/auth/signup").contentType("application/json").content(body))
@@ -61,14 +63,14 @@ class AuthControllerTest extends WebTestSupport {
                     "{\"email\":\" \",\"password\":\"password\"}", "{\"email\":\"a@example.com\",\"password\":\" \"}");
         }
 
-        @org.junit.jupiter.api.DisplayName("잘못된 로그인 입력을 거부한다")
+        @DisplayName("잘못된 로그인 입력을 거부한다")
         @ParameterizedTest @MethodSource("invalidLogin")
         void loginRejectsInvalidInput(String body) throws Exception {
             mvc.perform(post("/api/auth/login").contentType("application/json").content(body)).andExpect(status().isBadRequest());
             verifyNoInteractions(service);
         }
 
-        @org.junit.jupiter.api.DisplayName("비즈니스 오류의 상태와 응답 본문을 유지한다")
+        @DisplayName("비즈니스 오류의 상태와 응답 본문을 유지한다")
         @Test void businessErrorsKeepStatusAndErrorBody() throws Exception {
             when(service.signup(any())).thenThrow(new CustomException(ErrorCode.DUPLICATE_EMAIL));
             mvc.perform(post("/api/auth/signup").contentType("application/json").content("""
@@ -81,7 +83,7 @@ class AuthControllerTest extends WebTestSupport {
                     """)).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.status").value(401));
         }
 
-        @org.junit.jupiter.api.DisplayName("최대 길이의 닉네임을 허용한다")
+        @DisplayName("최대 길이의 닉네임을 허용한다")
         @Test void nicknameMaximumLengthIsAccepted() throws Exception {
             String nickname = "a".repeat(20);
             mvc.perform(post("/api/auth/signup").contentType("application/json")

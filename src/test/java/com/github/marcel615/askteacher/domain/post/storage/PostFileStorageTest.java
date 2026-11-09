@@ -2,6 +2,8 @@ package com.github.marcel615.askteacher.domain.post.storage;
 
 import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,13 +17,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class PostFileStorageTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 파일 저장")
+    @Nested
+    @DisplayName("게시글 파일 저장")
     class Scenarios {
         @TempDir Path directory;
         private final Post post = Post.createPost(null, null, "title", "body");
 
-        @org.junit.jupiter.api.DisplayName("허용된 MIME과 크기 경계의 파일 바이트와 메타데이터를 저장한다")
+        @DisplayName("허용된 MIME과 크기 경계의 파일 바이트와 메타데이터를 저장한다")
         @ParameterizedTest
         @ValueSource(strings = {"image/jpeg", "image/png", "image/webp", "application/pdf"})
         void allowedMimeAndExactSizeBoundarySaveBytesAndMetadata(String mime) throws Exception {
@@ -37,7 +39,7 @@ class PostFileStorageTest {
             assertThat(Files.readAllBytes(Path.of(file.getFilePath()))).containsExactly(bytes);
         }
 
-        @org.junit.jupiter.api.DisplayName("파일이 없으면 아무것도 생성하지 않는다")
+        @DisplayName("파일이 없으면 아무것도 생성하지 않는다")
         @Test void noFilesDoesNotCreateAnything() throws Exception {
             var storage = new PostFileStorage(directory.resolve("unused").toString(), 4);
             assertThat(storage.store(post, null)).isEmpty();
@@ -45,7 +47,7 @@ class PostFileStorageTest {
             assertThat(directory.resolve("unused")).doesNotExist();
         }
 
-        @org.junit.jupiter.api.DisplayName("빈 파일과 미지원 파일 크기 초과 파일을 쓰기 전에 거부한다")
+        @DisplayName("빈 파일과 미지원 파일 크기 초과 파일을 쓰기 전에 거부한다")
         @Test void rejectsEmptyUnsupportedAndOversizedFilesBeforeWriting() throws Exception {
             var storage = new PostFileStorage(directory.toString(), 4);
             assertThatThrownBy(() -> storage.store(post, Collections.singletonList(null))).extracting("errorCode").isEqualTo(ErrorCode.EMPTY_FILE);
@@ -58,7 +60,7 @@ class PostFileStorageTest {
             try (var paths = Files.list(directory)) { assertThat(paths).isEmpty(); }
         }
 
-        @org.junit.jupiter.api.DisplayName("입출력과 상태 오류를 파일 저장 오류로 변환한다")
+        @DisplayName("입출력과 상태 오류를 파일 저장 오류로 변환한다")
         @Test void ioAndIllegalStateFailuresBecomeStorageError() throws Exception {
             MultipartFile file = mock(MultipartFile.class);
             when(file.getOriginalFilename()).thenReturn("a.png");

@@ -10,6 +10,8 @@ import com.github.marcel615.askteacher.domain.post.repository.PostRepository;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +31,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("댓글 처리")
+    @Nested
+    @DisplayName("댓글 처리")
     class Scenarios {
         @Mock CommentRepository comments;
         @Mock CommentLikeRepository likes;
@@ -55,7 +57,7 @@ class CommentServiceTest {
             ReflectionTestUtils.setField(comment, "updatedAt", auditDate);
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 생성 시 내용을 정리하고 응답을 초기화한다")
+        @DisplayName("댓글 생성 시 내용을 정리하고 응답을 초기화한다")
         @Test void createTrimsContentAndInitializesResponse() {
             when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
             when(users.findById(1L)).thenReturn(Optional.of(user));
@@ -66,7 +68,7 @@ class CommentServiceTest {
             assertThat(result.likedByMe()).isFalse();
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 목록은 게시글과 페이지를 검증하고 정렬 쿼리를 선택한다")
+        @DisplayName("댓글 목록은 게시글과 페이지를 검증하고 정렬 쿼리를 선택한다")
         @Test void listValidatesPostPagingAndSelectsSortQuery() {
             when(posts.findByIdAndDeletedFalse(3L)).thenReturn(Optional.of(post));
             var row = new CommentResponse(4L, 3L, 1L, "alice", "body", 2, true, LocalDateTime.now(), LocalDateTime.now());
@@ -85,7 +87,7 @@ class CommentServiceTest {
                     .extracting("errorCode").isEqualTo(ErrorCode.POST_NOT_FOUND);
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 수정은 작성자를 확인하고 내용과 좋아요 상태를 반환한다")
+        @DisplayName("댓글 수정은 작성자를 확인하고 내용과 좋아요 상태를 반환한다")
         @Test void updateChecksAuthorTrimsAndIncludesLikeState() {
             when(comments.findByIdAndDeletedFalse(4L)).thenReturn(Optional.of(comment));
             when(likes.countByCommentId(4L)).thenReturn(2L);
@@ -105,7 +107,7 @@ class CommentServiceTest {
                     .extracting("errorCode").isEqualTo(ErrorCode.COMMENT_AUTHOR_MISMATCH);
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 삭제는 좋아요를 제거하고 논리 삭제하며 없는 댓글을 거부한다")
+        @DisplayName("댓글 삭제는 좋아요를 제거하고 논리 삭제하며 없는 댓글을 거부한다")
         @Test void deleteRemovesLikesThenSoftDeletesAndRejectsMissing() {
             when(comments.findByIdAndDeletedFalse(4L)).thenReturn(Optional.of(comment));
             service.deleteComment(4L, 1L);

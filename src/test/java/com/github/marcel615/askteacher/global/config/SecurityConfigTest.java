@@ -1,5 +1,7 @@
 package com.github.marcel615.askteacher.global.config;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -21,8 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SecurityConfigTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("API 접근 인증")
+    @Nested
+    @DisplayName("API 접근 인증")
     class Scenarios {
 
         private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -33,7 +35,7 @@ class SecurityConfigTest {
         @Autowired
         private ObjectMapper objectMapper;
 
-        @org.junit.jupiter.api.DisplayName("공개 조회 API는 인증을 요구하지 않는다")
+        @DisplayName("공개 조회 API는 인증을 요구하지 않는다")
         @Test
         void publicReadEndpointsDoNotRequireAuthentication() throws Exception {
             assertThat(statusOfGet("/api/categories")).isEqualTo(200);
@@ -42,7 +44,7 @@ class SecurityConfigTest {
             assertThat(statusOfGet("/api/posts/999999/comments")).isEqualTo(404);
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 작성 API는 인증을 요구한다")
+        @DisplayName("게시글 작성 API는 인증을 요구한다")
         @ParameterizedTest
         @ValueSource(strings = {"", "Bearer invalid-token"})
         void postWriteEndpointRequiresAuthentication(String authorization) throws Exception {

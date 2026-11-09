@@ -16,6 +16,8 @@ import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,8 +35,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @Transactional
 class PostServiceIntegrationTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 서비스 통합 흐름")
+    @Nested
+    @DisplayName("게시글 서비스 통합 흐름")
     class Scenarios {
 
         @Autowired
@@ -49,7 +51,7 @@ class PostServiceIntegrationTest {
         @Autowired
         private CategoryRepository categoryRepository;
 
-        @org.junit.jupiter.api.DisplayName("게시글 생성에 인증 사용자를 적용한다")
+        @DisplayName("게시글 생성에 인증 사용자를 적용한다")
         @Test
         void createPostUsesAuthenticatedUser() {
             User user = userRepository.save(User.createUser("post-create@example.com", "password", "postCreateUser"));
@@ -65,7 +67,7 @@ class PostServiceIntegrationTest {
             assertThat(savedPost.getContent()).isEqualTo("created content");
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 상세를 반환한다")
+        @DisplayName("게시글 상세를 반환한다")
         @Test
         void getPostReturnsPostDetail() {
             User user = userRepository.save(User.createUser("post-detail@example.com", "password", "postDetailUser"));
@@ -82,7 +84,7 @@ class PostServiceIntegrationTest {
             assertThat(response.createdAt()).isNotNull();
         }
 
-        @org.junit.jupiter.api.DisplayName("없는 게시글 상세 조회는 오류를 반환한다")
+        @DisplayName("없는 게시글 상세 조회는 오류를 반환한다")
         @Test
         void getPostThrowsWhenPostDoesNotExist() {
             assertThatThrownBy(() -> postService.getPost(999999L))
@@ -91,7 +93,7 @@ class PostServiceIntegrationTest {
                     .isEqualTo(ErrorCode.POST_NOT_FOUND);
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 목록은 삭제되지 않은 게시글만 반환한다")
+        @DisplayName("게시글 목록은 삭제되지 않은 게시글만 반환한다")
         @Test
         void getPostsReturnsOnlyNotDeletedPosts() {
             User user = userRepository.save(User.createUser("post-list@example.com", "password", "postListUser"));
@@ -120,7 +122,7 @@ class PostServiceIntegrationTest {
             assertThat(response.newPost()).isTrue();
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 목록을 생성일 내림차순으로 반환한다")
+        @DisplayName("게시글 목록을 생성일 내림차순으로 반환한다")
         @Test
         void getPostsReturnsPostsOrderedByCreatedAtDesc() {
             User user = userRepository.save(User.createUser("post-list-sort@example.com", "password", "postListSortUser"));
@@ -139,7 +141,7 @@ class PostServiceIntegrationTest {
                     .containsSequence(recentPost.getId(), oldPost.getId());
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 수정은 카테고리 제목 내용을 변경한다")
+        @DisplayName("게시글 수정은 카테고리 제목 내용을 변경한다")
         @Test
         void updatePostUpdatesCategoryTitleAndContent() {
             User user = userRepository.save(User.createUser("post-update@example.com", "password", "postUpdateUser"));
@@ -162,7 +164,7 @@ class PostServiceIntegrationTest {
             assertThat(updatedPost.getContent()).isEqualTo("updated content");
         }
 
-        @org.junit.jupiter.api.DisplayName("작성자가 아니면 게시글 수정을 거부한다")
+        @DisplayName("작성자가 아니면 게시글 수정을 거부한다")
         @Test
         void updatePostThrowsForbiddenWhenUserIsNotAuthor() {
             User author = userRepository.save(User.createUser("post-author@example.com", "password", "postAuthor"));
@@ -177,7 +179,7 @@ class PostServiceIntegrationTest {
                     .isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
         }
 
-        @org.junit.jupiter.api.DisplayName("없는 게시글 수정은 오류를 반환한다")
+        @DisplayName("없는 게시글 수정은 오류를 반환한다")
         @Test
         void updatePostThrowsWhenPostDoesNotExist() {
             User user = userRepository.save(User.createUser("post-missing@example.com", "password", "postMissingUser"));
@@ -190,7 +192,7 @@ class PostServiceIntegrationTest {
                     .isEqualTo(ErrorCode.POST_NOT_FOUND);
         }
 
-        @org.junit.jupiter.api.DisplayName("없는 카테고리로 게시글 수정 시 오류를 반환한다")
+        @DisplayName("없는 카테고리로 게시글 수정 시 오류를 반환한다")
         @Test
         void updatePostThrowsWhenCategoryDoesNotExist() {
             User user = userRepository.save(User.createUser("post-category-missing@example.com", "password", "postCategoryMissing"));
@@ -204,7 +206,7 @@ class PostServiceIntegrationTest {
                     .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
         }
 
-        @org.junit.jupiter.api.DisplayName("게시글 삭제는 논리 삭제하고 수정일을 갱신한다")
+        @DisplayName("게시글 삭제는 논리 삭제하고 수정일을 갱신한다")
         @Test
         void deletePostSoftDeletesPostAndUpdatesUpdatedAt() {
             User user = userRepository.save(User.createUser("post-delete@example.com", "password", "postDeleteUser"));
@@ -221,7 +223,7 @@ class PostServiceIntegrationTest {
             assertThat(deletedPost.getUpdatedAt()).isAfter(oldUpdatedAt);
         }
 
-        @org.junit.jupiter.api.DisplayName("작성자가 아니면 게시글 삭제를 거부한다")
+        @DisplayName("작성자가 아니면 게시글 삭제를 거부한다")
         @Test
         void deletePostThrowsForbiddenWhenUserIsNotAuthor() {
             User author = userRepository.save(User.createUser("post-delete-author@example.com", "password", "postDeleteAuthor"));
@@ -235,7 +237,7 @@ class PostServiceIntegrationTest {
                     .isEqualTo(ErrorCode.POST_AUTHOR_MISMATCH);
         }
 
-        @org.junit.jupiter.api.DisplayName("없는 게시글 삭제는 오류를 반환한다")
+        @DisplayName("없는 게시글 삭제는 오류를 반환한다")
         @Test
         void deletePostThrowsWhenPostDoesNotExist() {
             assertThatThrownBy(() -> postService.deletePost(999999L, 1L))
@@ -244,7 +246,7 @@ class PostServiceIntegrationTest {
                     .isEqualTo(ErrorCode.POST_NOT_FOUND);
         }
 
-        @org.junit.jupiter.api.DisplayName("이미 삭제된 게시글 삭제는 오류를 반환한다")
+        @DisplayName("이미 삭제된 게시글 삭제는 오류를 반환한다")
         @Test
         void deletePostThrowsWhenPostAlreadyDeleted() {
             User user = userRepository.save(User.createUser("post-already-deleted@example.com", "password", "postAlreadyDeletedUser"));

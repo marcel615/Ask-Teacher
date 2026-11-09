@@ -8,6 +8,8 @@ import com.github.marcel615.askteacher.domain.post.entity.Post;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +26,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentLikeServiceTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("댓글 좋아요 처리")
+    @Nested
+    @DisplayName("댓글 좋아요 처리")
     class Scenarios {
         @Mock CommentRepository comments;
         @Mock CommentLikeRepository likes;
@@ -46,7 +48,7 @@ class CommentLikeServiceTest {
             when(users.findById(1L)).thenReturn(Optional.of(user));
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 좋아요를 저장하고 현재 개수를 반환한다")
+        @DisplayName("댓글 좋아요를 저장하고 현재 개수를 반환한다")
         @Test void likeSavesAndReturnsCurrentCount() {
             existing();
             when(likes.countByCommentId(4L)).thenReturn(3L);
@@ -56,7 +58,7 @@ class CommentLikeServiceTest {
             assertThat(result.likedByMe()).isTrue();
         }
 
-        @org.junit.jupiter.api.DisplayName("중복 좋아요와 제약 조건 충돌을 충돌 오류로 변환한다")
+        @DisplayName("중복 좋아요와 제약 조건 충돌을 충돌 오류로 변환한다")
         @Test void duplicateAndConstraintRaceMapToConflict() {
             existing();
             when(likes.existsByCommentIdAndUserId(4L, 1L)).thenReturn(true, false);
@@ -67,7 +69,7 @@ class CommentLikeServiceTest {
                     .isEqualTo(ErrorCode.DUPLICATE_COMMENT_LIKE);
         }
 
-        @org.junit.jupiter.api.DisplayName("댓글 좋아요 취소를 반영하고 감소한 개수를 반환한다")
+        @DisplayName("댓글 좋아요 취소를 반영하고 감소한 개수를 반환한다")
         @Test void unlikeDeletesFlushesAndReturnsReducedCount() {
             existing();
             CommentLike like = CommentLike.create(comment, user);
@@ -81,7 +83,7 @@ class CommentLikeServiceTest {
             assertThat(result.likedByMe()).isFalse();
         }
 
-        @org.junit.jupiter.api.DisplayName("대상이나 좋아요가 없으면 정의된 오류를 반환한다")
+        @DisplayName("대상이나 좋아요가 없으면 정의된 오류를 반환한다")
         @Test void missingResourcesAndMissingLikeUseDefinedErrors() {
             assertThatThrownBy(() -> service.likeComment(4L, 1L)).extracting("errorCode")
                     .isEqualTo(ErrorCode.COMMENT_NOT_FOUND);

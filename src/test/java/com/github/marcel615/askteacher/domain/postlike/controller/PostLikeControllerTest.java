@@ -3,6 +3,8 @@ package com.github.marcel615.askteacher.domain.postlike.controller;
 import com.github.marcel615.askteacher.domain.postlike.service.PostLikeService;
 import com.github.marcel615.askteacher.global.exception.*;
 import com.github.marcel615.askteacher.support.WebTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -12,12 +14,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PostLikeController.class)
 class PostLikeControllerTest extends WebTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("게시글 좋아요 API")
+    @Nested
+    @DisplayName("게시글 좋아요 API")
     class Scenarios {
         @MockitoBean PostLikeService service;
 
-        @org.junit.jupiter.api.DisplayName("인증 사용자를 전달하고 빈 응답 본문을 반환한다")
+        @DisplayName("인증 사용자를 전달하고 빈 응답 본문을 반환한다")
         @Test void passesAuthenticatedUserAndReturnsEmptyBodies() throws Exception {
             mvc.perform(post("/api/posts/3/likes").with(authenticated())).andExpect(status().isOk()).andExpect(content().string(""));
             mvc.perform(delete("/api/posts/3/likes").with(authenticated())).andExpect(status().isNoContent()).andExpect(content().string(""));
@@ -25,7 +27,7 @@ class PostLikeControllerTest extends WebTestSupport {
             verify(service).unlikePost(3L, 7L);
         }
 
-        @org.junit.jupiter.api.DisplayName("비즈니스 오류와 잘못된 경로를 응답으로 변환한다")
+        @DisplayName("비즈니스 오류와 잘못된 경로를 응답으로 변환한다")
         @Test void mapsBusinessErrorsAndInvalidPath() throws Exception {
             doThrow(new CustomException(ErrorCode.INVALID_INPUT_VALUE)).when(service).likePost(3L, 7L);
             doThrow(new CustomException(ErrorCode.POST_NOT_FOUND)).when(service).unlikePost(3L, 7L);

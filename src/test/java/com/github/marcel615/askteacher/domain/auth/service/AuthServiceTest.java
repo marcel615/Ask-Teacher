@@ -5,6 +5,8 @@ import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.security.jwt.JwtTokenProvider;
 import com.github.marcel615.askteacher.global.exception.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -17,15 +19,15 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("회원가입과 로그인")
+    @Nested
+    @DisplayName("회원가입과 로그인")
     class Scenarios {
         @Mock UserRepository users;
         @Mock PasswordEncoder passwords;
         @Mock JwtTokenProvider tokens;
         @InjectMocks AuthService service;
 
-        @org.junit.jupiter.api.DisplayName("회원가입 시 비밀번호를 암호화하고 저장된 사용자를 반환한다")
+        @DisplayName("회원가입 시 비밀번호를 암호화하고 저장된 사용자를 반환한다")
         @Test void signupEncodesPasswordAndMapsSavedUser() {
             when(passwords.encode("password123")).thenReturn("encoded");
             when(users.save(any())).thenAnswer(invocation -> {
@@ -38,7 +40,7 @@ class AuthServiceTest {
                     .isEqualTo(new SignupResponse(12L, "a@example.com", "nickname"));
         }
 
-        @org.junit.jupiter.api.DisplayName("이메일이 중복되면 저장하지 않는다")
+        @DisplayName("이메일이 중복되면 저장하지 않는다")
         @Test void duplicateEmailStopsBeforeSaving() {
             when(users.existsByEmail("a@example.com")).thenReturn(true);
             assertThatThrownBy(() -> service.signup(new SignupRequest("a@example.com", "password123", "nick")))
@@ -47,7 +49,7 @@ class AuthServiceTest {
             verify(users, never()).save(any());
         }
 
-        @org.junit.jupiter.api.DisplayName("닉네임이 중복되면 저장하지 않는다")
+        @DisplayName("닉네임이 중복되면 저장하지 않는다")
         @Test void duplicateNicknameStopsBeforeSaving() {
             when(users.existsByNickname("nick")).thenReturn(true);
             assertThatThrownBy(() -> service.signup(new SignupRequest("a@example.com", "password123", "nick")))
@@ -55,7 +57,7 @@ class AuthServiceTest {
             verify(users, never()).save(any());
         }
 
-        @org.junit.jupiter.api.DisplayName("일치하는 사용자의 로그인에 토큰을 발급한다")
+        @DisplayName("일치하는 사용자의 로그인에 토큰을 발급한다")
         @Test void loginIssuesTokenForMatchedUser() {
             User user = User.createUser("a@example.com", "encoded", "nick");
             ReflectionTestUtils.setField(user, "id", 12L);
@@ -66,7 +68,7 @@ class AuthServiceTest {
                     .isEqualTo(new LoginResponse("token", "Bearer"));
         }
 
-        @org.junit.jupiter.api.DisplayName("이메일이 없거나 비밀번호가 틀리면 로그인을 거부한다")
+        @DisplayName("이메일이 없거나 비밀번호가 틀리면 로그인을 거부한다")
         @Test void missingEmailAndWrongPasswordRejectLogin() {
             LoginRequest request = new LoginRequest("a@example.com", "wrong");
             assertThatThrownBy(() -> service.login(request)).extracting("errorCode").isEqualTo(ErrorCode.INVALID_LOGIN_INFO);

@@ -4,6 +4,8 @@ import com.github.marcel615.askteacher.domain.category.entity.Category;
 import com.github.marcel615.askteacher.domain.post.storage.PostFileStorage;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.support.ApiTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -23,13 +25,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ApiIntegrationTest extends ApiTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("인증과 게시글 API 통합 흐름")
+    @Nested
+    @DisplayName("인증과 게시글 API 통합 흐름")
     class Scenarios {
         @Autowired PasswordEncoder passwordEncoder;
         @Autowired PostFileStorage storage;
 
-        @org.junit.jupiter.api.DisplayName("회원가입과 로그인은 암호화 중복 및 잘못된 인증 정보를 검증한다")
+        @DisplayName("회원가입과 로그인은 암호화 중복 및 잘못된 인증 정보를 검증한다")
         @Test void signupLoginEncryptsPasswordAndRejectsDuplicatesAndBadCredentials() throws Exception {
             String token = signupAndLogin("alice");
             assertThat(token).isNotBlank();
@@ -54,7 +56,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             assertThat(users.count()).isEqualTo(1);
         }
 
-        @org.junit.jupiter.api.DisplayName("공개 카테고리 API는 DB 결과와 빈 목록을 반환한다")
+        @DisplayName("공개 카테고리 API는 DB 결과와 빈 목록을 반환한다")
         @Test void publicCategoriesMapDatabaseAndHandleEmptyList() throws Exception {
             mvc.perform(get("/api/categories")).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(categoryId))
                     .andExpect(jsonPath("$[0].name").value("Test Java"));
@@ -62,7 +64,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             mvc.perform(get("/api/categories")).andExpect(status().isOk()).andExpect(content().json("[]"));
         }
 
-        @org.junit.jupiter.api.DisplayName("첨부파일과 좋아요를 포함한 게시글 생성부터 논리 삭제까지 처리한다")
+        @DisplayName("첨부파일과 좋아요를 포함한 게시글 생성부터 논리 삭제까지 처리한다")
         @Test void postLifecycleWithFilesLikesAndSoftDelete() throws Exception {
             String token = signupAndLogin("alice");
             byte[] png = {1, 2, 3};
@@ -127,7 +129,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             mvc.perform(delete("/api/posts/{id}/likes", id).header("Authorization", "Bearer " + token)).andExpect(status().isNotFound());
         }
 
-        @org.junit.jupiter.api.DisplayName("삭제된 게시글은 수정하거나 파일을 추가할 수 없다")
+        @DisplayName("삭제된 게시글은 수정하거나 파일을 추가할 수 없다")
         @Test void deletedPostCannotBeUpdatedOrGainFiles() throws Exception {
             String token = signupAndLogin("alice");
             byte[] originalBytes = {1, 2, 3};
@@ -173,7 +175,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             try (var paths = Files.list(uploadDirectory)) { assertThat(paths.sorted().toList()).isEqualTo(pathsBefore); }
         }
 
-        @org.junit.jupiter.api.DisplayName("검색 페이지 카테고리 조합과 빈 검색어를 처리한다")
+        @DisplayName("검색 페이지 카테고리 조합과 빈 검색어를 처리한다")
         @Test void searchPagingCategoryCombinationsAndBlankKeyword() throws Exception {
             String token = signupAndLogin("alice");
             Long oldId = createPost(token);
@@ -204,7 +206,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             mvc.perform(get("/api/posts").param("page", "bad")).andExpect(status().isBadRequest());
         }
 
-        @org.junit.jupiter.api.DisplayName("대상 누락 작성자 불일치 잘못된 입력은 게시글을 변경하지 않는다")
+        @DisplayName("대상 누락 작성자 불일치 잘못된 입력은 게시글을 변경하지 않는다")
         @Test void missingResourcesWrongAuthorAndInvalidInputDoNotModifyPost() throws Exception {
             String token = signupAndLogin("alice");
             String other = signupAndLogin("bob");
@@ -233,7 +235,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             assertThat(posts.count()).isEqualTo(1);
         }
 
-        @org.junit.jupiter.api.DisplayName("잘못된 파일은 게시글 생성과 수정을 롤백한다")
+        @DisplayName("잘못된 파일은 게시글 생성과 수정을 롤백한다")
         @Test void invalidFilesRollbackCreateAndUpdate() throws Exception {
             String token = signupAndLogin("alice");
             Long id = createPost(token);
@@ -252,7 +254,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             try (var paths = Files.list(uploadDirectory)) { assertThat(paths).isEmpty(); }
         }
 
-        @org.junit.jupiter.api.DisplayName("실제 저장 실패는 500을 반환하고 DB를 롤백한다")
+        @DisplayName("실제 저장 실패는 500을 반환하고 DB를 롤백한다")
         @Test void realStorageFailureReturns500AndRollsBackDatabase() throws Exception {
             String token = signupAndLogin("alice");
             Long id = createPost(token);
@@ -277,7 +279,7 @@ class ApiIntegrationTest extends ApiTestSupport {
             }
         }
 
-        @org.junit.jupiter.api.DisplayName("보호된 API는 누락되거나 유효하지 않은 토큰을 명세대로 거부한다")
+        @DisplayName("보호된 API는 누락되거나 유효하지 않은 토큰을 명세대로 거부한다")
         @ParameterizedTest
         @CsvSource({
                 "POST, /api/posts, missing", "POST, /api/posts, invalid",

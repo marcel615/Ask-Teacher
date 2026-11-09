@@ -3,18 +3,20 @@ package com.github.marcel615.askteacher.domain.user.repository;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.type.UserRole;
 import com.github.marcel615.askteacher.support.RepositoryTestSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import static org.assertj.core.api.Assertions.*;
 
 class UserRepositoryTest extends RepositoryTestSupport {
-    @org.junit.jupiter.api.Nested
-    @org.junit.jupiter.api.DisplayName("사용자 저장과 조회")
+    @Nested
+    @DisplayName("사용자 저장과 조회")
     class Scenarios {
         @Autowired UserRepository repository;
 
-        @org.junit.jupiter.api.DisplayName("사용자를 저장하고 이메일과 닉네임으로 조회한다")
+        @DisplayName("사용자를 저장하고 이메일과 닉네임으로 조회한다")
         @Test void persistsAndFindsUserByEmailAndNickname() {
             Long id = user("alice").getId();
             flushAndClear();
@@ -30,7 +32,7 @@ class UserRepositoryTest extends RepositoryTestSupport {
             assertThat(repository.existsByNickname("missing")).isFalse();
         }
 
-        @org.junit.jupiter.api.DisplayName("사용자 이메일의 중복을 거부한다")
+        @DisplayName("사용자 이메일의 중복을 거부한다")
         @Test void emailMustBeUnique() {
             user("alice");
             flushAndClear();
@@ -38,7 +40,7 @@ class UserRepositoryTest extends RepositoryTestSupport {
                     .isInstanceOf(DataIntegrityViolationException.class);
         }
 
-        @org.junit.jupiter.api.DisplayName("사용자 닉네임의 중복을 거부한다")
+        @DisplayName("사용자 닉네임의 중복을 거부한다")
         @Test void nicknameMustBeUnique() {
             user("alice");
             flushAndClear();
