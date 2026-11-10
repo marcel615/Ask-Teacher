@@ -28,8 +28,8 @@
 
 ## 설계 / 테스트
 
-- [ ] API 구현이 `docs/api-spec.md`와 충돌하지 않는가?
-- [ ] Entity 구현이 `docs/erd.md`와 충돌하지 않는가?
+- [ ] API 구현이 [Specs main의 API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md)와 충돌하지 않는가?
+- [ ] Entity 구현이 [Specs main의 ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)와 충돌하지 않는가?
 - [ ] `./gradlew test`가 통과했는가?
 
 ## 자동 API 테스트

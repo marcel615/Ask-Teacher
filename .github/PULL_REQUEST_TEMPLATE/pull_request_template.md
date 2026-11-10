@@ -33,8 +33,8 @@
 - [ ] current-task.md 범위 안에서만 작업했다.
 - [ ] 작업 브랜치가 `feature/*` 형식이다.
 - [ ] PR base가 `develop`이다.
-- [ ] API 명세와 구현이 일치한다.
-- [ ] ERD와 Entity 구현이 일치한다.
+- [ ] [Specs main의 API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md)와 구현이 일치한다.
+- [ ] [Specs main의 ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)와 Entity 구현이 일치한다.
 - [ ] DTO와 Entity를 분리했다.
 - [ ] Validation과 예외 처리를 확인했다.
 - [ ] 테스트 결과를 확인했다.

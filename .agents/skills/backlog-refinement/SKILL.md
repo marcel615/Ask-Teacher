@@ -21,7 +21,7 @@ description: 사용자가 백로그 정제를 요청하면 승인된 GitHub Proj
 
 ## 진행
 
-1. Project 비전·필드와 Approved Draft, `docs/requirements.md`, `.github/ISSUE_TEMPLATE/feature_request.yml`, 필요한 구현을 확인한다. 열린·닫힌 Issue와 Project 후보·전환 이력을 페이지별로 조회해 후보 ID, 관련 Issue, 중복과 충돌을 검사한다. 상태·접근 권한·조회 확인에 실패하면 접근 방법에 따라 허용된 대안과 기존 인증을 확인한다. 그래도 필수 정보를 확보하지 못하면 외부 변경을 중단하고 확인한 내용과 남은 장애를 보고한다.
+1. Project 비전·필드와 Approved Draft, [Specs main의 요구사항](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md), `.github/ISSUE_TEMPLATE/feature_request.yml`, 필요한 구현을 확인한다. 열린·닫힌 Issue와 Project 후보·전환 이력을 페이지별로 조회해 후보 ID, 관련 Issue, 중복과 충돌을 검사한다. 상태·접근 권한·조회 확인에 실패하면 접근 방법에 따라 허용된 대안과 기존 인증을 확인한다. 그래도 필수 정보를 확보하지 못하면 외부 변경을 중단하고 확인한 내용과 남은 장애를 보고한다.
 2. Architect에게 후보와 확인된 맥락을 전달해 목표, 범위·제외 범위, 완료 조건과 미결정 사항을 구체화한다. 목표 자체가 불명확하면 Draft로 유지하고 필요한 사용자 결정을 보고한다. Architect를 사용할 수 없거나 결과를 확인할 수 없으면 중단한다.
 3. Main은 Issue 템플릿의 필드에 맞춰 본문을 작성한다. API·DB 등 해당 없는 항목은 해당 없음을, 결정되지 않은 항목은 확인 필요를 명시한다. 배경과 목표, Candidate ID, 완료 조건, 제외 범위와 중복 검사 근거를 보존한다. 세부 결정이 필요하면 질문을 본문에 적고 `needs: decision` 라벨을 사용한다. 라벨, 우선순위 및 필요한 권한을 확인할 수 없으면 외부 변경 전에 중단한다.
 4. 실제 필요와 근거를 바탕으로 `priority: high`, `priority: medium`, `priority: low` 중 하나를 정한다. GitHub Blocked by는 실제 선행 관계가 확인된 경우에만 설정한다. 불확실하면 추측하지 않고 사용자에게 확인한다. 목표가 명확한 후보의 세부 사항만 미결정이라면 Issue로 전환하되 Backlog에 두고 `needs: decision`으로 자동 선정을 막는다.

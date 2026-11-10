@@ -37,7 +37,8 @@
 - 상세 워크플로우: `.agents/skills/issue-driven-dev/SKILL.md`
 - 빠른 지시문: `docs/prompts/quick.md`
 - Issue 템플릿: `.github/ISSUE_TEMPLATE/feature_request.yml`
-- 요구사항·API·ERD: `docs/requirements.md`, `docs/api-spec.md`, `docs/erd.md`
+- 공통 명세 공식 원본: `marcel615/Ask-Teacher-specs`의 `main` 브랜치. Backend에는 원문을 복사하지 않고 작업별 요약과 원본 링크만 둔다.
+- 요구사항·API·ERD: [요구사항](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md), [API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md), [ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)
 - 리뷰 기준: `docs/review-checklist.md`
 - 임시 작업 기록: `docs/current-work-log.md`
 - 기능 후보와 승인: GitHub Projects `Ask Teacher`의 Draft Issue
