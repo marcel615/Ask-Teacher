@@ -2,6 +2,7 @@
 
 상세 절차와 승인 경계는 `.agents/skills/issue-driven-dev/SKILL.md`와 `AGENTS.md`를 따른다.
 아래 문구는 예시이며 같은 뜻의 자연스러운 지시도 사용할 수 있다.
+공통 명세는 Specs main의 [요구사항](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md), [API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md), [ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)를 확인한다.
 Main은 품질 게이트를 확인하고 승인된 Issue 범위에서 진행한다.
 사용자 판단이 필요한 상황과 PR merge는 사용자에게 남긴다.
 

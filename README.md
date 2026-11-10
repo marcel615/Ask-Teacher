@@ -102,7 +102,9 @@ src/main/java/com/github/marcel615/askteacher
     └── post
 ```
 
-## ERD
+## ERD 개요
+
+아래 그림은 주요 테이블의 개요이며 전체 구조와 제약조건은 [Specs main의 ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)에서 확인합니다.
 
 ```mermaid
 erDiagram
@@ -139,7 +141,17 @@ erDiagram
     }
 ```
 
-## API 명세
+## 공통 명세
+
+공식 원본은 `marcel615/Ask-Teacher-specs`의 `main` 브랜치입니다. Backend에는 명세를 복사하지 않고 작업별 요약과 원본 링크를 남깁니다.
+
+- [요구사항](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md)
+- [API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md)
+- [ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)
+
+### API 개요
+
+아래 응답 형식과 API 표는 개요입니다. 전체 API와 상세 계약은 공식 명세에서 확인합니다.
 
 공통 성공 응답 형식:
 
@@ -171,7 +183,7 @@ erDiagram
 | 게시글 수정 | PATCH | `/api/posts/{postId}` | 작성자 검증 후 게시글 수정 |
 | 게시글 삭제 | DELETE | `/api/posts/{postId}` | 게시글 soft delete |
 
-자세한 API 요청/응답 예시는 [`docs/api-spec.md`](docs/api-spec.md)를 참고합니다.
+자세한 API 요청/응답 예시는 [Specs의 API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md)를 참고합니다.
 
 ## 실행 방법
 

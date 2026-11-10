@@ -7,6 +7,10 @@ description: 사용자의 작업 시작 지시에 따라 GitHub Issue를 선정�
 
 공통 권한·예외는 `AGENTS.md`를 따른다. Main은 한 번에 한 Issue를 조율하고 Architect → Builder → Architect 리뷰 → Reporter를 순차 호출한다. Main은 이 스킬을 읽고 각 인계에 Issue, 작업·필수 규칙, 승인 범위와 금지 행동, 관련 파일, 직전 결과와 기대 산출물을 전달한다. Subagent는 필요한 문서만 확인하고 작업이나 범위가 불명확하면 Main에게 확인한다. 같은 파일을 동시에 수정하지 않는다. 사용자 정의 역할을 호출할 수 없거나 결과를 받지 못하면 중단하고 보고한다.
 
+## 공통 명세
+
+공식 원본은 `marcel615/Ask-Teacher-specs`의 `main` 브랜치다. [요구사항](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md), [API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md), [ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)를 확인한다. Backend에는 원문을 복사하지 않고 Issue 관련 요약과 원본 링크를 둔다. 명세 변경 필요성은 판단·보고하며, 이 절차만으로 Specs 저장소 수정 권한을 부여하지 않는다.
+
 ## 역할
 
 - Main: 품질 게이트 판단과 단계 조율, 외부 상태 확인 및 사용자 보고.
@@ -67,7 +71,7 @@ description: 사용자의 작업 시작 지시에 따라 GitHub Issue를 선정�
 
 1. 사용자가 Issue를 지정하거나 위 선정 절차에서 후보를 확인해 작업을 시작하면 Main은 현재 Issue, 단계, 승인 내역과 Git 상태를 확인한다. 같은 Issue를 재개할 때 기록과 상태를 보존한다. 새 Issue로 전환할 때 이전 Issue의 종료와 devlog 반영을 확인한다. 관련 없는 변경이나 확인 불가 상태가 있으면 중단한다.
 2. Main은 자동 선정과 직접 지정 모두에서, `needs: decision`이 이미 해제됐거나 다른 세션에서 해제된 경우에도 관련 Issue 본문과 사용자 코멘트를 확인한다. 확인된 각 결정과 코멘트 링크·작성자를 Architect에게 전달한다. Architect는 Issue와 템플릿, 전달된 결정을 확인하고 설계와 `current-task.md` 초안에 결정 및 출처를 반영한다. 요구사항이 부족하면 Main을 통해 사용자에게 묻는다. Issue 선정은 위 절차를 따르고, 후속 Issue 생성과 사용자 결정 반영은 위 절차를 따른다. 그 외 Issue 생성·수정은 사용자 승인 후 진행한다.
-3. Architect는 설계, 요구사항·API·ERD 변경 필요성, `current-task.md` 초안과 검증 계획을 제시한다. Main이 설계 게이트를 통과시키면 Architect가 승인 범위의 설계 문서를 반영한다. 원본 명세는 복사하지 않고 Issue 관련 요약과 참조를 둔다.
+3. Architect는 설계, 요구사항·API·ERD 변경 필요성, `current-task.md` 초안과 검증 계획을 제시한다. Main이 설계 게이트를 통과시키면 Architect가 승인 범위의 설계를 docs/current-task.md에 반영한다. 공통 명세는 Specs main을 기준으로 변경 필요성을 판단·보고하고 원문 대신 Issue 관련 요약과 원본 링크를 둔다.
 4. Builder는 구현·브랜치 계획을 제시한다. Main은 develop 최신 상태와 전환 가능 여부를 확인하고 feature 브랜치를 만든다. 기존 변경을 보존하고 충돌 또는 불확실성이 있으면 중단한다.
 5. 새 Issue 시작 시 이전 Issue의 devlog 반영을 확인한 뒤 `docs/current-work-log.md`를 초기화한다. 같은 Issue 재개 시 초기화하지 않는다. Builder는 주요 결정, 문제·해결, 예상과 다른 동작과 중요한 검증 결과만 기록한다.
 6. Builder는 Main이 승인한 범위에서 구현하고 필요한 자동 테스트와 전체 테스트를 실행한다. 변경 파일, 실행 명령·결과와 미검증 사항을 전달한다. Main은 구현 게이트 통과 후 commit·push하고 `feature/*` → `develop` PR을 생성한다.
