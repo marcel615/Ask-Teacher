@@ -4,8 +4,8 @@
 
 - [ ] `docs/current-task.md` 범위 안에서 작업했는가?
 - [ ] 불필요한 변경이 없는가?
-- [ ] 작업 브랜치가 `feature/*` 형식인가?
-- [ ] PR 방향이 `feature/*` → `develop`인가?
+- [ ] 작업 브랜치가 `ai-dlc.yaml`의 `development.branch_pattern` 형식인가?
+- [ ] PR 방향이 설정된 작업 브랜치 → Backend 기준 브랜치인가?
 
 ## 백엔드 구조
 
@@ -28,9 +28,9 @@
 
 ## 설계 / 테스트
 
-- [ ] API 구현이 [Specs main의 API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md)와 충돌하지 않는가?
-- [ ] Entity 구현이 [Specs main의 ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)와 충돌하지 않는가?
-- [ ] `./gradlew test`가 통과했는가?
+- [ ] API 구현이 `ai-dlc.yaml`의 `contracts.api`가 지정한 API 명세와 충돌하지 않는가?
+- [ ] Entity 구현이 `ai-dlc.yaml`의 `contracts.erd`가 지정한 ERD와 충돌하지 않는가?
+- [ ] `ai-dlc.yaml`의 기본 테스트 명령이 통과했는가?
 
 ## 자동 API 테스트
 

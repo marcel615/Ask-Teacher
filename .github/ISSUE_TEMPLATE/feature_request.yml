@@ -7,7 +7,7 @@ body:
     id: background
     attributes:
       label: 배경
-      description: 왜 필요한 기능인지와 공식 요구사항 참조를 작성한다. 공식 원본은 https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md
+      description: 왜 필요한 기능인지와 공식 요구사항 참조를 작성한다. 공식 원본은 ai-dlc.yaml의 활성 서비스 requirements와 repository_role을 확인한다.
       placeholder: |
         예)
         사용자가 기존 게시글의 카테고리, 제목, 내용을 수정할 수 있어야 한다.
@@ -46,7 +46,7 @@ body:
     id: api
     attributes:
       label: API 요구사항
-      description: 필요한 API Method, URL, Request, Response와 공식 API 명세 참조를 작성한다. 공식 원본은 https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md
+      description: 필요한 API Method, URL, Request, Response와 공식 API 명세 참조를 작성한다. 공식 원본은 ai-dlc.yaml의 활성 서비스 contracts.api와 repository_role을 확인한다.
       placeholder: |
         예)
         Method: PATCH
@@ -75,7 +75,7 @@ body:
     id: entity
     attributes:
       label: Entity / DB 변경 필요 여부
-      description: Entity나 DB 구조 변경이 필요한 경우 필드와 제약조건을 작성한다. 필요 없으면 "변경 없음"이라고 작성한다. 공식 ERD는 https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md
+      description: Entity나 DB 구조 변경이 필요한 경우 필드와 제약조건을 작성한다. 필요 없으면 "변경 없음"이라고 작성한다. 공식 ERD는 ai-dlc.yaml의 활성 서비스 contracts.erd와 repository_role을 확인한다.
       placeholder: |
         예)
         변경 없음
@@ -155,7 +155,7 @@ body:
         - [ ] Validation 적용
         - [ ] 예외 처리 적용
         - [ ] 관련 Controller / Service / Repository 테스트 및 API 통합 테스트 작성
-        - [ ] ./gradlew test 통과 및 테스트 범위·실행 결과·미검증 사항 기록
+        - [ ] ai-dlc.yaml의 활성 서비스 development.test_command 통과 및 테스트 범위·실행 결과·미검증 사항 기록
         - [ ] API 문서 반영
     validations:
       required: true
