@@ -8,12 +8,12 @@
 
 ## PR 방향
 
-- base: `develop`
-- compare: `feature/*`
+- base: `ai-dlc.yaml`의 `repositories.backend.default_branch`
+- compare: `ai-dlc.yaml`의 `development.branch_pattern`
 
 ## 테스트 결과
 
-- [ ] `./gradlew test` 통과
+- [ ] `ai-dlc.yaml`의 기본 테스트 명령 통과
 - [ ] 관련 계층 테스트와 API 통합 테스트 작성·보완
 - [ ] 테스트 DB·인증 설정·파일 경로 격리 확인
 - 테스트 범위:
@@ -31,10 +31,10 @@
 ## 체크리스트
 
 - [ ] current-task.md 범위 안에서만 작업했다.
-- [ ] 작업 브랜치가 `feature/*` 형식이다.
-- [ ] PR base가 `develop`이다.
-- [ ] [Specs main의 API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md)와 구현이 일치한다.
-- [ ] [Specs main의 ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)와 Entity 구현이 일치한다.
+- [ ] 작업 브랜치가 설정된 작업 브랜치 형식이다.
+- [ ] PR base가 설정된 Backend 기준 브랜치이다.
+- [ ] `ai-dlc.yaml`의 `contracts.api`가 지정한 API 명세와 구현이 일치한다.
+- [ ] `ai-dlc.yaml`의 `contracts.erd`가 지정한 ERD와 Entity 구현이 일치한다.
 - [ ] DTO와 Entity를 분리했다.
 - [ ] Validation과 예외 처리를 확인했다.
 - [ ] 테스트 결과를 확인했다.

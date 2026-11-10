@@ -1,9 +1,13 @@
 # AGENTS.md
 
+## 프로젝트 설정
+
+- 작업 시작 시 루트 `ai-dlc.yaml`의 `active_service`에 해당하는 `services` 항목을 읽는다. 저장소·Project·명세·브랜치·테스트 값은 해당 설정을 사용한다. 운영 문서의 상태·필드·라벨 이름은 역할을 나타내며 실제 값은 설정의 `project`와 `labels`에서 확인한다. 명세 URL은 해당 항목의 `repository_role`이 가리키는 저장소의 `repository`, `default_branch`, `path`로 구성한다. 설정은 연결 데이터이며 이 문서의 역할·권한·승인 조건을 변경하지 않는다. 설정이 없거나 불명확하면 추측하지 않고 중단한다.
+
 ## 핵심 규칙
 
 - 사용자는 PM이자 최종 승인자다. 한 번에 하나의 Issue만 진행한다.
-- 작업과 기능 후보는 GitHub Projects의 `Ask Teacher`에서 관리한다. 프로젝트 비전과 후보 승인 상태는 사용자만 변경하며, 목표일은 사용자가 지정한 경우에만 기록한다.
+- 작업과 기능 후보는 설정된 GitHub Project에서 관리한다. 프로젝트 비전과 후보 승인 상태는 사용자만 변경하며, 목표일은 사용자가 지정한 경우에만 기록한다.
 - Issue 작성·확장은 `.github/ISSUE_TEMPLATE`을 참고하고, 요구사항이 불명확하면 사용자에게 확인한다.
 - 구현 기준은 Main이 품질 게이트로 승인한 `docs/current-task.md`이며 범위 밖은 구현하지 않는다. 사용자가 특정 작업에서 이 절차를 생략하도록 지시한 경우 그 승인 범위를 따른다.
 - 사용자가 작업 시작을 지시하면 Main은 지정된 Issue 또는 선정 기준에 따라 선택한 Issue 하나를 품질 게이트와 아래 예외를 지켜 설계·구현·검증하고 PR을 생성한다.
@@ -27,27 +31,26 @@
 
 ## 브랜치
 
-- 기준 브랜치: `develop`
-- 작업 브랜치: `feature/issue-번호-작업명`
-- PR 방향: `feature/*` → `develop`
-- `main`이나 `develop`에서 직접 구현하지 않는다.
+- 기준 브랜치: `repositories.backend.default_branch`
+- 작업 브랜치: `development.branch_pattern`
+- PR 방향: `development.branch_prefix`로 시작하는 브랜치 → 기준 브랜치
+- `development.protected_branches`의 브랜치에서 직접 구현하지 않는다.
 
 ## 참고 문서
 
 - 상세 워크플로우: `.agents/skills/issue-driven-dev/SKILL.md`
 - 빠른 지시문: `docs/prompts/quick.md`
 - Issue 템플릿: `.github/ISSUE_TEMPLATE/feature_request.yml`
-- 공통 명세 공식 원본: `marcel615/Ask-Teacher-specs`의 `main` 브랜치. Backend에는 원문을 복사하지 않고 작업별 요약과 원본 링크만 둔다.
-- 요구사항·API·ERD: [요구사항](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/requirements.md), [API 명세](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/api-spec.md), [ERD](https://github.com/marcel615/Ask-Teacher-specs/blob/main/docs/erd.md)
+- 공통 명세 공식 원본: 설정의 `requirements`, `contracts.api`, `contracts.erd`와 각각의 `repository_role`을 따른다. Backend에는 원문을 복사하지 않고 작업별 요약과 원본 링크만 둔다.
 - 리뷰 기준: `docs/review-checklist.md`
 - 임시 작업 기록: `docs/current-work-log.md`
-- 기능 후보와 승인: GitHub Projects `Ask Teacher`의 Draft Issue
+- 기능 후보와 승인: 설정된 GitHub Project의 Draft Issue
 - 영구 작업 기록: `docs/devlog/YYYY-MM.md`
 - PR 템플릿: `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
 
 ## 테스트와 기록
 
-- 기본 검증은 `./gradlew test`, Windows PowerShell에서는 `.\gradlew.bat test`다.
+- 기본 검증은 `development.test_command`, Windows PowerShell에서는 `development.test_command_windows`를 따른다.
 - 새 테스트는 `@Nested`로 테스트 대상이나 상황별 소주제를 묶고, 각 그룹과 테스트에 `@DisplayName`으로 의도와 기대 결과를 한국어로 명확히 작성한다. 클래스 전체를 형식적으로 하나의 그룹에 넣지 않는다. 테스트 클래스 이름은 영어로 작성하고, 중첩은 가독성에 필요한 수준으로만 사용한다. 준비·실행·검증을 구분하고 서로 다른 동작은 실패 원인을 파악하기 쉽게 테스트한다.
 - 새 API 또는 변경된 API는 관련 Controller·Service·Repository 테스트와 통합 테스트를 작성·보완한다. 요청·검증·응답·예외, 비즈니스 규칙, 실제 쿼리와 인증부터 DB까지 주요 흐름을 검증한다.
 - 테스트 DB, 인증 설정과 파일 경로를 개발·운영 환경에서 격리하고 데이터와 파일을 정리한다.
