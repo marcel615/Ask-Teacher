@@ -299,10 +299,10 @@ H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 - 특정 Issue 시작: `Issue #번호 작업 시작해.`
 - 기능 아이디어 제안: `기능 아이디어 제안해.`
 - 승인된 후보 정제: `백로그 정제해.`
-- 머지 후 정리: `PR 머지했어. 확인 후 develop 최신화와 브랜치 정리를 진행해.`
+- 머지 후 정리: `PR 머지했어. 확인 후 기준 브랜치 최신화와 브랜치 정리를 진행해.`
 
 이 문구는 고정된 CLI 명령이 아닌 예시입니다. 더 많은 예시는 [빠른 지시문](docs/prompts/quick.md)을 참고하세요.
-기능 제안은 Project에 Pending Draft로 등록되며, 사용자가 승인한 후보만 백로그 정제에서 정식 Issue화를 검토합니다. 정제 후 개발은 자동 시작하지 않습니다.
+기능 제안은 설정의 `project.approval_values.pending` 상태인 Project Draft로 등록되며, 사용자가 승인한 후보만 백로그 정제에서 정식 Issue화를 검토합니다. 정제 후 개발은 자동 시작하지 않습니다.
 
 ### 역할과 진행 순서
 
@@ -318,19 +318,20 @@ H2 검증은 MySQL 고유 동작 검증을 대체하지 않습니다.
 3. Builder가 작업 브랜치에서 승인된 범위를 구현하고 테스트합니다. Main이 구현 게이트를 확인한 뒤 PR을 생성합니다.
 4. Architect가 독립 리뷰하고 필요한 수정과 재검증을 거칩니다. Reporter가 devlog를 작성합니다. AI 리뷰는 팀의 필수 사람 리뷰를 대신하지 않습니다.
 5. Main이 최종 push의 head 기준으로 CI, 필수 리뷰·브랜치 보호 조건, 충돌과 devlog를 확인합니다. 조건이 충족되면 **사용자가 직접 PR을 머지**합니다.
-6. 사용자가 머지를 알리면 Main이 실제 머지와 미반영 변경을 확인하고 `develop` 최신화 및 안전한 브랜치 정리를 진행합니다.
+6. 사용자가 머지를 알리면 Main이 실제 머지와 미반영 변경을 확인하고 설정된 Backend 기준 브랜치 최신화 및 안전한 브랜치 정리를 진행합니다.
 
 요구사항이 불명확하거나 범위 확대, DB 구조·인증·인가 또는 중요 설정 변경, 위험 작업이나 필수 승인이 필요한 경우에는 작업을 중단하고 사용자에게 확인합니다. 테스트·CI·리뷰 문제를 정해진 한도 안에 해결하지 못하거나 상태를 확인할 수 없는 경우에도 중단해 보고합니다.
 
 ### 지침과 현재 상태
 
+- [ai-dlc.yaml](ai-dlc.yaml): 활성 서비스의 저장소, Project, 명세와 개발 설정
 - [AGENTS.md](AGENTS.md): 권한, 브랜치, 테스트와 기록 규칙
 - [Issue 기반 개발 절차](.agents/skills/issue-driven-dev/SKILL.md): 선정 기준, 품질 게이트, 리뷰와 재개 절차
 - [기능 아이디어 제안](.agents/skills/feature-discovery/SKILL.md), [백로그 정제](.agents/skills/backlog-refinement/SKILL.md): 후보 제안과 승인된 후보의 Issue화 절차
 - [역할 설정](.codex/agents/): Architect, Builder, Reporter 설정
 - [현재 작업 설계](docs/current-task.md), [임시 작업 기록](docs/current-work-log.md), [devlog](docs/devlog/): 작업 범위와 검증 기록
 
-위 내용은 저장소에 설정된 절차를 설명합니다. 각 실행의 테스트·CI·리뷰 성공 여부는 해당 작업에서 별도로 확인해야 합니다. [GitHub Projects](https://github.com/users/marcel615/projects/1) 기반 운영을 도입 중이며 자동 상태 전환의 실제 동작과 전체 연동은 통합 검증 전입니다. Jira 연동은 구현되어 있지 않습니다.
+위 내용은 저장소에 설정된 절차를 설명합니다. 각 실행의 테스트·CI·리뷰 성공 여부는 해당 작업에서 별도로 확인해야 합니다. `ai-dlc.yaml`의 활성 서비스 `project.url`이 가리키는 GitHub Project 기반 운영을 도입 중이며 자동 상태 전환의 실제 동작과 전체 연동은 통합 검증 전입니다. Jira 연동은 구현되어 있지 않습니다.
 
 ## 트러블슈팅
 
