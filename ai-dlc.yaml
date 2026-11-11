@@ -11,7 +11,7 @@ services:
         default_branch: main
       backend:
         enabled: true
-        repository: marcel615/Ask-Teacher
+        repository: marcel615/Ask-Teacher-spring
         default_branch: develop
 
     project:
