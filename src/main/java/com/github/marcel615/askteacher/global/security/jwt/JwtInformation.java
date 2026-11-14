@@ -1,13 +1,13 @@
-package com.github.marcel615.askteacher.domain.auth.service;
+package com.github.marcel615.askteacher.global.security.jwt;
 
 import com.github.marcel615.askteacher.domain.auth.dto.response.LoginResponse;
 
-public record IssuedTokens(
+public record JwtInformation(
         LoginResponse response,
         String refreshToken
 ) {
     @Override
     public String toString() {
-        return "IssuedTokens[response=REDACTED, refreshToken=REDACTED]";
+        return "JwtInformation[response=REDACTED, refreshToken=REDACTED]";
     }
 }

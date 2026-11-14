@@ -1,35 +1,25 @@
 package com.github.marcel615.askteacher.domain.auth.controller;
 
-import com.github.marcel615.askteacher.domain.auth.dto.request.LoginRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.request.SignupRequest;
-import com.github.marcel615.askteacher.domain.auth.dto.response.LoginResponse;
 import com.github.marcel615.askteacher.domain.auth.dto.response.SignupResponse;
-import com.github.marcel615.askteacher.domain.auth.service.AuthService;
-import com.github.marcel615.askteacher.domain.auth.service.IssuedTokens;
-import com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.support.WebTestSupport;
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
 class AuthControllerTest extends WebTestSupport {
-    @MockitoBean
-    AuthService service;
 
     @Nested
     @DisplayName("회원가입 요청과 응답")
@@ -99,71 +89,4 @@ class AuthControllerTest extends WebTestSupport {
         }
     }
 
-    @Nested
-    @DisplayName("로그인 요청과 응답")
-    class Login {
-        @DisplayName("로그인 요청을 바인딩하고 응답을 반환한다")
-        @Test
-        void loginBindsJsonAndReturnsResponse() throws Exception {
-            LoginRequest login = new LoginRequest("a@example.com", "12345678");
-            when(service.login(login)).thenReturn(new IssuedTokens(new LoginResponse("token", "Bearer", 900), "refresh"));
-            mvc.perform(post("/api/auth/login")
-                            .with(csrf())
-                            .contentType("application/json")
-                            .content("""
-                    {"email":"a@example.com","password":"12345678"}
-                    """))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.accessToken").value("token"))
-                    .andExpect(jsonPath("$.tokenType").value("Bearer"));
-            verify(service).login(login);
-        }
-
-        static Stream<String> invalidLogin() {
-            return Stream.of("{}", "{\"email\":\"bad\",\"password\":\"password\"}",
-                    "{\"email\":\" \",\"password\":\"password\"}", "{\"email\":\"a@example.com\",\"password\":\" \"}");
-        }
-
-        @DisplayName("잘못된 로그인 입력을 거부한다")
-        @ParameterizedTest
-        @MethodSource("invalidLogin")
-        void loginRejectsInvalidInput(String body) throws Exception {
-            mvc.perform(post("/api/auth/login")
-                            .with(csrf())
-                            .contentType("application/json")
-                            .content(body))
-                    .andExpect(status().isBadRequest());
-            verifyNoInteractions(service);
-        }
-
-        @DisplayName("로그인 정보 오류는 401을 반환한다")
-        @Test
-        void loginBusinessErrorReturnsUnauthorized() throws Exception {
-            when(service.login(any())).thenThrow(new CustomException(ErrorCode.INVALID_LOGIN_INFO));
-            mvc.perform(post("/api/auth/login")
-                            .with(csrf())
-                            .contentType("application/json")
-                            .content("""
-                    {"email":"a@example.com","password":"12345678"}
-                    """))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status").value(401));
-        }
-    }
-
-    @Nested
-    @DisplayName("로그아웃 장애 응답")
-    class Logout {
-        @DisplayName("로그아웃 중 Redis 장애는 503으로 구분한다")
-        @Test
-        void logoutStorageFailureReturnsServiceUnavailable() throws Exception {
-            doThrow(new RedisUnavailableException(new RuntimeException()))
-                    .when(service).logout(any(), isNull());
-            mvc.perform(post("/api/auth/logout")
-                            .with(csrf())
-                            .cookie(new Cookie("refreshToken", "token")))
-                    .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.status").value(503));
-        }
-    }
 }

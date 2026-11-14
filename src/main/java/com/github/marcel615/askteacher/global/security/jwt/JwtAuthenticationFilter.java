@@ -1,6 +1,5 @@
 package com.github.marcel615.askteacher.global.security.jwt;
 
-import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,7 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final String VERIFIED_ATTRIBUTE = JwtAuthenticationFilter.class.getName() + ".verified";
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisSessionStore sessions;
+    private final JwtRegistry sessions;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {

@@ -1,17 +1,26 @@
 package com.github.marcel615.askteacher.global.config;
 
-import com.github.marcel615.askteacher.global.exception.ErrorCode;
-import com.github.marcel615.askteacher.global.response.ErrorResponse;
+import com.github.marcel615.askteacher.domain.auth.service.AuthService;
+import com.github.marcel615.askteacher.global.security.AskTeacherAccessDeniedHandler;
+import com.github.marcel615.askteacher.global.security.AskTeacherAuthenticationEntryPoint;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetailsService;
+import com.github.marcel615.askteacher.global.security.SecurityResponseWriter;
 import com.github.marcel615.askteacher.global.security.SignedCsrfTokenRepository;
 import com.github.marcel615.askteacher.global.security.jwt.JwtAuthenticationFilter;
-import jakarta.servlet.http.HttpServletResponse;
+import com.github.marcel615.askteacher.global.security.jwt.JwtLoginFailureHandler;
+import com.github.marcel615.askteacher.global.security.jwt.JwtLoginFilter;
+import com.github.marcel615.askteacher.global.security.jwt.JwtLoginSuccessHandler;
+import com.github.marcel615.askteacher.global.security.jwt.JwtLogoutFilter;
+import com.github.marcel615.askteacher.global.security.jwt.JwtLogoutHandler;
+import com.github.marcel615.askteacher.global.security.jwt.RefreshTokenCookieProvider;
+import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -30,9 +39,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -75,7 +83,15 @@ public class SecurityConfig {
             SignedCsrfTokenRepository csrfTokenRepository,
             CsrfTokenRequestAttributeHandler csrfRequestHandler,
             AuthenticationEntryPoint authenticationEntryPoint,
-            AccessDeniedHandler accessDeniedHandler
+            AccessDeniedHandler accessDeniedHandler,
+            AuthenticationManager authenticationManager,
+            JsonMapper objectMapper,
+            Validator validator,
+            JwtLoginSuccessHandler loginSuccessHandler,
+            JwtLoginFailureHandler loginFailureHandler,
+            JwtLogoutHandler logoutHandler,
+            RefreshTokenCookieProvider cookies,
+            SecurityResponseWriter responses
     ) throws Exception {
         PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -91,6 +107,7 @@ public class SecurityConfig {
 
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
         http.formLogin(form -> form.disable());
+        http.logout(logout -> logout.disable());
         http.httpBasic(basic -> basic.disable());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exceptions -> exceptions
@@ -119,7 +136,25 @@ public class SecurityConfig {
                 .authenticated());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        JwtLoginFilter loginFilter = new JwtLoginFilter(
+                authenticationManager,
+                new JacksonJsonHttpMessageConverter(objectMapper),
+                validator,
+                loginSuccessHandler,
+                loginFailureHandler,
+                responses
+        );
+        JwtLogoutFilter logoutFilter = new JwtLogoutFilter(logoutHandler, cookies, responses);
+        http.addFilterAfter(loginFilter, JwtAuthenticationFilter.class);
+        http.addFilterAfter(logoutFilter, JwtLoginFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration() {
+        FilterRegistrationBean<JwtAuthenticationFilter> registration = new FilterRegistrationBean<>(jwtAuthenticationFilter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -133,31 +168,37 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint(ObjectMapper objectMapper) {
-        return (request, response, exception) -> writeError(response, objectMapper, ErrorCode.UNAUTHORIZED);
+    public SecurityResponseWriter securityResponseWriter(ObjectMapper objectMapper) {
+        return new SecurityResponseWriter(objectMapper);
     }
 
     @Bean
-    public AccessDeniedHandler accessDeniedHandler(ObjectMapper objectMapper) {
-        return (request, response, exception) -> {
-            response.setStatus(403);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            ErrorResponse errorResponse = ErrorResponse.of(403, "접근이 거부되었습니다.");
-            objectMapper.writeValue(response.getWriter(), errorResponse);
-        };
+    public AuthenticationEntryPoint authenticationEntryPoint(SecurityResponseWriter responses) {
+        return new AskTeacherAuthenticationEntryPoint(responses);
     }
 
-    private static void writeError(
-            HttpServletResponse response,
-            ObjectMapper objectMapper,
-            ErrorCode errorCode
-    ) throws IOException {
-        response.setStatus(errorCode.getStatus());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        ErrorResponse errorResponse = ErrorResponse.of(errorCode.getStatus(), errorCode.getMessage());
-        objectMapper.writeValue(response.getWriter(), errorResponse);
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler(SecurityResponseWriter responses) {
+        return new AskTeacherAccessDeniedHandler(responses);
+    }
+
+    @Bean
+    public JwtLoginSuccessHandler loginSuccessHandler(
+            AuthService authService,
+            RefreshTokenCookieProvider cookies,
+            SecurityResponseWriter responses
+    ) {
+        return new JwtLoginSuccessHandler(authService, cookies, responses);
+    }
+
+    @Bean
+    public JwtLoginFailureHandler loginFailureHandler(SecurityResponseWriter responses) {
+        return new JwtLoginFailureHandler(responses);
+    }
+
+    @Bean
+    public JwtLogoutHandler logoutHandler(AuthService authService, RefreshTokenCookieProvider cookies) {
+        return new JwtLogoutHandler(authService, cookies);
     }
 
     @Bean

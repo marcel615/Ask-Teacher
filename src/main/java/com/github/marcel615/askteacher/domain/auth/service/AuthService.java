@@ -1,24 +1,21 @@
 package com.github.marcel615.askteacher.domain.auth.service;
 
-import com.github.marcel615.askteacher.domain.auth.dto.request.LoginRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.request.SignupRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.response.LoginResponse;
 import com.github.marcel615.askteacher.domain.auth.dto.response.SignupResponse;
-import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
 import com.github.marcel615.askteacher.domain.auth.session.RefreshToken;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
 import com.github.marcel615.askteacher.global.exception.CustomException;
 import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
+import com.github.marcel615.askteacher.global.security.jwt.JwtInformation;
+import com.github.marcel615.askteacher.global.security.jwt.JwtRegistry;
 import com.github.marcel615.askteacher.global.security.jwt.JwtTokenProvider;
 import com.github.marcel615.askteacher.global.security.jwt.VerifiedAccessToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +29,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
-    private final RedisSessionStore sessionStore;
+    private final JwtRegistry sessionStore;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -55,25 +51,13 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public IssuedTokens login(LoginRequest request) {
-        UsernamePasswordAuthenticationToken credentials = UsernamePasswordAuthenticationToken.unauthenticated(
-                request.email(),
-                request.password()
-        );
-        Authentication authentication;
-        try {
-            authentication = authenticationManager.authenticate(credentials);
-        } catch (AuthenticationException exception) {
-            throw new CustomException(ErrorCode.INVALID_LOGIN_INFO);
-        }
-
-        AskTeacherUserDetails principal = (AskTeacherUserDetails) authentication.getPrincipal();
+    public JwtInformation issueFor(AskTeacherUserDetails principal) {
         RefreshToken refreshToken = executeRedis(() -> sessionStore.login(principal.id()));
         return issueTokens(refreshToken);
     }
 
     @Transactional(readOnly = true)
-    public IssuedTokens refresh(String refreshTokenValue) {
+    public JwtInformation refresh(String refreshTokenValue) {
         RefreshToken refreshToken = executeRedis(() -> sessionStore.rotate(refreshTokenValue));
         if (refreshToken == null) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
@@ -96,7 +80,7 @@ public class AuthService {
         }
     }
 
-    private IssuedTokens issueTokens(RefreshToken refreshToken) {
+    private JwtInformation issueTokens(RefreshToken refreshToken) {
         User user = userRepository.findById(refreshToken.userId())
                 .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
 
@@ -110,7 +94,7 @@ public class AuthService {
                 "Bearer",
                 Duration.ofMinutes(15).toSeconds()
         );
-        return new IssuedTokens(response, refreshToken.value());
+        return new JwtInformation(response, refreshToken.value());
     }
 
     private static <T> T executeRedis(Supplier<T> operation) {
