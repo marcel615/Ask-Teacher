@@ -1,6 +1,9 @@
 package com.github.marcel615.askteacher.support;
 
 import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
+import com.github.marcel615.askteacher.domain.auth.service.AuthService;
+import com.github.marcel615.askteacher.global.security.jwt.RedisJwtRegistry;
+import com.github.marcel615.askteacher.global.security.jwt.RefreshTokenCookieProvider;
 import com.github.marcel615.askteacher.global.config.SecurityConfig;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetailsService;
@@ -18,12 +21,20 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 @ActiveProfiles("test")
-@Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class})
+@Import({
+        SecurityConfig.class,
+        JwtAuthenticationFilter.class,
+        JwtTokenProvider.class,
+        RedisJwtRegistry.class,
+        RefreshTokenCookieProvider.class
+})
 public abstract class WebTestSupport {
     @Autowired
     protected MockMvc mvc;
     @MockitoBean
     protected RedisSessionStore sessions;
+    @MockitoBean
+    protected AuthService service;
     @MockitoBean
     protected AskTeacherUserDetailsService details;
 

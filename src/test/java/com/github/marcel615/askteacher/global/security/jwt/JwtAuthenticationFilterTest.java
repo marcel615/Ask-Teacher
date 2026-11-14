@@ -1,6 +1,5 @@
 package com.github.marcel615.askteacher.global.security.jwt;
 
-import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,7 +23,7 @@ class JwtAuthenticationFilterTest {
         @Test
         void usesSingleVerifiedResult() throws Exception {
             JwtTokenProvider provider = mock(JwtTokenProvider.class);
-            RedisSessionStore sessions = mock(RedisSessionStore.class);
+            JwtRegistry sessions = mock(JwtRegistry.class);
             AskTeacherUserDetails principal = new AskTeacherUserDetails(7L, "", "", "USER");
             UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
                     principal,
@@ -64,7 +63,7 @@ class JwtAuthenticationFilterTest {
             MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/posts");
             request.addHeader("Authorization", "Bearer expired");
             MockHttpServletResponse response = new MockHttpServletResponse();
-            RedisSessionStore sessionStore = mock(RedisSessionStore.class);
+            JwtRegistry sessionStore = mock(JwtRegistry.class);
             JwtAuthenticationFilter filter = new JwtAuthenticationFilter(provider, sessionStore);
             MockFilterChain filterChain = new MockFilterChain();
 

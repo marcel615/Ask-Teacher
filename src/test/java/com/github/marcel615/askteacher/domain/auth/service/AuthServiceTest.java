@@ -1,10 +1,10 @@
 package com.github.marcel615.askteacher.domain.auth.service;
 
-import com.github.marcel615.askteacher.domain.auth.dto.request.LoginRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.request.SignupRequest;
 import com.github.marcel615.askteacher.domain.auth.dto.response.LoginResponse;
 import com.github.marcel615.askteacher.domain.auth.dto.response.SignupResponse;
-import com.github.marcel615.askteacher.domain.auth.session.RedisSessionStore;
+import com.github.marcel615.askteacher.global.security.jwt.JwtRegistry;
+import com.github.marcel615.askteacher.global.security.jwt.JwtInformation;
 import com.github.marcel615.askteacher.domain.auth.session.RefreshToken;
 import com.github.marcel615.askteacher.domain.user.entity.User;
 import com.github.marcel615.askteacher.domain.user.repository.UserRepository;
@@ -21,8 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -41,9 +39,7 @@ class AuthServiceTest {
     @Mock
     JwtTokenProvider jwtTokenProvider;
     @Mock
-    AuthenticationManager authenticationManager;
-    @Mock
-    RedisSessionStore sessionStore;
+    JwtRegistry sessionStore;
     @InjectMocks
     AuthService authService;
 
@@ -110,34 +106,17 @@ class AuthServiceTest {
                     "encoded",
                     "USER"
             );
-            UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
-                    principal,
-                    null,
-                    principal.getAuthorities()
-            );
-            when(authenticationManager.authenticate(any())).thenReturn(authentication);
             when(sessionStore.login(12L)).thenReturn(new RefreshToken(12L, "session", "refresh"));
             when(userRepository.findById(12L)).thenReturn(Optional.of(user));
             when(jwtTokenProvider.createAccessToken(12L, user.getRole(), "session")).thenReturn("token");
-            LoginRequest request = new LoginRequest(user.getEmail(), "password123");
             LoginResponse expectedResponse = new LoginResponse("token", "Bearer", 900);
-            IssuedTokens expectedTokens = new IssuedTokens(expectedResponse, "refresh");
+            JwtInformation expectedTokens = new JwtInformation(expectedResponse, "refresh");
 
-            IssuedTokens issuedTokens = authService.login(request);
+            JwtInformation issuedTokens = authService.issueFor(principal);
 
             assertThat(issuedTokens).isEqualTo(expectedTokens);
         }
 
-        @DisplayName("이메일이 없거나 비밀번호가 틀리면 로그인을 거부한다")
-        @Test
-        void missingEmailAndWrongPasswordRejectLogin() {
-            LoginRequest request = new LoginRequest("a@example.com", "wrong");
-            when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("bad"));
-            assertThatThrownBy(() -> authService.login(request))
-                    .extracting("errorCode")
-                    .isEqualTo(ErrorCode.INVALID_LOGIN_INFO);
-            verifyNoInteractions(jwtTokenProvider);
-        }
     }
 
     @Nested
