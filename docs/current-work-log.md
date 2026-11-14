@@ -30,3 +30,5 @@
 - Architect P2 수정 검증 결과: `.\gradlew.bat test --offline --tests '*AuthSecurityFilterTest' --tests '*AuthServiceTest' --tests '*AuthRedisFailureIntegrationTest'` 33건 성공(21초), 이어 기본 `.\gradlew.bat test` 전체 189건 성공(36초). 두 실행의 실패·오류·건너뜀은 모두 0건이다. 이번 수정·재검증에서 실패는 없었고 git diff --check 통과를 확인했다. 비JSON Accept 한계는 유지하며 계약·운영·환경·DB·RedisSessionStore를 변경하지 않았다.
 - Architect 재리뷰 통과: 발급 일반 오류의 기존 500 JSON·Redis503/Custom 예외 유지와 응답 쓰기 경계 분리를 확인했다. DB 장애 회귀 테스트 및 XML 189건 실패·오류·건너뜀 0건을 직접 확인했고 추가 필수 지적은 없다. Main도 수정 diff와 XML·diff --check를 확인했다. 첫 PR head a793306의 CI test는 SUCCESS였으나 최종 push head 기준으로 다시 확인한다.
 - 독립 추적이 필요한 기술 후속 Issue나 신규 기능 Draft는 생성하지 않았다. 이번 책임 분리에서 새 독립 작업의 필요성이 확인되지 않았고 기존 미지원 Content-Type 500·비JSON Accept/React/운영 Redis 한계는 PR과 기록에 남긴다. Reporter에 월별 devlog 초안을 요청했다.
+- 리뷰 수정 commit 2f00930과 Reporter 월별 devlog append를 Main이 확인했다. 기존 devlog 내용 불변·추가항목 근거·diff --check를 확인해 리뷰·기록 게이트 통과. 최종 제품 전체 테스트 189건 성공 이후 제품 변경은 없고 이번 최종 commit은 devlog·작업 기록만 포함한다. 테스트 전용 Redis는 Main이 stop/rm 완료했다.
+- 최종 push 뒤 추적 파일을 수정하지 않고 실제 GitHub head의 CI·리뷰·보호 조건·충돌·Project 상태를 다시 확인한다. PR #80은 사용자 직접 merge 대기이며 merge 확인 전 feature 브랜치는 보존한다. 최종 CI 결과는 PR과 대화 보고를 재개 근거로 사용한다.
