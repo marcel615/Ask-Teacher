@@ -13,6 +13,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,6 +83,29 @@ class AuthSecurityFilterTest extends WebTestSupport {
                     .andExpect(jsonPath("$.message").value("서버 내부 오류가 발생했습니다."));
 
             verifyNoInteractions(authenticationManager, service);
+        }
+
+        @DisplayName("토큰 발급 중 DB 장애는 500 JSON을 반환하고 Refresh 쿠키를 발급하지 않는다")
+        @Test
+        void issuanceDatabaseFailureReturns500WithoutRefreshCookie() throws Exception {
+            AskTeacherUserDetails principal = new AskTeacherUserDetails(7L, "a@example.com", "encoded", "USER");
+            UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
+                    principal,
+                    null,
+                    principal.getAuthorities()
+            );
+            when(authenticationManager.authenticate(any())).thenReturn(authentication);
+            when(service.issueFor(principal)).thenThrow(new DataAccessResourceFailureException("unavailable"));
+
+            mvc.perform(post("/api/auth/login")
+                            .with(csrf())
+                            .contentType("application/json")
+                            .content("{\"email\":\"a@example.com\",\"password\":\"password\"}"))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(content().contentTypeCompatibleWith("application/json"))
+                    .andExpect(jsonPath("$.status").value(500))
+                    .andExpect(jsonPath("$.message").value("서버 내부 오류가 발생했습니다."))
+                    .andExpect(cookie().doesNotExist("refreshToken"));
         }
 
         @DisplayName("Content-Type 없이 JSON 본문을 보내면 기존 MVC 미지원 타입 오류를 유지한다")

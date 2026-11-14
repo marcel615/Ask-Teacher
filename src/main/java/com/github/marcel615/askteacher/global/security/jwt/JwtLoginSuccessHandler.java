@@ -1,6 +1,9 @@
 package com.github.marcel615.askteacher.global.security.jwt;
 
 import com.github.marcel615.askteacher.domain.auth.service.AuthService;
+import com.github.marcel615.askteacher.domain.auth.service.RedisUnavailableException;
+import com.github.marcel615.askteacher.global.exception.CustomException;
+import com.github.marcel615.askteacher.global.exception.ErrorCode;
 import com.github.marcel615.askteacher.global.security.AskTeacherUserDetails;
 import com.github.marcel615.askteacher.global.security.SecurityResponseWriter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +28,16 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
             Authentication authentication
     ) throws IOException {
         AskTeacherUserDetails principal = (AskTeacherUserDetails) authentication.getPrincipal();
-        JwtInformation information = authService.issueFor(principal);
+        JwtInformation information;
+        try {
+            information = authService.issueFor(principal);
+        } catch (RedisUnavailableException | CustomException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            responses.error(response, ErrorCode.INTERNAL_SERVER_ERROR);
+            return;
+        }
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookies.create(information.refreshToken()));
         responses.json(response, 200, information.response());
     }
