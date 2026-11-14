@@ -8,9 +8,9 @@
 - Main은 2026-11-14 Architect가 제시한 내부 책임 분리 설계와 검증 계획을 승인했다. 공식 외부 계약·인증 정책·인가 규칙은 유지하며 이를 바꾸는 작업은 승인 범위가 아니다.
 - #79·Parent #4 본문에는 과거 사용자 결정이 기록돼 있으나 사용자 코멘트 원본은 없다. 해당 본문은 목표·범위의 참고 자료로 사용하며 CI 사용자 확인·비격리 테스트·테스트 생략 등 별도 절차 예외의 승인 근거로 사용하지 않는다. 공통 기본 검증·독립 리뷰·CI 확인·devlog 절차를 따른다.
 - 이전 문서정비 PR #75의 merge와 해당 작업의 devlog 생략 승인 기록을 Main이 확인했다. 이전 Issue #58의 devlog 반영도 확인한 뒤 임시 설계를 전환한다.
-- 공통 운영 루트: `C:/Users/alswo/Desktop/AI-DLC/ai-dlc-backend`.
-- 대상 프로젝트 루트: `C:/Users/alswo/Desktop/Projects/Ask-Teacher/Ask-Teacher-spring`.
-- 대상 설정: `C:/Users/alswo/Desktop/Projects/Ask-Teacher/Ask-Teacher-spring/ai-dlc.yaml`.
+- 공통 운영 저장소: `ai-dlc-backend`.
+- 대상 프로젝트 저장소: `Ask-Teacher-spring`.
+- 대상 설정: `Ask-Teacher-spring` 저장소 기준 `ai-dlc.yaml`.
 - 브랜치: `feature/issue-79-security-auth-refactor` → `develop`. Main이 fetch 후 HEAD와 origin/develop이 `c6398bf03319f73002b6e01af8c21f221e7438f4`임을 확인하고 작업 브랜치를 생성했다.
 
 ## 공식 원본과 확인 버전
